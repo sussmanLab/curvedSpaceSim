@@ -1,7 +1,6 @@
 #include "std_include.h"
 #include <tclap/CmdLine.h>
 
-using namespace std; // bad form
 using namespace TCLAP;
 int main(int argc, char*argv[])
     {

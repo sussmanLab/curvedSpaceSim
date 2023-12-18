@@ -21,23 +21,24 @@ find_package(CGAL REQUIRED)
 include_directories(
             ${CMAKE_SOURCE_DIR}/inc
             ${CMAKE_SOURCE_DIR}/src
-            #${CMAKE_SOURCE_DIR}/src/utility
-            #${CMAKE_SOURCE_DIR}/src/updaters
-            #${CMAKE_SOURCE_DIR}/src/simulation
-            #${CMAKE_SOURCE_DIR}/src/models
-            #${CMAKE_SOURCE_DIR}/src/analysis
-            #${CMAKE_SOURCE_DIR}/src/databases
+            ${CMAKE_SOURCE_DIR}/src/utility
+            ${CMAKE_SOURCE_DIR}/src/forces
+            ${CMAKE_SOURCE_DIR}/src/updaters
+            ${CMAKE_SOURCE_DIR}/src/simulation
+            ${CMAKE_SOURCE_DIR}/src/models
+            ${CMAKE_SOURCE_DIR}/src/analysis
+            ${CMAKE_SOURCE_DIR}/src/databases
    )
 
 add_subdirectory(src)
 
 set(myLibs
-    #model
-    #updaters
-    #analysis
-    #database
-    #simulation
-    #utility
+    model
+    updaters
+    databases
+    simulation
+    utility
+    forces
     )
 
 link_directories($ENV{LD_LIBRARY_PATH})
@@ -55,8 +56,8 @@ add_executable("${ARG}.out" "${ARG}.cpp" )
 target_link_libraries("${ARG}.out"
     ${myLibs}
     CGAL::CGAL
-    #netcdf
-    #netcdf_c++
+    netcdf
+    netcdf_c++
     #OpenMP::OpenMP_CXX
     )
 endforeach()

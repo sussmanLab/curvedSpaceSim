@@ -20,6 +20,7 @@
 #include <cassert>
 #include <cpuid.h>
 
+using namespace std; // bad form
 //!A utility function for checking if a file exists
 inline bool fileExists(const std::string& name)
     {
