@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.9.0)
+cmake_minimum_required(VERSION 3.11.0)
 
 project(curvedSpaceSimulation LANGUAGES CXX)
 
@@ -17,7 +17,7 @@ else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
 endif()
 find_package(CGAL REQUIRED)
-
+find_package(Boost REQUIRED)
 include_directories(
             ${CMAKE_SOURCE_DIR}/inc
             ${CMAKE_SOURCE_DIR}/src
@@ -55,9 +55,9 @@ foreach(ARG
 add_executable("${ARG}.out" "${ARG}.cpp" )
 target_link_libraries("${ARG}.out"
     ${myLibs}
-    CGAL::CGAL
     netcdf
     netcdf_c++
     #OpenMP::OpenMP_CXX
+    CGAL::CGAL
     )
 endforeach()

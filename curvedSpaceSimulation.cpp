@@ -1,6 +1,8 @@
 #include "std_include.h"
 #include <tclap/CmdLine.h>
 
+#include "triangulatedMeshSpace.h"
+
 using namespace TCLAP;
 int main(int argc, char*argv[])
     {
@@ -17,13 +19,10 @@ int main(int argc, char*argv[])
     //define variables that correspond to the command line parameters
     int programBranch = programBranchSwitchArg.getValue();
     string meshName = meshSwitchArg.getValue();
+    bool verbose = true;
 
-    if(!fileExists(meshName))
-        {
-        cout << meshName << " not found." << endl;
-        return 0;
-        }
-    cout << "program executing branch " << programBranch << " and loading mesh from file" << meshName << endl;
+    triangulatedMeshSpace cgalMesh;
+    cgalMesh.loadMeshFromFile(meshName,verbose);
 
     return 0;
     };

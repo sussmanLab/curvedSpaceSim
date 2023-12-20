@@ -6,4 +6,5 @@ include_directories(incDirs)
 
 add_library(model
     simpleModel.cpp
+    triangulatedMeshSpace.cpp
     )

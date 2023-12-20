@@ -1,5 +1,5 @@
 #include "simpleModel.h"
-/*! \file simpleModel.cpp" */
+/*! \file simpleModel.cpp */
 
 /*!
  * Set the size of basic data structures...
