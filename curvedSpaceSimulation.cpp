@@ -9,6 +9,22 @@
 #include "gradientDescent.h"
 #include "simpleModel.h"
 #include "gaussianRepulsion.h"
+#include "vectorValueDatabase.h"
+
+void getFlatVectorOfPositions(shared_ptr<simpleModel> model, vector<double> &pos)
+    {
+    int N = model->N;
+    pos.resize(3*N);
+    for (int ii = 0; ii < N; ++ii)
+        {
+        point3 p = model->positions[ii].x;
+        pos[3*ii+0] = p[0];
+        pos[3*ii+1] = p[1];
+        pos[3*ii+2] = p[2];
+        }
+    };
+
+
 
 using namespace TCLAP;
 int main(int argc, char*argv[])
@@ -20,17 +36,22 @@ int main(int argc, char*argv[])
     //define the various command line strings that can be passed in...
     //ValueArg<T> variableName("shortflag","longFlag","description",required or not, default value,"value type",CmdLine object to add to
     ValueArg<int> programBranchSwitchArg("z","programBranchSwitch","an integer controlling program branch",false,0,"int",cmd);
-    ValueArg<int> particleNumberSwitchArg("n","number","number of particles to simulate",false,50,"int",cmd);
+    ValueArg<int> particleNumberSwitchArg("n","number","number of particles to simulate",false,20,"int",cmd);
+    ValueArg<int> iterationsArg("i","iterations","number of performTimestep calls to make",false,1000,"int",cmd);
     ValueArg<string> meshSwitchArg("m","meshSwitch","filename of the mesh you want to load",false,"../exampleMeshes/torus_isotropic_remesh.off","string",cmd);
+    SwitchArg reproducibleSwitch("r","reproducible","reproducible random number generation", cmd, true);
+    SwitchArg verboseSwitch("v","verbose","output more things to screen ", cmd, false);
+
     //parse the arguments
     cmd.parse( argc, argv );
     //define variables that correspond to the command line parameters
     int programBranch = programBranchSwitchArg.getValue();
     int N = particleNumberSwitchArg.getValue();
+    int maximumIterations = iterationsArg.getValue();
     string meshName = meshSwitchArg.getValue();
-    double dt = 0.001;
-    bool verbose = true;
-    bool reproducible = true;
+    double dt = 0.01;
+    bool verbose= verboseSwitch.getValue();
+    bool reproducible = reproducibleSwitch.getValue();
 
     shared_ptr<euclideanSpace> R3Space=make_shared<euclideanSpace>();
     shared_ptr<triangulatedMeshSpace> meshSpace=make_shared<triangulatedMeshSpace>();
@@ -54,7 +75,7 @@ int main(int argc, char*argv[])
     configuration->setParticlePositions(pos);
 
 
-    shared_ptr<gaussianRepulsion> pairwiseForce = make_shared<gaussianRepulsion>(1.0,1.0);
+    shared_ptr<gaussianRepulsion> pairwiseForce = make_shared<gaussianRepulsion>(1.0,.5);
     pairwiseForce->setModel(configuration);
 
     shared_ptr<simulation> simulator=make_shared<simulation>();
@@ -71,10 +92,23 @@ int main(int argc, char*argv[])
     profiler timer("various parts of the code");
 vector3 vv;
 
+    vector<double> posToSave;
+    getFlatVectorOfPositions(configuration,posToSave);
 
-    timer.start();
-    simulator->performTimestep();
-    timer.end();
+    vectorValueDatabase vvdat(posToSave.size(),"./testTrajectory.nc",NcFile::Replace);
+    vvdat.writeState(posToSave,0);
+
+    for (int ii = 0; ii < maximumIterations; ++ii)
+        {
+        timer.start();
+        simulator->performTimestep();
+        timer.end();
+        if(ii%100 == 99)
+            {
+            getFlatVectorOfPositions(configuration,posToSave);
+            vvdat.writeState(posToSave,dt*ii);
+            }
+        };
     timer.print();
 
     return 0;
