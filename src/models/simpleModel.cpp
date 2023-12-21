@@ -59,7 +59,11 @@ void simpleModel::findNeighbors(double maximumInteractionRange)
         neighbors[ii] = currentNeighborList;
         //additionally use the space to populate the list of distances and separation vectors
         vector<vector3> placeholderVector;
-        space->distance(positions[ii],targetParticles,neighborDistances[ii],neighborVectors[ii],placeholderVector);
+        vector<vector3> tangentVector;
+        vector<double> distances;
+        space->distance(positions[ii],targetParticles,distances,tangentVector,placeholderVector);
+        neighborDistances[ii] = distances;
+        neighborVectors[ii] = tangentVector;
         };
     };
 

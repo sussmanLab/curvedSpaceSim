@@ -14,7 +14,7 @@ void triangulatedMeshSpace::loadMeshFromFile(std::string filename, bool verbose)
         };
     };
 
-void triangulatedMeshSpace::distance(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent)
+void triangulatedMeshSpace::distance(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent)
     {
     UNWRITTENCODE("all mesh space stuff unwritten");
     };

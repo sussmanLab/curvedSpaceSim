@@ -47,7 +47,9 @@ int main(int argc, char*argv[])
         {
         point3 p(noise.getRealUniform(),noise.getRealUniform(),noise.getRealUniform());
         pos[ii].x=p;
-        pos[ii].faceIndex=0;
+        pos[ii].faceIndex=ii;
+        if(verbose)
+            cout << p[0] <<"  " << p[1] << "  " << p[2] << endl;
         }
     configuration->setParticlePositions(pos);
 

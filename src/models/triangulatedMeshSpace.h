@@ -23,7 +23,7 @@ class triangulatedMeshSpace : public baseSpace
         virtual void displaceParticle(meshPosition &pos, vector3 &displacementVector);
 
         //!Given a source particle and a vector of target points, determine the geodesic distance and store the start and end path tangents along the paths
-        virtual void distance(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent);
+        virtual void distance(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent);
 
 
         //data structures

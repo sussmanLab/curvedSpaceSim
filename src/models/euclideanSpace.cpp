@@ -5,7 +5,7 @@ void euclideanSpace::displaceParticle(meshPosition &pos, vector3 &displacementVe
     pos.x += displacementVector;
     };
 
-void euclideanSpace::distance(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent)
+void euclideanSpace::distance(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent)
     {
     int nTargets = p2.size();
     distances.resize(nTargets);
