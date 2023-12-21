@@ -24,13 +24,14 @@ int main(int argc, char*argv[])
 
     triangulatedMeshSpace cgalMesh;
 
-    profiler loadFileTiming("loading mesh from file");
-
-    loadFileTiming.start();
+    profiler timer("various parts of the code");
     cgalMesh.loadMeshFromFile(meshName,verbose);
-    loadFileTiming.end();
+vector3 vv;
 
-    loadFileTiming.print();
+
+    timer.start();
+    timer.end();
+    timer.print();
 
     return 0;
     };

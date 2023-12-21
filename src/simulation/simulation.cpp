@@ -36,8 +36,6 @@ void Simulation::setConfiguration(ConfigPtr _config)
 void Simulation::setIntegrationTimestep(double dt)
     {
     integrationTimestep = dt;
-    //auto cellConf = cellConfiguration.lock();
-    //cellConf->setDeltaT(dt);
     for (int u = 0; u < updaters.size(); ++u)
         {
         auto upd = updaters[u].lock();
@@ -67,17 +65,17 @@ void Simulation::computeForces()
         {
         auto frc = forceComputers[f].lock();
         bool zeroForces = (f==0);
-       frc->computeForces(Conf->forces,zeroForces);
+        frc->computeForces(Conf->forces,zeroForces);
         };
     };
 
 /*!
 Calls the configuration to displace the degrees of freedom
 */
-void Simulation::moveParticles(vector<double> &displacements,double scale)
+void Simulation::moveParticles(vector<vector3> &displacements)
     {
     auto Conf = configuration.lock();
-    Conf->moveParticles(displacements,scale);
+    Conf->moveParticles(displacements);
     };
 
 /*!

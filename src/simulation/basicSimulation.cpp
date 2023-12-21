@@ -14,8 +14,6 @@ basicSimulation::basicSimulation(): integerTimestep(0), Time(0.),integrationTime
 void basicSimulation::setCurrentTime(double _cTime)
     {
     Time = _cTime;
-    //auto Conf = cellConfiguration.lock();
-    //Conf->setTime(Time);
     };
 
 

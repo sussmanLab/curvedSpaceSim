@@ -19,7 +19,7 @@ class force
         virtual string reportSelfName(){string ans = "unnamed"; return ans;};
 
         //!the call to compute forces, and store them in the referenced variable
-        virtual void computeForces(vector<double> &forces,bool zeroOutForce = true, int type = 0);        
+        virtual void computeForces(vector<vector3> &forces,bool zeroOutForce = true, int type = 0);        
         //!some generic function to set parameters
         virtual void setForceParameters(vector<double> &params);
 

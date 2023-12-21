@@ -19,9 +19,9 @@ void simpleModel::initializeSimpleModel(int n)
     {
     N=n;
 
-    //positions.resize(n);
-    //velocities.resize(n);
-    //forces.resize(n);
+    positions.resize(n);
+    velocities.resize(n);
+    forces.resize(n);
     //types.resize(n);
     //masses.resize(n);
     //radii.resize(n);
@@ -29,8 +29,12 @@ void simpleModel::initializeSimpleModel(int n)
     //vector<int> units(N,0);
     };
 
-void simpleModel::moveParticles(vector<double> & disp, double scale)
+void simpleModel::moveParticles(vector<vector3> &disp)
     {
+    for(int ii = 0; ii < N; ++ii)
+        {
+        space->displaceParticle(positions[ii],disp[ii]);
+        };
     };
 
 /*

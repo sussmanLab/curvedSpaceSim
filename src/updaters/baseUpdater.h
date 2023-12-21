@@ -81,10 +81,6 @@ class updater
             return 0.000000001*(6*sizeof(int) + 2*sizeof(bool) + sizeof(double));
             }
 
-        //!communicate the number of non-object sites across ranks
-        int getNTotal();
-        vector<double> updaterData;
-
         //!The number of iterations performed
         int iterations;
 
@@ -97,8 +93,6 @@ class updater
         int Phase;
         //!some measure of the number of degrees of freedom the equations of motion might need to know about locally
         int Ndof;
-        //!the total number of non-object sites across all ranks
-        int nTotal;
         //!whether the RNGs give reproducible results
         bool reproducible;
         //!The internal time step size

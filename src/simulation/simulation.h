@@ -23,7 +23,7 @@ class Simulation : public basicSimulation, public enable_shared_from_this<Simula
         //!Call the force computer to compute the forces
         virtual void computeForces();
         //!Call the configuration to move particles around
-        virtual void moveParticles(vector<double> &displacements,double scale = 1.0);
+        virtual void moveParticles(vector<vector3> &displacements);
         //!Call every updater to advance one time step
         void performTimestep();
 

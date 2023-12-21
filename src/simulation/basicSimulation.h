@@ -14,7 +14,7 @@ class basicSimulation
         //!Call the force computer to compute the forces
         virtual void computeForces()=0;
         //!Call the configuration to move particles around
-        virtual void moveParticles(vector<double> &displacements,double scale = 1.0)=0;
+        virtual void moveParticles(vector<vector3> &displacements)=0;
         //!compute the potential energy associated with all of the forces
         virtual double computePotentialEnergy(bool verbose =false){return 0.0;};
 
