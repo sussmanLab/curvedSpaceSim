@@ -1,6 +1,7 @@
 #include "std_include.h"
 #include <tclap/CmdLine.h>
 
+#include "profiler.h"
 #include "triangulatedMeshSpace.h"
 
 using namespace TCLAP;
@@ -22,7 +23,14 @@ int main(int argc, char*argv[])
     bool verbose = true;
 
     triangulatedMeshSpace cgalMesh;
+
+    profiler loadFileTiming("loading mesh from file");
+
+    loadFileTiming.start();
     cgalMesh.loadMeshFromFile(meshName,verbose);
+    loadFileTiming.end();
+
+    loadFileTiming.print();
 
     return 0;
     };
