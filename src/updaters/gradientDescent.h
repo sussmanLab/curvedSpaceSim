@@ -12,11 +12,12 @@ class gradientDescent : public updater
             deltaT = _dt;
             };  
 
-        virtual void performUpdater();
+        virtual void performUpdate();
 
         virtual double getMaxForce();
 
     protected:
         vector<vector3> displacements;
 
-    }
+    };
+#endif

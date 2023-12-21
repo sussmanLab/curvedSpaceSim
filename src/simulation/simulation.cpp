@@ -5,7 +5,7 @@
 Add a pointer to the list of updaters, and give that updater a reference to the
 model...
 */
-void Simulation::addUpdater(UpdaterPtr _upd, ConfigPtr _config)
+void simulation::addUpdater(UpdaterPtr _upd, ConfigPtr _config)
     {
     _upd->setModel(_config);
     _upd->setSimulation(getPointer());
@@ -16,7 +16,7 @@ void Simulation::addUpdater(UpdaterPtr _upd, ConfigPtr _config)
 Add a pointer to the list of force computers, and give that FC a reference to the
 model...
 */
-void Simulation::addForce(ForcePtr _force, ConfigPtr _config)
+void simulation::addForce(ForcePtr _force, ConfigPtr _config)
     {
     _force->setModel(_config);
     forceComputers.push_back(_force);
@@ -25,7 +25,7 @@ void Simulation::addForce(ForcePtr _force, ConfigPtr _config)
 /*!
 Set a pointer to the configuration
 */
-void Simulation::setConfiguration(ConfigPtr _config)
+void simulation::setConfiguration(ConfigPtr _config)
     {
     configuration = _config;
     };
@@ -33,7 +33,7 @@ void Simulation::setConfiguration(ConfigPtr _config)
 /*!
 \post the cell configuration and e.o.m. timestep is set to the input value
 */
-void Simulation::setIntegrationTimestep(double dt)
+void simulation::setIntegrationTimestep(double dt)
     {
     integrationTimestep = dt;
     for (int u = 0; u < updaters.size(); ++u)
@@ -46,7 +46,7 @@ void Simulation::setIntegrationTimestep(double dt)
 /*!
 \post the updaters are set to be reproducible if the boolean is true, otherwise the RNG is initialized
 */
-void Simulation::setReproducible(bool reproducible)
+void simulation::setReproducible(bool reproducible)
     {
     for (int u = 0; u < updaters.size(); ++u)
         {
@@ -58,7 +58,7 @@ void Simulation::setReproducible(bool reproducible)
 /*!
 Calls all force computers, and evaluate the self force calculation if the model demands it
 */
-void Simulation::computeForces()
+void simulation::computeForces()
     {
     auto Conf = configuration.lock();
     for (unsigned int f = 0; f < forceComputers.size(); ++f)
@@ -72,7 +72,7 @@ void Simulation::computeForces()
 /*!
 Calls the configuration to displace the degrees of freedom
 */
-void Simulation::moveParticles(vector<vector3> &displacements)
+void simulation::moveParticles(vector<vector3> &displacements)
     {
     auto Conf = configuration.lock();
     Conf->moveParticles(displacements);
@@ -83,7 +83,7 @@ Call all relevant functions to advance the system one time step; every sortPerio
 spatial sorting routine.
 \post The simulation is advanced one time step
 */
-void Simulation::performTimestep()
+void simulation::performTimestep()
     {
     integerTimestep += 1;
     Time += integrationTimestep;

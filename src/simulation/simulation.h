@@ -14,7 +14,7 @@ Simulation objects should have a configuration set, and then at least one update
 being a centralized object controlling the progression of a simulation of cell models, the Simulation
 class provides some interfaces to cell configuration and updater parameter setters.
 */
-class Simulation : public basicSimulation, public enable_shared_from_this<Simulation>
+class simulation : public basicSimulation, public enable_shared_from_this<simulation>
     {
     public:
         //!Pass in a reference to the configuration
@@ -28,7 +28,7 @@ class Simulation : public basicSimulation, public enable_shared_from_this<Simula
         void performTimestep();
 
         //!return a shared pointer to this Simulation
-        shared_ptr<Simulation> getPointer(){ return shared_from_this();};
+        shared_ptr<simulation> getPointer(){ return shared_from_this();};
 //
         //! A vector of updaters that the simulation will loop through
         vector<WeakUpdaterPtr> updaters;
@@ -55,5 +55,5 @@ class Simulation : public basicSimulation, public enable_shared_from_this<Simula
         void setReproducible(bool reproducible);
 
     };
-typedef shared_ptr<Simulation> SimulationPtr;
+typedef shared_ptr<simulation> SimulationPtr;
 #endif

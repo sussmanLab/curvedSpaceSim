@@ -43,10 +43,11 @@ class simpleModel
         virtual void moveParticles(vector<vector3> &displacements);
         //!get the number of degrees of freedom, defaulting to the number of cells
         virtual int getNumberOfParticles(){return N;};
-        //!do everything unusual to compute additional forces... by default, sets forces to zero
-        virtual void computeForces(bool zeroOutForces=false);
+        //!some models have internally defined forces. Do everything unusual to compute additional forces... by default, sets forces to zero
+        virtual void computeForces(bool zeroOutForces=true);
 
-        //void setParticlePositions(vector<dVec> &newPositions);
+        virtual void findNeighbors(double maximumInteractionRange);
+        virtual void setParticlePositions(vector<meshPosition> &newPositions);
 
         //!The number of particles
         int N;
@@ -56,12 +57,21 @@ class simpleModel
         vector<vector3> velocities;
         //!Forces on particles
         vector<vector3> forces;
+
+        //!list of list of neighbor indexes
+        vector<vector<int>> neighbors;
+        //!list of list of separation vectors between neighbors
+        vector<vector<vector3>> neighborVectors;
+        //!list of list of distances neighbors
+        vector<vector<double>> neighborDistances;
+
         //!particle types
         //GPUArray<int> types;
         //!particle radii
         //GPUArray<scalar> radii;
         //!particle masses
         //GPUArray<scalar> masses;
+
 
     protected:
         shared_ptr<baseSpace> space;

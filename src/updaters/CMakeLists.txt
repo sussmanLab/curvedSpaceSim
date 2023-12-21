@@ -6,4 +6,5 @@ include_directories(incDirs)
 
 add_library(updaters
     baseUpdater.cpp
+    gradientDescent.cpp
     )

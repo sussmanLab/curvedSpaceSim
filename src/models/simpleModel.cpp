@@ -22,6 +22,9 @@ void simpleModel::initializeSimpleModel(int n)
     positions.resize(n);
     velocities.resize(n);
     forces.resize(n);
+    neighbors.resize(n);
+    neighborVectors.resize(n);
+    neighborDistances.resize(n);
     //types.resize(n);
     //masses.resize(n);
     //radii.resize(n);
@@ -37,20 +40,48 @@ void simpleModel::moveParticles(vector<vector3> &disp)
         };
     };
 
-/*
-void simpleModel::setParticlePositions(vector<dVec> &newPositions)
+void simpleModel::findNeighbors(double maximumInteractionRange)
+    {
+    //pre-optimization, just return an all-to-all coupling matrix
+    for (int ii =0; ii < N; ++ii)
+        {
+        vector<int> currentNeighborList; 
+        vector<meshPosition> targetParticles;
+        for(int jj = 0; jj < N; ++jj)
+            {
+            if(ii!=jj)
+                {
+                currentNeighborList.push_back(jj);
+                targetParticles.push_back(positions[jj]);
+                };
+            }
+        //populate the list of neighbor indexes
+        neighbors[ii] = currentNeighborList;
+        //additionally use the space to populate the list of distances and separation vectors
+        vector<vector3> placeholderVector;
+        space->distance(positions[ii],targetParticles,neighborDistances[ii],neighborVectors[ii],placeholderVector);
+        };
+    };
+
+
+void simpleModel::setParticlePositions(vector<meshPosition> &newPositions)
     {
     if(N !=newPositions.size())
         initializeSimpleModel(newPositions.size());
-    ArrayHandle<dVec> p(positions);
     for (int pp = 0;pp < N; ++pp)
         {
-        p.data[pp] = newPositions[pp];
-        Box->putInBoxReal(p.data[pp]);
+        positions[pp] = newPositions[pp];
         };
     };
-*/
+
 
 void simpleModel::computeForces(bool zeroOutForces)
     {
+    if(zeroOutForces)
+        {
+        for(int ii = 0; ii < N; ++ii)
+            {
+            forces[ii] = vector3(0.0,0.0,0.0);
+            };
+        }
     };

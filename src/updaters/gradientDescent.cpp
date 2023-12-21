@@ -7,12 +7,12 @@ void gradientDescent::performUpdate()
     sim->computeForces();
     for (int ii = 0; ii < Ndof; ++ii)
         {
-        displacements[ii] = model->deltaT*forces[ii];
+        displacements[ii] = deltaT*model->forces[ii];
         }
     sim->moveParticles(displacements);
     };
 
-void gradientDescent::getMaxForce()
+double gradientDescent::getMaxForce()
     {
     double maximumNorm = 0;
 
