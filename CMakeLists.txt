@@ -6,6 +6,7 @@ project(curvedSpaceSimulation LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 
 #find_package(OpenMP REQUIRED)
+#find_package(MPI REQUIRED)
 
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_MATH_DISABLE_FLOAT128 -fopenmp -frounding-math")
@@ -28,6 +29,7 @@ include_directories(
             ${CMAKE_SOURCE_DIR}/src/models
             ${CMAKE_SOURCE_DIR}/src/analysis
             ${CMAKE_SOURCE_DIR}/src/databases
+            #       ${MPI_INCLUDE_PATH}
    )
 
 add_subdirectory(src)
@@ -51,6 +53,7 @@ set(HEADERS
 # list the names of cpp files corresponding to linked executables you'd like...
 foreach(ARG
         curvedSpaceSimulation
+        #mpiSimulation
         )
 add_executable("${ARG}.out" "${ARG}.cpp" )
 target_link_libraries("${ARG}.out"
@@ -59,5 +62,6 @@ target_link_libraries("${ARG}.out"
     netcdf_c++
     #OpenMP::OpenMP_CXX
     CGAL::CGAL
+    #${MPI_LIBRARIES}
     )
 endforeach()
