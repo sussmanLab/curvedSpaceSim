@@ -36,12 +36,12 @@ class multirankSimulation : public basicSimulation, public enable_shared_from_th
         profiler p3 = profiler("MPI send");
         profiler p2 = profiler("GPU data buffering kernels time");
         //!The configuration of latticeSites
-        WeakMConfigPtr mConfiguration;
+        weak_ptr<mpiModel> mConfiguration;
 
         //!return a shared pointer to this Simulation
         shared_ptr<multirankSimulation> getPointer(){ return shared_from_this();};
         //!Pass in a reference to the configuration
-        void setConfiguration(MConfigPtr _config);
+        void setConfiguration(shared_ptr<mpiModel> _config);
         //! A vector of updaters that the simulation will loop through
         vector<WeakUpdaterPtr> updaters;
         //! A vector of force computes the simulation will loop through
@@ -53,11 +53,11 @@ class multirankSimulation : public basicSimulation, public enable_shared_from_th
         //!Add an updater
         void addUpdater(UpdaterPtr _upd){updaters.push_back(_upd);};
         //!Add an updater with a reference to a configuration
-        void addUpdater(UpdaterPtr _upd, MConfigPtr _config);
+        void addUpdater(UpdaterPtr _upd, shared_ptr<mpiModel> _config);
         //!Add a force computer configuration
         virtual void addForce(ForcePtr _force){forceComputers.push_back(_force);};
         //!Add a force computer configuration
-        virtual void addForce(ForcePtr _force, MConfigPtr _config);
+        virtual void addForce(ForcePtr _force, shared_ptr<mpiModel> _config);
 
         //!Clear out the vector of forceComputes
         void clearForceComputers(){forceComputers.clear();};
