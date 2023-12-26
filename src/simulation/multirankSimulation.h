@@ -1,22 +1,22 @@
-#ifndef multirankSIMULATION_H
-#define multirankSIMULATION_H
+#ifndef mpiSIMULATION_H
+#define mpiSIMULATION_H
 
 #include "simulation.h"
 #include "mpiModel.h"
 #include <mpi.h>
 
-/*! \file multirankSimulation.h */
+/*! \file mpiSimulation.h */
 /*!
-At the moment: this simple all-to-all multirank simulation framework assumes that all 
+At the moment: this simple all-to-all mpi simulation framework assumes that all 
 "mpiModels" want an all-to-all communcation pattern, and appropriately handle
 processSendingBuffer() and processReceivingBuffer(), filling and/or extracting information
 from intTransferBufferSend, doubleTransferBufferSend, intTransferBufferReceive, doubleTransferBufferReceive
 
 */
-class multirankSimulation : public simulation, public enable_shared_from_this<multirankSimulation>
+class mpiSimulation : public simulation, public enable_shared_from_this<mpiSimulation>
     {
     public:
-        multirankSimulation(int _myRank,int _totalRanks)
+        mpiSimulation(int _myRank,int _totalRanks)
             {
             myRank = _myRank;
             totalRanks=_totalRanks;
@@ -29,7 +29,7 @@ class multirankSimulation : public simulation, public enable_shared_from_this<mu
         weak_ptr<mpiModel> mConfiguration;
 
         //!return a shared pointer to this Simulation
-        shared_ptr<multirankSimulation> getPointer(){ return shared_from_this();};
+        shared_ptr<mpiSimulation> getPointer(){ return shared_from_this();};
         //!Pass in a reference to the configuration
         void setConfiguration(shared_ptr<mpiModel> _config);
 
@@ -38,7 +38,7 @@ class multirankSimulation : public simulation, public enable_shared_from_this<mu
 
         void saveState(string fname);
 
-        virtual void reportSelf(){cout << "in the multirank simulation class" << endl;};
+        virtual void reportSelf(){cout << "in the mpi simulation class" << endl;};
 
     protected:
         int myRank;

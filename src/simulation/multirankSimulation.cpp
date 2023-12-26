@@ -1,7 +1,7 @@
-#include "multirankSimulation.h"
-/*! \file multirankSimulation.cpp */
+#include "mpiSimulation.h"
+/*! \file mpiSimulation.cpp */
 
-void multirankSimulation::sumUpdaterData(vector<scalar> &data)
+void mpiSimulation::sumUpdaterData(vector<scalar> &data)
     {
     /*
     if(nRanks >1)
@@ -24,7 +24,7 @@ void multirankSimulation::sumUpdaterData(vector<scalar> &data)
     */
     };
 
-void multirankSimulation::synchronizeAndTransferBuffers()
+void mpiSimulation::synchronizeAndTransferBuffers()
     {
     if(nRanks > 1)
         {
@@ -47,7 +47,7 @@ void multirankSimulation::synchronizeAndTransferBuffers()
 Calls the configuration to displace the degrees of freedom, and communicates halo sites according
 to the rankTopology and boolean settings
 */
-void multirankSimulation::moveParticles(GPUArray<dVec> &displacements,scalar scale)
+void mpiSimulation::moveParticles(GPUArray<dVec> &displacements,scalar scale)
     {
         {
     auto Conf = mConfiguration.lock();
@@ -60,14 +60,14 @@ void multirankSimulation::moveParticles(GPUArray<dVec> &displacements,scalar sca
 /*!
 Set a pointer to the configuration
 */
-void multirankSimulation::setConfiguration(MConfigPtr _config)
+void mpiSimulation::setConfiguration(MConfigPtr _config)
     {
     mConfiguration = _config;
     };
 
 /*!
 */
-void multirankSimulation::saveState(string fname)
+void mpiSimulation::saveState(string fname)
     {
-    UNWRITTENCODE("saving states in a multirank simulation not written");
+    UNWRITTENCODE("saving states in a mpi simulation not written");
     };

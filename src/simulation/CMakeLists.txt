@@ -7,4 +7,5 @@ include_directories(incDirs)
 add_library(simulation
     basicSimulation.cpp
     simulation.cpp
+    mpiSimulation.cpp
     )
