@@ -1,7 +1,7 @@
 #include "mpiSimulation.h"
 /*! \file mpiSimulation.cpp */
 
-void mpiSimulation::sumUpdaterData(vector<scalar> &data)
+void mpiSimulation::sumUpdaterData(vector<double> &data)
     {
     /*
     if(nRanks >1)
@@ -31,23 +31,22 @@ void mpiSimulation::synchronizeAndTransferBuffers()
         auto Conf = mConfiguration.lock();
         Conf->processSendingBuffer();
         int n = Conf->N;
-        MPI_Allgather(Conf->&intTransferBufferSend[0],n,MPI_INT,
-                      Conf->&intTransferBufferReceive[0],n,MPI_INT,
+        MPI_Allgather(&(Conf->intTransferBufferSend)[0],n,MPI_INT,
+                      &(Conf->intTransferBufferReceive)[0],n,MPI_INT,
                       MPI_COMM_WORLD);
-        MPI_Allgather(Conf->&doubleTransferBufferSend[0],3*n,MPI_DOUBLE,
-                      Conf->&doubleTransferBufferReceive[0],3*n,MPI_DOUBLE,
+        MPI_Allgather(&(Conf->doubleTransferBufferSend[0]),3*n,MPI_DOUBLE,
+                      &(Conf->doubleTransferBufferReceive[0]),3*n,MPI_DOUBLE,
                       MPI_COMM_WORLD);
         Conf->processReceivingBuffer();
         };
-        transfersUpToDate = true;
-        };
+    transfersUpToDate = true;
     }
 
 /*!
 Calls the configuration to displace the degrees of freedom, and communicates halo sites according
 to the rankTopology and boolean settings
 */
-void mpiSimulation::moveParticles(GPUArray<dVec> &displacements,scalar scale)
+void mpiSimulation::moveParticles(vector<vector3> &displacements,double scale)
     {
         {
     auto Conf = mConfiguration.lock();

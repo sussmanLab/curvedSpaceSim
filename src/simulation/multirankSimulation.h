@@ -34,7 +34,7 @@ class mpiSimulation : public simulation, public enable_shared_from_this<mpiSimul
         void setConfiguration(shared_ptr<mpiModel> _config);
 
         //! manipulate data from updaters
-        virtual void sumUpdaterData(vector<scalar> &data);
+        virtual void sumUpdaterData(vector<double> &data);
 
         void saveState(string fname);
 
@@ -46,7 +46,7 @@ class mpiSimulation : public simulation, public enable_shared_from_this<mpiSimul
         MPI_Status mpiStatus;
         vector<MPI_Status> mpiStatuses;
         vector<MPI_Request> mpiRequests;
-        vector<scalar> dataBuffer;
+        vector<double> dataBuffer;
         bool transfersUpToDate;
     };
 #endif
