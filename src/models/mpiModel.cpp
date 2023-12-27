@@ -15,7 +15,7 @@ mpiModel::mpiModel(int nTotal, int _localRank, int _totalRanks) :
 
 void mpiModel::determineIndexBounds()
     {
-    largestNumberOfParticlesPerRank = ceil((double) nTotal / (double) totalRanks);
+    largestNumberOfParticlesPerRank = ceil((double) NTotal / (double) totalRanks);
     minIdx = localRank*largestNumberOfParticlesPerRank;
     maxIdx = (localRank+1)*largestNumberOfParticlesPerRank;
     //The last rank handles a few fewer particles due to rounding
@@ -53,7 +53,7 @@ void mpiModel::findNeighbors(double maximumInteractionRange)
         vector<meshPosition> targetParticles;
         for(int jj = 0; jj < NTotal; ++jj)
             {
-            if(ii!=jj)
+            if(ii+minIdx!=jj)
                 {
                 currentNeighborList.push_back(jj);
                 targetParticles.push_back(globalPositions[jj]);
@@ -91,11 +91,11 @@ void mpiModel::processReceivingBuffer(int directionType)
         y = doubleTransferBufferReceive[3*ii+1];
         z = doubleTransferBufferReceive[3*ii+2];
         globalPositions[ii].x = point3(x,y,z);
-        globalPoitions.faceIndex = intTransferBufferReceive[ii];
+        globalPositions.faceIndex = intTransferBufferReceive[ii];
         };
     for (int ii = 0; ii < N; ++ii)
         {
-        positions[ii].x = point3(globalPositions[ii+minIdx][0],globalPositions[ii+minIdx][1],globalPositions[ii+minIdx][2]);
+        positions[ii].x = point3(globalPositions[ii+minIdx].x[0],globalPositions[ii+minIdx].x[1],globalPositions[ii+minIdx].x[2]);
         positions[ii].faceIndex=globalPositions[ii].faceIndex;
         }
     };

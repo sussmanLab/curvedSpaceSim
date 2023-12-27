@@ -19,6 +19,7 @@ else()
 endif()
 find_package(CGAL REQUIRED)
 find_package(Boost REQUIRED)
+find_package(MPI REQUIRED)
 include_directories(
             ${CMAKE_SOURCE_DIR}/inc
             ${CMAKE_SOURCE_DIR}/src
@@ -29,7 +30,7 @@ include_directories(
             ${CMAKE_SOURCE_DIR}/src/models
             ${CMAKE_SOURCE_DIR}/src/analysis
             ${CMAKE_SOURCE_DIR}/src/databases
-            #       ${MPI_INCLUDE_PATH}
+            ${MPI_INCLUDE_PATH}
    )
 
 add_subdirectory(src)

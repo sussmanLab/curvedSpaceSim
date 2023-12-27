@@ -37,4 +37,5 @@ double force::computeEnergy(bool verbose)
         for (int jj = 0; jj < neighborNumber; ++jj)
             energy += pairwiseEnergy(model->neighborVectors[ii][jj],model->neighborDistances[ii][jj]);
         }
+    return energy;
     };
