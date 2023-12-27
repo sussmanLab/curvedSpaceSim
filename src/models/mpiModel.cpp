@@ -20,7 +20,7 @@ void mpiModel::determineIndexBounds()
     maxIdx = (localRank+1)*largestNumberOfParticlesPerRank;
     //The last rank handles a few fewer particles due to rounding
     if(localRank = totalRanks-1)
-        maxIdx = nTotal;
+        maxIdx = NTotal;
     N = maxIdx-minIdx;
     }
 /*!
@@ -91,7 +91,7 @@ void mpiModel::processReceivingBuffer(int directionType)
         y = doubleTransferBufferReceive[3*ii+1];
         z = doubleTransferBufferReceive[3*ii+2];
         globalPositions[ii].x = point3(x,y,z);
-        globalPositions.faceIndex = intTransferBufferReceive[ii];
+        globalPositions[ii].faceIndex = intTransferBufferReceive[ii];
         };
     for (int ii = 0; ii < N; ++ii)
         {
