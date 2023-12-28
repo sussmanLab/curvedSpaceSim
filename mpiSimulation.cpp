@@ -83,11 +83,9 @@ int main(int argc, char*argv[])
     shared_ptr<euclideanSpace> R3Space=make_shared<euclideanSpace>();
     shared_ptr<triangulatedMeshSpace> meshSpace=make_shared<triangulatedMeshSpace>();
     meshSpace->loadMeshFromFile(meshName,verbose);
-DEBUGCODEHELPER;
 
     shared_ptr<mpiModel> configuration=make_shared<mpiModel>(N,myRank,worldSize);
     configuration->setSpace(R3Space);
-DEBUGCODEHELPER;
 
     //for testing, just initialize particles randomly in a small space
     noiseSource noise(reproducible);
@@ -101,9 +99,7 @@ DEBUGCODEHELPER;
         if(verbose)
             cout << p[0] <<"  " << p[1] << "  " << p[2] << endl;
         }
-DEBUGCODEHELPER;
     configuration->broadcastParticlePositions(pos);
-DEBUGCODEHELPER;
 
 
     shared_ptr<gaussianRepulsion> pairwiseForce = make_shared<gaussianRepulsion>(1.0,.5);
@@ -112,7 +108,6 @@ DEBUGCODEHELPER;
     shared_ptr<mpiSimulation> simulator=make_shared<mpiSimulation>(myRank,worldSize);
     simulator->setConfiguration(configuration);
     simulator->addForce(pairwiseForce);
-
 
     shared_ptr<gradientDescent> energyMinimizer=make_shared<gradientDescent>(dt);
     energyMinimizer->setModel(configuration);
@@ -126,8 +121,8 @@ vector3 vv;
     vector<double> posToSave;
     getFlatVectorOfPositions(configuration,posToSave);
 
-    vectorValueDatabase vvdat(posToSave.size(),"./testTrajectory.nc",NcFile::Replace);
-    vvdat.writeState(posToSave,0);
+//    vectorValueDatabase vvdat(posToSave.size(),"./testTrajectory.nc",NcFile::Replace);
+//    vvdat.writeState(posToSave,0);
 
     for (int ii = 0; ii < maximumIterations; ++ii)
         {
@@ -137,7 +132,7 @@ vector3 vv;
         if(ii%100 == 99)
             {
             getFlatVectorOfPositions(configuration,posToSave);
-            vvdat.writeState(posToSave,dt*ii);
+//            vvdat.writeState(posToSave,dt*ii);
             }
         };
     timer.print();

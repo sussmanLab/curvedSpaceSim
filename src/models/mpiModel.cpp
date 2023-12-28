@@ -10,7 +10,6 @@ mpiModel::mpiModel(int nTotal, int _localRank, int _totalRanks)
     localRank=_localRank;
     totalRanks = _totalRanks;
     determineIndexBounds();
-    N = maxIdx-minIdx;
     cout << "initializing a model on rank " << _localRank << " of " << _totalRanks <<"  with "<< N << " particles" << endl;
     initializeMPIModel(N,NTotal);
     };
@@ -21,9 +20,10 @@ void mpiModel::determineIndexBounds()
     minIdx = localRank*largestNumberOfParticlesPerRank;
     maxIdx = (localRank+1)*largestNumberOfParticlesPerRank;
     //The last rank handles a few fewer particles due to rounding
-    if(localRank = totalRanks-1)
+    if(localRank == totalRanks-1)
         maxIdx = NTotal;
     N = maxIdx-minIdx;
+    //printf("rank %i, largestP %i, min %i, max %i, N %i\n",localRank, largestNumberOfParticlesPerRank, minIdx, maxIdx, N);
     }
 /*!
  * actually set the array sizes. positions, velocities, forces are zero

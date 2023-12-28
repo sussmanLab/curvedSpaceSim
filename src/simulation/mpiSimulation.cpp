@@ -48,12 +48,17 @@ to the rankTopology and boolean settings
 */
 void mpiSimulation::moveParticles(vector<vector3> &displacements)
     {
+DEBUGCODEHELPER;
         {
     auto Conf = mConfiguration.lock();
     Conf->moveParticles(displacements);
+DEBUGCODEHELPER;
         }
+DEBUGCODEHELPER;
     transfersUpToDate = false;
+DEBUGCODEHELPER;
     synchronizeAndTransferBuffers();
+DEBUGCODEHELPER;
     };
 
 /*!
