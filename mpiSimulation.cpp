@@ -6,9 +6,9 @@
 #include "noiseSource.h"
 #include "triangulatedMeshSpace.h"
 #include "euclideanSpace.h"
-#include "simulation.h"
+#include "mpiSimulation.h"
 #include "gradientDescent.h"
-#include "simpleModel.h"
+#include "mpiModel.h"
 #include "gaussianRepulsion.h"
 #include "vectorValueDatabase.h"
 
@@ -78,19 +78,21 @@ int main(int argc, char*argv[])
 
 
     if(verbose)
-        printf("processes rank %i, local rank %i\n",myRank,myLocalRank);
+        printf("processes rank %i, local rank %i, world size %i\n",myRank,myLocalRank, worldSize);
 
     shared_ptr<euclideanSpace> R3Space=make_shared<euclideanSpace>();
     shared_ptr<triangulatedMeshSpace> meshSpace=make_shared<triangulatedMeshSpace>();
     meshSpace->loadMeshFromFile(meshName,verbose);
+DEBUGCODEHELPER;
 
-
-    shared_ptr<simpleModel> configuration=make_shared<simpleModel>(N);
+    shared_ptr<mpiModel> configuration=make_shared<mpiModel>(N,myRank,worldSize);
     configuration->setSpace(R3Space);
+DEBUGCODEHELPER;
 
     //for testing, just initialize particles randomly in a small space
     noiseSource noise(reproducible);
     vector<meshPosition> pos(N);
+    //this block (through "broadcastParticlePositions(pos)") will take the data  on rank 0 and distribute it to all ranks
     for(int ii = 0; ii < N; ++ii)
         {
         point3 p(noise.getRealUniform(),noise.getRealUniform(),noise.getRealUniform());
@@ -99,13 +101,15 @@ int main(int argc, char*argv[])
         if(verbose)
             cout << p[0] <<"  " << p[1] << "  " << p[2] << endl;
         }
-    configuration->setParticlePositions(pos);
+DEBUGCODEHELPER;
+    configuration->broadcastParticlePositions(pos);
+DEBUGCODEHELPER;
 
 
     shared_ptr<gaussianRepulsion> pairwiseForce = make_shared<gaussianRepulsion>(1.0,.5);
     pairwiseForce->setModel(configuration);
 
-    shared_ptr<simulation> simulator=make_shared<simulation>();
+    shared_ptr<mpiSimulation> simulator=make_shared<mpiSimulation>(myRank,worldSize);
     simulator->setConfiguration(configuration);
     simulator->addForce(pairwiseForce);
 

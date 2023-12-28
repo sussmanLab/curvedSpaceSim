@@ -2,6 +2,7 @@
 #define MPIMODEL_H
 
 #include "simpleModel.h"
+#include <mpi.h>
 
 /*! \file mpiModel.h
  */
@@ -27,9 +28,13 @@ class mpiModel : public simpleModel
             determineIndexBounds();
             };
 
+        //!have rank 0 fill and then broadcast the globalPositions vector
+        void broadcastParticlePositions(vector<meshPosition> &p, int broadcastRoot = 0);
+
         virtual void processSendingBuffer(int directionType = -1); 
         virtual void processReceivingBuffer(int directionType = -1);  
 
+        void readFromGlobalPositions();
 
         virtual void findNeighbors(double maximumInteractionRange);
 

@@ -13,7 +13,7 @@ processSendingBuffer() and processReceivingBuffer(), filling and/or extracting i
 from intTransferBufferSend, doubleTransferBufferSend, intTransferBufferReceive, doubleTransferBufferReceive
 
 */
-class mpiSimulation : public simulation, public enable_shared_from_this<mpiSimulation>
+class mpiSimulation : public simulation
     {
     public:
         mpiSimulation(int _myRank,int _totalRanks)
@@ -30,8 +30,6 @@ class mpiSimulation : public simulation, public enable_shared_from_this<mpiSimul
         //!The configuration of latticeSites
         weak_ptr<mpiModel> mConfiguration;
 
-        //!return a shared pointer to this Simulation
-        shared_ptr<mpiSimulation> getPointer(){ return shared_from_this();};
         //!Pass in a reference to the configuration
         void setConfiguration(shared_ptr<mpiModel> _config);
 

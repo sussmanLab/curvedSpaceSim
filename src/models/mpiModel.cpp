@@ -4,12 +4,14 @@
 /*!
  * Set the size of basic data structures...
 */
-mpiModel::mpiModel(int nTotal, int _localRank, int _totalRanks) :
-    NTotal(nTotal), localRank(_localRank), totalRanks(_totalRanks) 
+mpiModel::mpiModel(int nTotal, int _localRank, int _totalRanks)
     {
+    NTotal = nTotal;
+    localRank=_localRank;
+    totalRanks = _totalRanks;
     determineIndexBounds();
     N = maxIdx-minIdx;
-    cout << "initializing a model with "<< N << " particles" << endl;
+    cout << "initializing a model on rank " << _localRank << " of " << _totalRanks <<"  with "<< N << " particles" << endl;
     initializeMPIModel(N,NTotal);
     };
 
@@ -93,6 +95,11 @@ void mpiModel::processReceivingBuffer(int directionType)
         globalPositions[ii].x = point3(x,y,z);
         globalPositions[ii].faceIndex = intTransferBufferReceive[ii];
         };
+    readFromGlobalPositions();
+    };
+
+void mpiModel::readFromGlobalPositions()
+    {
     for (int ii = 0; ii < N; ++ii)
         {
         positions[ii].x = point3(globalPositions[ii+minIdx].x[0],globalPositions[ii+minIdx].x[1],globalPositions[ii+minIdx].x[2]);
@@ -100,3 +107,19 @@ void mpiModel::processReceivingBuffer(int directionType)
         }
     };
 
+void mpiModel::broadcastParticlePositions(vector<meshPosition> &p, int broadcastRoot)
+    {
+    if(localRank == broadcastRoot)
+        {
+        for (int ii = 0; ii < NTotal; ++ii)
+            {
+            doubleTransferBufferReceive[3*ii+0]=p[ii].x[0];
+            doubleTransferBufferReceive[3*ii+1]=p[ii].x[1];
+            doubleTransferBufferReceive[3*ii+2]=p[ii].x[2];
+            intTransferBufferReceive[ii] = p[ii].faceIndex;
+            };
+        };
+    MPI_Bcast(&intTransferBufferReceive[0],NTotal,MPI_INT,broadcastRoot,MPI_COMM_WORLD);
+    MPI_Bcast(&doubleTransferBufferReceive[0],NTotal,MPI_DOUBLE,broadcastRoot,MPI_COMM_WORLD);
+    processReceivingBuffer();
+    };

@@ -5,9 +5,8 @@ project(curvedSpaceSimulation LANGUAGES CXX)
 #note: CGAL (which I will get rid of someday) needs at least c++14; some advanced gcc compilers will throw errors if you don't set the cpp standard to 17, though
 set(CMAKE_CXX_STANDARD 17)
 
-#find_package(OpenMP REQUIRED)
-#find_package(MPI REQUIRED)
-
+#Release by default
+set(CMAKE_BUILD_TYPE Release)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_MATH_DISABLE_FLOAT128 -fopenmp -frounding-math")
 
@@ -54,7 +53,7 @@ set(HEADERS
 # list the names of cpp files corresponding to linked executables you'd like...
 foreach(ARG
         curvedSpaceSimulation
-        #mpiSimulation
+        mpiSimulation
         )
 add_executable("${ARG}.out" "${ARG}.cpp" )
 target_link_libraries("${ARG}.out"
@@ -63,6 +62,6 @@ target_link_libraries("${ARG}.out"
     netcdf_c++
     #OpenMP::OpenMP_CXX
     CGAL::CGAL
-    #${MPI_LIBRARIES}
+    ${MPI_LIBRARIES}
     )
 endforeach()
