@@ -25,7 +25,7 @@ class simulation : public basicSimulation, public enable_shared_from_this<simula
         //!Call the configuration to move particles around
         virtual void moveParticles(vector<vector3> &displacements);
         //!Call every updater to advance one time step
-        void performTimestep();
+        virtual void performTimestep();
 
         //!return a shared pointer to this Simulation
         shared_ptr<simulation> getPointer(){ return shared_from_this();};

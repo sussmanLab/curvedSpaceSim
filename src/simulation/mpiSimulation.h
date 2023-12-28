@@ -28,10 +28,12 @@ class mpiSimulation : public simulation
             }
         //! synchronize mpi and make transfer buffers
         virtual void synchronizeAndTransferBuffers();
+        //!Call the force computer to compute the forces
+        virtual void computeForces();
 
         virtual void moveParticles(vector<vector3> &displacements);
 
-        //!The configuration of latticeSites
+        //!The configuration
         weak_ptr<mpiModel> mConfiguration;
 
         //!Pass in a reference to the configuration

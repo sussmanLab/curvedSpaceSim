@@ -42,23 +42,28 @@ void mpiSimulation::synchronizeAndTransferBuffers()
     transfersUpToDate = true;
     }
 
+void mpiSimulation::computeForces()
+    {
+    auto Conf = mConfiguration.lock();
+    for (unsigned int f = 0; f < forceComputers.size(); ++f)
+        {
+        auto frc = forceComputers[f].lock();
+        bool zeroForces = (f==0);
+        frc->computeForces(Conf->forces,zeroForces);
+        };
+    };
 /*!
 Calls the configuration to displace the degrees of freedom, and communicates halo sites according
 to the rankTopology and boolean settings
 */
 void mpiSimulation::moveParticles(vector<vector3> &displacements)
     {
-DEBUGCODEHELPER;
         {
     auto Conf = mConfiguration.lock();
     Conf->moveParticles(displacements);
-DEBUGCODEHELPER;
         }
-DEBUGCODEHELPER;
     transfersUpToDate = false;
-DEBUGCODEHELPER;
     synchronizeAndTransferBuffers();
-DEBUGCODEHELPER;
     };
 
 /*!
