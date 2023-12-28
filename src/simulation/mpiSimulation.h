@@ -22,6 +22,10 @@ class mpiSimulation : public simulation
             totalRanks=_totalRanks;
             }
 
+        shared_ptr<mpiSimulation> getPointer()
+            {
+            return dynamic_pointer_cast<mpiSimulation>(simulation::shared_from_this());
+            }
         //! synchronize mpi and make transfer buffers
         virtual void synchronizeAndTransferBuffers();
 
