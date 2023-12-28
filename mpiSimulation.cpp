@@ -12,13 +12,13 @@
 #include "gaussianRepulsion.h"
 #include "vectorValueDatabase.h"
 
-void getFlatVectorOfPositions(shared_ptr<simpleModel> model, vector<double> &pos)
+void getFlatVectorOfPositions(shared_ptr<mpiModel> model, vector<double> &pos)
     {
-    int N = model->N;
+    int N = model->NTotal;
     pos.resize(3*N);
     for (int ii = 0; ii < N; ++ii)
         {
-        point3 p = model->positions[ii].x;
+        point3 p = model->globalPositions[ii].x;
         pos[3*ii+0] = p[0];
         pos[3*ii+1] = p[1];
         pos[3*ii+2] = p[2];
@@ -52,7 +52,7 @@ int main(int argc, char*argv[])
     MPI_Comm shmcomm;
     MPI_Comm_split_type(MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, 0,MPI_INFO_NULL, &shmcomm);
     MPI_Comm_rank(shmcomm, &myLocalRank);
-    
+
     //then, we set up a basic command line parser with some message and version
     CmdLine cmd("simulations in curved space!",' ',"V0.0");
 
@@ -121,8 +121,8 @@ vector3 vv;
     vector<double> posToSave;
     getFlatVectorOfPositions(configuration,posToSave);
 
-//    vectorValueDatabase vvdat(posToSave.size(),"./testTrajectory.nc",NcFile::Replace);
-//    vvdat.writeState(posToSave,0);
+    vectorValueDatabase vvdat(posToSave.size(),"./mpiTestTrajectory.nc",NcFile::Replace);
+    vvdat.writeState(posToSave,0);
 
     for (int ii = 0; ii < maximumIterations; ++ii)
         {
@@ -132,7 +132,7 @@ vector3 vv;
         if(ii%100 == 99)
             {
             getFlatVectorOfPositions(configuration,posToSave);
-//            vvdat.writeState(posToSave,dt*ii);
+            vvdat.writeState(posToSave,dt*ii);
             }
         };
     timer.print();
