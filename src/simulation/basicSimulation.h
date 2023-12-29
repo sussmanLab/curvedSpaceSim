@@ -40,7 +40,7 @@ class basicSimulation
         //!integer for this rank (if simulations are being done in parallel
         int myRank;
         //!total number of ranks
-        int nRanks;
+        int totalRanks;
 
         virtual void reportSelf(){cout << "in the base simulation class" << endl;cout.flush();};
     protected:

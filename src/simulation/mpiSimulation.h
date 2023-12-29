@@ -47,8 +47,6 @@ class mpiSimulation : public simulation
         virtual void reportSelf(){cout << "in the mpi simulation class" << endl;};
 
     protected:
-        int myRank;
-        int totalRanks;
         MPI_Status mpiStatus;
         vector<MPI_Status> mpiStatuses;
         vector<MPI_Request> mpiRequests;
