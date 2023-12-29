@@ -1,36 +1,15 @@
 #include "mpiSimulation.h"
 /*! \file mpiSimulation.cpp */
 
-void mpiSimulation::sumUpdaterData(vector<double> &data)
-    {
-    /*
-    if(nRanks >1)
-        {
-        int elements = data.size();
-        int rElements = elements * nRanks;
-        if (dataBuffer.size() < rElements)
-            dataBuffer.resize(rElements);
-        p1.start();
-        MPI_Allgather(&data[0],elements,MPI_SCALAR,&dataBuffer[0],elements,MPI_SCALAR,MPI_COMM_WORLD);
-        p1.end();
-        for (int ii = 0; ii < elements; ++ii) data[ii] = 0.0;
-
-        for (int ii = 0; ii < elements; ++ii)
-            for (int rr = 0; rr < nRanks; ++rr)
-                {
-                data[ii] += dataBuffer[rr*elements+ii];
-                }
-        };
-    */
-    };
-
 void mpiSimulation::synchronizeAndTransferBuffers()
     {
-    if(nRanks > 1)
+    MPI_Barrier(MPI_COMM_WORLD);
+    if(totalRanks > 1)
         {
         auto Conf = mConfiguration.lock();
         Conf->processSendingBuffer();
-        int n = Conf->N;
+        int n = Conf->largestNumberOfParticlesPerRank;
+//printf("r %i, size %i %i\n", myRank,Conf->intTransferBufferSend.size(),Conf->intTransferBufferReceive.size());
         MPI_Allgather(&(Conf->intTransferBufferSend)[0],n,MPI_INT,
                       &(Conf->intTransferBufferReceive)[0],n,MPI_INT,
                       MPI_COMM_WORLD);
@@ -80,3 +59,28 @@ void mpiSimulation::saveState(string fname)
     {
     UNWRITTENCODE("saving states in a mpi simulation not written");
     };
+
+void mpiSimulation::sumUpdaterData(vector<double> &data)
+    {
+    /*
+    if(totalRanks >1)
+        {
+        int elements = data.size();
+        int rElements = elements * totalRanks;
+        if (dataBuffer.size() < rElements)
+            dataBuffer.resize(rElements);
+        p1.start();
+        MPI_Allgather(&data[0],elements,MPI_SCALAR,&dataBuffer[0],elements,MPI_SCALAR,MPI_COMM_WORLD);
+        p1.end();
+        for (int ii = 0; ii < elements; ++ii) data[ii] = 0.0;
+
+        for (int ii = 0; ii < elements; ++ii)
+            for (int rr = 0; rr < totalRanks; ++rr)
+                {
+                data[ii] += dataBuffer[rr*elements+ii];
+                }
+        };
+    */
+    };
+
+

@@ -13,7 +13,7 @@ class mpiModel : public simpleModel
     {
     public:
         //!The base constructor requires the total number of particles and information about how many ranks there are
-        mpiModel(int nTotal, int _localRank, int _totalRanks);
+        mpiModel(int nTotal, int _localRank, int _totalRanks, bool verbose = false);
         //!a blank default constructor
         mpiModel(){};
         //!initialize the size of the basic data structure arrays
@@ -49,13 +49,14 @@ class mpiModel : public simpleModel
         vector<int> intTransferBufferReceive;
         vector<double> doubleTransferBufferReceive;
 
+        int largestNumberOfParticlesPerRank;
+
     protected:
         //the current rank has N of NTotal degrees of freedom in the globalPositions vector, corresponding to "for (int ii = minIdx; ii < maxIdx; ++ii)" type accesses
         int minIdx;
         int maxIdx;
         int localRank;
         int totalRanks;
-        int largestNumberOfParticlesPerRank;
 
         //!Use nTotal, localRank, and totalRanks to set min/maxIdx
         virtual void determineIndexBounds();

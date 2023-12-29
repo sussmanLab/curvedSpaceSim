@@ -4,14 +4,16 @@
 /*!
  * Set the size of basic data structures...
 */
-mpiModel::mpiModel(int nTotal, int _localRank, int _totalRanks)
+mpiModel::mpiModel(int nTotal, int _localRank, int _totalRanks, bool verbose)
     {
     NTotal = nTotal;
     localRank=_localRank;
     totalRanks = _totalRanks;
     determineIndexBounds();
-    cout << "initializing a model on rank " << _localRank << " of " << _totalRanks <<"  with "<< N << " particles" << endl;
+    if(verbose)
+        cout << "initializing a model on rank " << _localRank << " of " << _totalRanks <<"  with "<< N << " particles" << endl;
     initializeMPIModel(N,NTotal);
+//printf("r %i, minIdx maxIdx=(%i,%i)\n ",localRank,minIdx,maxIdx);
     };
 
 void mpiModel::determineIndexBounds()
@@ -49,9 +51,10 @@ void mpiModel::findNeighbors(double maximumInteractionRange)
     //pre-optimization, just return an all-to-all coupling matrix
 
     //i are particles on this rank; j are particles in the global vector
+
     for (int ii =0; ii < N; ++ii)
         {
-        vector<int> currentNeighborList; 
+        vector<int> currentNeighborList;
         vector<meshPosition> targetParticles;
         for(int jj = 0; jj < NTotal; ++jj)
             {
@@ -104,6 +107,7 @@ void mpiModel::readFromGlobalPositions()
         {
         positions[ii].x = point3(globalPositions[ii+minIdx].x[0],globalPositions[ii+minIdx].x[1],globalPositions[ii+minIdx].x[2]);
         positions[ii].faceIndex=globalPositions[ii+minIdx].faceIndex;
+//        printf("r %i p %i (%f,%f,%f)\n",localRank,ii,positions[ii].x[0],positions[ii].x[1],positions[ii].x[2]);
         }
     };
 
@@ -122,4 +126,5 @@ void mpiModel::broadcastParticlePositions(vector<meshPosition> &p, int broadcast
     MPI_Bcast(&intTransferBufferReceive[0],NTotal,MPI_INT,broadcastRoot,MPI_COMM_WORLD);
     MPI_Bcast(&doubleTransferBufferReceive[0],3*NTotal,MPI_DOUBLE,broadcastRoot,MPI_COMM_WORLD);
     processReceivingBuffer();
+
     };

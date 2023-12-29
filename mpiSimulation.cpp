@@ -84,7 +84,7 @@ int main(int argc, char*argv[])
     shared_ptr<triangulatedMeshSpace> meshSpace=make_shared<triangulatedMeshSpace>();
     meshSpace->loadMeshFromFile(meshName,verbose);
 
-    shared_ptr<mpiModel> configuration=make_shared<mpiModel>(N,myRank,worldSize);
+    shared_ptr<mpiModel> configuration=make_shared<mpiModel>(N,myRank,worldSize,verbose);
     configuration->setSpace(R3Space);
 
     //for testing, just initialize particles randomly in a small space
@@ -128,6 +128,8 @@ vector3 vv;
     for (int ii = 0; ii < maximumIterations; ++ii)
         {
         timer.start();
+       // printf("timestep %i on rank %i\n",ii,myRank);
+        MPI_Barrier(MPI_COMM_WORLD);
         simulator->performTimestep();
         timer.end();
         if(ii%100 == 99)
