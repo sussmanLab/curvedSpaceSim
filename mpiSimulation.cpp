@@ -120,8 +120,9 @@ vector3 vv;
 
     vector<double> posToSave;
     getFlatVectorOfPositions(configuration,posToSave);
-
-    vectorValueDatabase vvdat(posToSave.size(),"./mpiTestTrajectory.nc",NcFile::Replace);
+    char dataname[256];
+    sprintf(dataname,"parallelTestTrajectory%i.nc",worldSize);
+    vectorValueDatabase vvdat(posToSave.size(),dataname,NcFile::Replace);
     vvdat.writeState(posToSave,0);
 
     for (int ii = 0; ii < maximumIterations; ++ii)

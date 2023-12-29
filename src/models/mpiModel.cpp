@@ -103,7 +103,7 @@ void mpiModel::readFromGlobalPositions()
     for (int ii = 0; ii < N; ++ii)
         {
         positions[ii].x = point3(globalPositions[ii+minIdx].x[0],globalPositions[ii+minIdx].x[1],globalPositions[ii+minIdx].x[2]);
-        positions[ii].faceIndex=globalPositions[ii].faceIndex;
+        positions[ii].faceIndex=globalPositions[ii+minIdx].faceIndex;
         }
     };
 
@@ -120,6 +120,6 @@ void mpiModel::broadcastParticlePositions(vector<meshPosition> &p, int broadcast
             };
         };
     MPI_Bcast(&intTransferBufferReceive[0],NTotal,MPI_INT,broadcastRoot,MPI_COMM_WORLD);
-    MPI_Bcast(&doubleTransferBufferReceive[0],NTotal,MPI_DOUBLE,broadcastRoot,MPI_COMM_WORLD);
+    MPI_Bcast(&doubleTransferBufferReceive[0],3*NTotal,MPI_DOUBLE,broadcastRoot,MPI_COMM_WORLD);
     processReceivingBuffer();
     };
