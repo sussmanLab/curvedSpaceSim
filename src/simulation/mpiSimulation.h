@@ -40,7 +40,7 @@ class mpiSimulation : public simulation
         void setConfiguration(shared_ptr<mpiModel> _config);
 
         //! manipulate data from updaters
-        virtual void sumUpdaterData(vector<double> &data);
+        virtual void manipulateUpdaterData(vector<double> &data, function<double(double, double)> manipulatingFunction);
 
         void saveState(string fname);
 

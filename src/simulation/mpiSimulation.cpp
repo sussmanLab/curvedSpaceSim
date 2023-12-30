@@ -60,27 +60,27 @@ void mpiSimulation::saveState(string fname)
     UNWRITTENCODE("saving states in a mpi simulation not written");
     };
 
-void mpiSimulation::sumUpdaterData(vector<double> &data)
+void mpiSimulation::manipulateUpdaterData(vector<double> &data, function<double(double, double)> manipulatingFunction)
     {
-    /*
     if(totalRanks >1)
         {
         int elements = data.size();
         int rElements = elements * totalRanks;
         if (dataBuffer.size() < rElements)
             dataBuffer.resize(rElements);
-        p1.start();
-        MPI_Allgather(&data[0],elements,MPI_SCALAR,&dataBuffer[0],elements,MPI_SCALAR,MPI_COMM_WORLD);
-        p1.end();
-        for (int ii = 0; ii < elements; ++ii) data[ii] = 0.0;
+        MPI_Allgather(&data[0],elements,MPI_DOUBLE,&dataBuffer[0],elements,MPI_DOUBLE,MPI_COMM_WORLD);
+        
+        for (int ii = 0; ii < elements; ++ii) 
+            data[ii] = 0.0;
 
         for (int ii = 0; ii < elements; ++ii)
+            {
             for (int rr = 0; rr < totalRanks; ++rr)
                 {
-                data[ii] += dataBuffer[rr*elements+ii];
+                data[ii] = manipulatingFunction(data[ii],dataBuffer[rr*elements+ii]);
                 }
+            };
         };
-    */
     };
 
 

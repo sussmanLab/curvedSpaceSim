@@ -4,6 +4,7 @@
 //!Basic simulations just know that there are virtual functions that implement computeForces, moveParticles, and have a simulation domain
 
 #include "simpleModel.h"
+#include <functional>
 
 class basicSimulation
     {
@@ -35,8 +36,8 @@ class basicSimulation
         //!reset the simulation clock counter
         virtual void setCurrentTimestep(int _cTime){integerTimestep =_cTime;};
 
-        //! manipulate data from updaters
-        virtual void sumUpdaterData(vector<double> &data){};
+        //! manipulate data from updaters...on multirank simulations, might be needed to get, e.g., current total KE, or the current size of the force vector
+        virtual void manipulateUpdaterData(vector<double> &data, function<double(double, double)> manipulatingFunction){};
         //!integer for this rank (if simulations are being done in parallel
         int myRank;
         //!total number of ranks

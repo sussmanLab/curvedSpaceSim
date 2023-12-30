@@ -6,7 +6,7 @@ project(curvedSpaceSimulation LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 
 #Release by default
-set(CMAKE_BUILD_TYPE )
+set(CMAKE_BUILD_TYPE Release)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_MATH_DISABLE_FLOAT128 -fopenmp -frounding-math")
 
@@ -53,7 +53,7 @@ set(HEADERS
 # list the names of cpp files corresponding to linked executables you'd like...
 foreach(ARG
         curvedSpaceSimulation
-        mpiSimulation
+        multirankSimulation
         )
 add_executable("${ARG}.out" "${ARG}.cpp" )
 target_link_libraries("${ARG}.out"

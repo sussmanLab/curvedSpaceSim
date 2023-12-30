@@ -134,8 +134,15 @@ vector3 vv;
         timer.end();
         if(ii%100 == 99)
             {
-            getFlatVectorOfPositions(configuration,posToSave);
-            vvdat.writeState(posToSave,dt*ii);
+            if(myRank ==0)
+                {
+                getFlatVectorOfPositions(configuration,posToSave);
+                vvdat.writeState(posToSave,dt*ii);
+                };
+            double fNorm,fMax;
+            fNorm = energyMinimizer->getForceNorm();
+            fMax = energyMinimizer->getMaxForce();
+            printf("step %i fN %f fM %f\n",ii,fNorm,fMax);
             }
         };
     timer.print();
