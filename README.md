@@ -22,3 +22,6 @@ tar xf CGAL-5.6.tar.xz
 cd CGAL-5.6
 cmake .
 make install
+
+# MPI
+Tested with openMPI 3.1 (anything ater should also work)
