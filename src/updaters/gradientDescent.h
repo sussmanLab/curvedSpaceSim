@@ -19,6 +19,8 @@ class gradientDescent : public updater
         //!A sample function, mostly to show how to use manipulateUpdaterData
         virtual double getForceNorm();
 
+        double squaredTotalForceNorm;
+        double maximumForceNorm;
     protected:
         vector<vector3> displacements;
 

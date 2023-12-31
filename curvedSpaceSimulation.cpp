@@ -24,8 +24,6 @@ void getFlatVectorOfPositions(shared_ptr<simpleModel> model, vector<double> &pos
         }
     };
 
-
-
 using namespace TCLAP;
 int main(int argc, char*argv[])
     {
@@ -107,6 +105,10 @@ vector3 vv;
             {
             getFlatVectorOfPositions(configuration,posToSave);
             vvdat.writeState(posToSave,dt*ii);
+            double fNorm,fMax;
+            fNorm = energyMinimizer->squaredTotalForceNorm;
+            fMax = energyMinimizer->maximumForceNorm;
+            printf("step %i fN %f fM %f\n",ii,fNorm,fMax);
             }
         };
     timer.print();

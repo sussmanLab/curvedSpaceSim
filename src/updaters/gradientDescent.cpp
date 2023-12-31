@@ -8,25 +8,24 @@ void gradientDescent::performUpdate()
     for (int ii = 0; ii < Ndof; ++ii)
         {
         displacements[ii] = deltaT*model->forces[ii];
+        //printf("p %i d (%f %f %f)  %f\n",ii,displacements[ii][0],displacements[ii][1],displacements[ii][2], displacements[ii].squared_length());
         }
+    squaredTotalForceNorm = getForceNorm();
+    maximumForceNorm = getMaxForce();
     sim->moveParticles(displacements);
     };
 
 double gradientDescent::getForceNorm()
     {
-    sim->computeForces();
     vector<double> forceNorm(1);
     forceNorm[0] = 0.0;
     for (int ii = 0; ii < Ndof; ++ii)
         {
-        double currentNormSquared = model->forces[ii].squared_length();
-        forceNorm[0] +=currentNormSquared;
-printf("f %f\n",currentNormSquared);
+        forceNorm[0] += model->forces[ii].squared_length();
         }
-printf("f %f\n",forceNorm[0]);
     //define a lambda which is just addition
     sim->manipulateUpdaterData(forceNorm,
-                         [](double x, double y)-> double 
+                         [](double x, double y)-> double
                                         {
                                         return x+y;
                                         });
@@ -46,7 +45,7 @@ double gradientDescent::getMaxForce()
         }
     //define a lambda which is just the max operation
     sim->manipulateUpdaterData(maxNorm,
-                         [](double x, double y)-> double 
+                         [](double x, double y)-> double
                                         {
                                         return std::max(x,y);
                                         });
