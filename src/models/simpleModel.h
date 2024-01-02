@@ -4,6 +4,7 @@
 #include "std_include.h"
 #include "pointDataType.h"
 #include "baseSpace.h"
+#include "baseNeighborStructure.h"
 
 /*! \file simpleModel.h
  * \brief defines an interface for models that compute forces
@@ -38,6 +39,12 @@ class simpleModel
         virtual void setSpace(shared_ptr<baseSpace> _space)
             {
             space = _space;
+            }
+
+        //!Neighbor structures accelerate the process of finding neighbors...if not set, defaults to all-to-all searches
+        virtual void setNeighborStructure(shared_ptr<baseNeighborStructure> _structure)
+            {
+            neighborStructure = _structure;
             }
         //!move the degrees of freedom
         virtual void moveParticles(vector<vector3> &displacements);
@@ -75,6 +82,7 @@ class simpleModel
 
     protected:
         shared_ptr<baseSpace> space;
+        shared_ptr<baseNeighborStructure> neighborStructure;
 
     };
 typedef shared_ptr<simpleModel> ConfigPtr;

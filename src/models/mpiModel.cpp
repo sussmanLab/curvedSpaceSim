@@ -48,24 +48,17 @@ void mpiModel::initializeMPIModel(int n, int nTotal)
 
 void mpiModel::findNeighbors(double maximumInteractionRange)
     {
-    //pre-optimization, just return an all-to-all coupling matrix
+    neighborStructure->setInteractionRange(maximumInteractionRange);
+    neighborStructure->initialize(globalPositions);
 
     //i are particles on this rank; j are particles in the global vector
 
     for (int ii =0; ii < N; ++ii)
         {
-        vector<int> currentNeighborList;
+        //use the neighborStructure to find candidate neighbors. This function will fill the indices of the neighbors[ii] data structure and populate the positions of the corresponding targetParticles. minIdx provides the necessary offset for indexing between positions and globalPositions
         vector<meshPosition> targetParticles;
-        for(int jj = 0; jj < NTotal; ++jj)
-            {
-            if(ii+minIdx!=jj)
-                {
-                currentNeighborList.push_back(jj);
-                targetParticles.push_back(globalPositions[jj]);
-                };
-            }
-        //populate the list of neighbor indexes
-        neighbors[ii] = currentNeighborList;
+        neighborStructure->constructCandidateNeighborList(positions[ii], ii, neighbors[ii], targetParticles,minIdx);
+
         //additionally use the space to populate the list of distances and separation vectors
         vector<vector3> placeholderVector;
         vector<vector3> tangentVector;

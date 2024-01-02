@@ -24,4 +24,4 @@ cmake .
 make install
 
 # MPI
-Tested with openMPI 3.1 (anything ater should also work)
+Tested with openMPI 3.1 (anything later should also work)

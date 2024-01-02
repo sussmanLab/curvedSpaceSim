@@ -30,6 +30,8 @@ void simpleModel::initializeSimpleModel(int n)
     //radii.resize(n);
     //vector<scalar> halves(N,.5);
     //vector<int> units(N,0);
+
+    neighborStructure = make_shared<baseNeighborStructure>();
     };
 
 void simpleModel::moveParticles(vector<vector3> &disp)
@@ -42,21 +44,14 @@ void simpleModel::moveParticles(vector<vector3> &disp)
 
 void simpleModel::findNeighbors(double maximumInteractionRange)
     {
-    //pre-optimization, just return an all-to-all coupling matrix
+    neighborStructure->setInteractionRange(maximumInteractionRange);
+    neighborStructure->initialize(positions);
     for (int ii =0; ii < N; ++ii)
         {
-        vector<int> currentNeighborList; 
+        //use the neighborStructure to find candidate neighbors. This function will fill the indices of the neighbors[ii] data structure and populate the positions of the corresponding targetParticles
         vector<meshPosition> targetParticles;
-        for(int jj = 0; jj < N; ++jj)
-            {
-            if(ii!=jj)
-                {
-                currentNeighborList.push_back(jj);
-                targetParticles.push_back(positions[jj]);
-                };
-            }
-        //populate the list of neighbor indexes
-        neighbors[ii] = currentNeighborList;
+        neighborStructure->constructCandidateNeighborList(positions[ii], ii, neighbors[ii], targetParticles);
+
         //additionally use the space to populate the list of distances and separation vectors
         vector<vector3> placeholderVector;
         vector<vector3> tangentVector;
