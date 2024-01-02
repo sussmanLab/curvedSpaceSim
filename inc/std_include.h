@@ -20,6 +20,8 @@
 #include <cassert>
 #include <cpuid.h>
 
+#include "dataTypes.h" //defines simple, non-CGAL data types that will be used
+
 using namespace std; // bad form
 //!A utility function for checking if a file exists
 inline bool fileExists(const std::string& name)

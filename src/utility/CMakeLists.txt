@@ -5,6 +5,7 @@ endif(${CMAKE_BUILD_TYPE} MATCHES "Debug")
 include_directories(incDirs)
 
 add_library(utility
+    hyperRectangularCellList.cpp
     baseNeighborStructure.cpp
     noiseSource.cpp
     )
