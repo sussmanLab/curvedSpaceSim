@@ -25,10 +25,17 @@ class triangulatedMeshSpace : public baseSpace
         //!Given a source particle and a vector of target points, determine the geodesic distance and store the start and end path tangents along the paths
         virtual void distance(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent);
 
+        void distanceWithSubmeshing(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent);
+
+        void useSubmeshingRoutines(bool _useSubMesh){submeshingActivated = _useSubMesh;};
+
+        void findIntersection(faceIndex sourceFace, point3 source, point3 target, std::vector<vertexIndex> &vertexIndices, point3 &intersectionPoint, std::vector<vertexIndex> &intersections);
 
         //data structures
         triangleMesh surface;
     protected:
+        bool submeshingActivated = false;
 
+        double vectorMagnitude(vector3 v);
     };
 #endif

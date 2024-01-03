@@ -40,4 +40,6 @@ static void unwrittenCode(const char *message, const char *file, int line)
 #define DEBUGCODEHELPER printf("\nReached: file %s at line %d\n",__FILE__,__LINE__);
 //A macro to say code needs to be written
 #define UNWRITTENCODE(message) (unwrittenCode(message,__FILE__,__LINE__))
+//a macro to say something is wrong!
+#define ERRORERROR(message) (unwrittenCode(message,__FILE__,__LINE__))
 #endif

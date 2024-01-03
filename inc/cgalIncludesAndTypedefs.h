@@ -33,14 +33,11 @@ typedef CGAL::Surface_mesh<point3>                                      triangle
 typedef triangleMesh::Face_index                                        faceIndex;
 typedef triangleMesh::Halfedge_index                                    halfedgeIndex;
 typedef triangleMesh::Vertex_index                                      vertexIndex;
-typedef CGAL::Surface_mesh_shortest_path_traits<K, triangleMesh>        Traits;
-typedef CGAL::Surface_mesh_shortest_path<Traits>                        surfaceMeshShortestPath;
-
 
 namespace CP = CGAL::parameters;
 namespace PMP = CGAL::Polygon_mesh_processing;
-//typedef PMP::Barycentric_coordinates<FT>                                Barycentric_coordinates;
-//typedef PMP::Face_location<triangleMesh, FT>                            faceLocation;
+typedef PMP::Barycentric_coordinates<FT>                                pmpBarycentricCcoordinates;
+typedef PMP::Face_location<triangleMesh, FT>                            pmpFaceLocation;
 typedef CGAL::Face_around_target_circulator<triangleMesh>               faceCirculator;
 typedef typename boost::graph_traits<triangleMesh>::vertex_descriptor   vertexDescriptor;
 typedef typename boost::graph_traits<triangleMesh>::face_descriptor     faceDescriptor;
@@ -49,6 +46,8 @@ typedef boost::graph_traits<triangleMesh>                               graphTra
 typedef graphTraits::vertex_iterator                                    vertexIterator;
 typedef graphTraits::face_iterator                                      faceIterator;
 
+typedef CGAL::Surface_mesh_shortest_path_traits<K, triangleMesh>        Traits;
+typedef CGAL::Surface_mesh_shortest_path<Traits>                        surfaceMeshShortestPath;
 typedef typename surfaceMeshShortestPath::Barycentric_coordinates       barycentricCoordinates;
 typedef typename surfaceMeshShortestPath::Face_location                 faceLocation;
 typedef surfaceMeshShortestPath::Shortest_path_result                   shortestPathResult;
