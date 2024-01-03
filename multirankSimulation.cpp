@@ -12,6 +12,7 @@
 #include "gaussianRepulsion.h"
 #include "harmonicRepulsion.h"
 #include "vectorValueDatabase.h"
+#include "cellListNeighborStructure.h"
 
 void getFlatVectorOfPositions(shared_ptr<mpiModel> model, vector<double> &pos)
     {
@@ -98,7 +99,7 @@ int main(int argc, char*argv[])
     //this block (through "broadcastParticlePositions(pos)") will take the data  on rank 0 and distribute it to all ranks
     for(int ii = 0; ii < N; ++ii)
         {
-        point3 p(noise.getRealUniform(),noise.getRealUniform(),noise.getRealUniform());
+        point3 p(noise.getRealUniform(-.5,.5),noise.getRealUniform(-.5,.5),noise.getRealUniform(-.5,.5));
         pos[ii].x=p;
         pos[ii].faceIndex=ii;
         if(verbose)
@@ -131,7 +132,7 @@ vector3 vv;
     vectorValueDatabase vvdat(posToSave.size(),dataname,NcFile::Replace);
     vvdat.writeState(posToSave,0);
 
-    for (int ii = 0; ii < maximumIterations; ++ii)
+    for (int ii = 0; ii < maximumIterations/2; ++ii)
         {
         timer.start();
        // printf("timestep %i on rank %i\n",ii,myRank);
@@ -151,8 +152,38 @@ vector3 vv;
                 };
             }
         };
-    timer.print();
 
+    //testing cellListNeighborStructure in euclidean, non-periodic spaces...make a cell list with the following minimum and maximum dimensions, and unit grid size
+    double minMaxDim = pow((double)N,(1./3.));
+    std::vector<double> minPos(3,-minMaxDim);
+    std::vector<double> maxPos(3,minMaxDim);
+    shared_ptr<cellListNeighborStructure> cellList = make_shared<cellListNeighborStructure>(minPos,maxPos,1.0);
+    //note that you can set a new neighbor structure from the beginning, or add one in the middle of the simulation, etc
+
+    configuration->setNeighborStructure(cellList);
+    profiler timer2("various parts of the code 2");
+
+    for (int ii = maximumIterations/2; ii < maximumIterations; ++ii)
+        {
+        timer2.start();
+        simulator->performTimestep();
+        timer2.end();
+        if(ii%100 == 99)
+            {
+            if(myRank ==0)
+                {
+                getFlatVectorOfPositions(configuration,posToSave);
+                vvdat.writeState(posToSave,dt*ii);
+                double fNorm,fMax;
+                fNorm = energyMinimizer->squaredTotalForceNorm;
+                fMax = energyMinimizer->maximumForceNorm;
+                printf("step %i fN %f fM %f\n",ii,fNorm,fMax);
+                }
+            }
+        };
+
+    timer.print();
+    timer2.print();
 
 
     MPI_Finalize();

@@ -34,12 +34,12 @@ class hyperRectangularCellList
 
         //!maximum number of elements in any cell
         int nMax=6;
+        //!What cell index would contain the given position?
+        int positionToCellIndex(const meshPosition &p);
         //!do we need to wrap around boundaries when looking for adjacent cells?
         bool periodicSpace = false;
     protected: 
 
-        //!What cell index would contain the given position?
-        int positionToCellIndex(const meshPosition &p);
 
         //! reset the size of various internal data structures
         void resetListSizes();

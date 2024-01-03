@@ -12,22 +12,16 @@ void cellListNeighborStructure::setInteractionRange(double range)
 
 void cellListNeighborStructure::initialize(std::vector<meshPosition> &_particles)
     {
-    particles = _particles;
-    indices.resize(particles.size());
-    for(int ii = 0; ii < particles.size(); ++ii)
-        {
-        indices[ii]=ii;
-        }
-    cellList.sort(particles);
+    cellList.sort(_particles);
     };
 
-void cellListNeighborStructure::constructCandidateNeighborList(meshPosition &p, int particleIndex, std::vector<int> &candidateNeighborIndices, std::vector<meshPosition> &candidateParticles, int offset)
+void cellListNeighborStructure::constructCandidateNeighborList(meshPosition &p, int particleIndex, std::vector<int> &candidateNeighborIndices, std::vector<meshPosition> &candidateParticles)
     {
     int neighborNumberGuess = cellList.nMax*2;
     candidateNeighborIndices.clear();
-    candidateNeighborIndices.reserve(neighborNumberGuess);
+    candidateNeighborIndices.reserve();
     candidateParticles.clear();
-    candidateParticles.reserve(neighborNumberGuess);
+    candidateParticles.reserve();
 
 
     int primaryCellIndex = cellList.positionToCellIndex(p);
@@ -44,8 +38,8 @@ void cellListNeighborStructure::constructCandidateNeighborList(meshPosition &p, 
             int idx = cellList.indices[cellList.cellListIndexer(ii,currentCellIndex)];
             if( (particleIndex + offset) != idx)
                 {
-                candidateParticles.push_back(particles[idx]);
-                candidateNeighborIndices.push_back(indices[idx]);
+
+
                 }
             };
         };

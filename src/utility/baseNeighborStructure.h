@@ -7,7 +7,7 @@
 /*! \file baseNeighborStructure.h */
 
 /*!
-Provides basic functionality to find candidate neighbors based on various criteria. In the base version, simply returns all indices other than the target particleIndex as potential neighbors (i.e., 
+Provides basic functionality to find candidate neighbors based on various criteria. In the base version, simply returns all indices other than the target particleIndex as potential neighbors (i.e., does all-to-all neighbors
 */
 
 class baseNeighborStructure

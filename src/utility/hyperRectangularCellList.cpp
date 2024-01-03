@@ -31,6 +31,7 @@ void hyperRectangularCellList::setGridSize(double _minimumGridSize)
 
     cellListIndexer = Index2D(nMax,totalCells);
     cellIndexer = Index3D(cellNumbers.x,cellNumbers.y,cellNumbers.z);
+printf("(%f %f %f) (%f %f %f)\n", minimumPositions[0], minimumPositions[1], minimumPositions[2],  maximumPositions[0], maximumPositions[1], maximumPositions[2]);
 
     resetListSizes();
     };
@@ -60,9 +61,9 @@ int hyperRectangularCellList::positionToCellIndex(const meshPosition &p)
     {
     int3 cIdx;
     //use maxes and mins to make sure the cell indexer is in bounds
-    cIdx.x = std::max(0, std::min(cellNumbers.x-1, (int) floor((p.x[0]+minimumPositions[0])/cellSizes.x )));
-    cIdx.y = std::max(0, std::min(cellNumbers.y-1, (int) floor((p.x[1]+minimumPositions[1])/cellSizes.y )));
-    cIdx.z = std::max(0, std::min(cellNumbers.z-1, (int) floor((p.x[2]+minimumPositions[2])/cellSizes.z )));
+    cIdx.x = std::max(0, std::min(cellNumbers.x-1, (int) floor((p.x[0]-minimumPositions[0])/cellSizes.x )));
+    cIdx.y = std::max(0, std::min(cellNumbers.y-1, (int) floor((p.x[1]-minimumPositions[1])/cellSizes.y )));
+    cIdx.z = std::max(0, std::min(cellNumbers.z-1, (int) floor((p.x[2]-minimumPositions[2])/cellSizes.z )));
 
     return cellIndexer(cIdx);
     };
@@ -98,6 +99,15 @@ void hyperRectangularCellList::sort(std::vector<meshPosition> &p)
                 }
             elementsPerCell[binIndex] += 1;
             };
+        //allow the cell list data structures to shrink (especially usefull if at initialization particles were overdense
+        std::vector<unsigned int>::iterator currentLargestCell;
+        currentLargestCell = std::max_element(elementsPerCell.begin(),elementsPerCell.end());
+        if(*currentLargestCell< nMax - 2)
+            {
+            //printf("shrinking cell lists %i %i\n",nMax,currentLargestCell);
+            nMax = *currentLargestCell + 1;
+            recompute = true;
+            }
         }
     cellListIndexer = Index2D(nMax,totalCells);
     };
@@ -108,7 +118,7 @@ void hyperRectangularCellList::getCellNeighbors(int cellIndex, std::vector<int> 
     cellNeighbors.reserve(27);
     int3 location = cellIndexer.inverseIndex(cellIndex);
     int xMin, xMax, yMin, yMax, zMin, zMax;
-    if(periodicSpace)
+    if(!periodicSpace)
         {
         xMin = std::max(0,location.x-1);
         xMax = std::min(cellNumbers.x-1,location.x+1);
@@ -116,9 +126,9 @@ void hyperRectangularCellList::getCellNeighbors(int cellIndex, std::vector<int> 
         yMax = std::min(cellNumbers.y-1,location.y+1);
         zMin = std::max(0,location.z-1);
         zMax = std::min(cellNumbers.z-1,location.z+1);
-        for(int xx = xMin; xx < xMax; ++xx)
-            for(int yy = yMin; yy < yMax; ++yy)
-                for(int zz = zMin; zz < zMax; ++zz)
+        for(int xx = xMin; xx <= xMax; ++xx)
+            for(int yy = yMin; yy <= yMax; ++yy)
+                for(int zz = zMin; zz <= zMax; ++zz)
                     cellNeighbors.push_back(cellIndexer(xx,yy,zz));
         }
     else
