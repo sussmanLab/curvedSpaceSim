@@ -9,6 +9,7 @@ void force::setForceParameters(vector<double> &params)
     {
     };
 
+//note that computeForces expects neighbor vectors to be *unit vectors* 
 void force::computeForces(vector<vector3> &forces,bool zeroOutForce, int type)
     {
     if(forces.size() != model->N)

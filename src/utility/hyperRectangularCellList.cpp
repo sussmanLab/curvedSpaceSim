@@ -1,5 +1,7 @@
 #include "hyperRectangularCellList.h"
 
+#include "functions.h"
+
 /*!
 This routine currently picks an even integer of cells in each dimension, close to but larger than the desired size, that fit in the box.
  */
@@ -103,19 +105,37 @@ void hyperRectangularCellList::sort(std::vector<meshPosition> &p)
 //return a vector of the cells to search if you're interested in cellIndex
 void hyperRectangularCellList::getCellNeighbors(int cellIndex, std::vector<int> &cellNeighbors)
     {
-    /*
-    int w = min(width,(int)gridCellsPerSide.x[0]);
-    iVec cellIndexVec = cellIndexer.inverseIndex(cellIndex);
-
-    cellNeighbors.clear();
-    cellNeighbors.reserve(idPow(2*w+1));
-    iVec min(-w);
-    iVec max(w);
-    iVec it(-w);it.x[0]-=1;
-    while(iVecIterate(it,min,max))
+    cellNeighbors.reserve(27);
+    int3 location = cellIndexer.inverseIndex(cellIndex);
+    int xMin, xMax, yMin, yMax, zMin, zMax;
+    if(periodicSpace)
         {
-
-        cellNeighbors.push_back(cellIndexer(modularAddition(cellIndexVec,it,gridCellsPerSide)));
+        xMin = max(0,location.x-1);
+        xMax = min(cellNumbers.x-1,location.x+1);
+        yMin = max(0,location.y-1);
+        yMax = min(cellNumbers.y-1,location.y+1);
+        zMin = max(0,location.z-1);
+        zMax = min(cellNumbers.z-1,location.z+1);
+        for(int xx = xMin; xx < xMax; ++xx)
+            for(int yy = yMin; yy < yMax; ++yy)
+                for(int zz = zMin; zz < zMax; ++zz)
+                    cellNeighbors.push_back(cellIndexer(xx,yy,zz));
+        }
+    else
+        {
+        xMin = location.x-1;
+        xMax = location.x+1;
+        yMin = location.y-1;
+        yMax = location.y+1;
+        zMin = location.z-1;
+        zMax = location.z+1;
+        for(int xx = xMin; xx < xMax; ++xx)
+            for(int yy = yMin; yy < yMax; ++yy)
+                for(int zz = zMin; zz < zMax; ++zz)
+                    cellNeighbors.push_back(cellIndexer(
+                                                    wrap(xx,cellNumbers.x),
+                                                    wrap(xx,cellNumbers.y),
+                                                    wrap(xx,cellNumbers.z)));
+                    
         };
-    */
     };
