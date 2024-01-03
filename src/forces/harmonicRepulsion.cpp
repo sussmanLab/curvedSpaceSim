@@ -25,7 +25,7 @@ vector3 harmonicRepulsion::pairwiseForce(vector3 separation,double distance)
             {
             //kDelta is dU/d\delta
             double kDelta = k*(1.0-distance/sigma);
-            ans = (kDelta/sigma)*separation;
+            ans = -(kDelta/sigma)*separation;
             }
         }
     else

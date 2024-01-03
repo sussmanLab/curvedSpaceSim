@@ -10,6 +10,7 @@
 #include "gradientDescent.h"
 #include "mpiModel.h"
 #include "gaussianRepulsion.h"
+#include "harmonicRepulsion.h"
 #include "vectorValueDatabase.h"
 
 void getFlatVectorOfPositions(shared_ptr<mpiModel> model, vector<double> &pos)
@@ -48,13 +49,16 @@ int main(int argc, char*argv[])
     char processorName[MPI_MAX_PROCESSOR_NAME];
     int nameLen;
     MPI_Get_processor_name(processorName, &nameLen);
+
+    /*
+    //local ranks and shmcomm currently not used... perhaps integrate later if warranted
     int myLocalRank;
     MPI_Comm shmcomm;
     MPI_Comm_split_type(MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, 0,MPI_INFO_NULL, &shmcomm);
     MPI_Comm_rank(shmcomm, &myLocalRank);
-
+    */
     //then, we set up a basic command line parser with some message and version
-    CmdLine cmd("simulations in curved space!",' ',"V0.0");
+    CmdLine cmd("mpi simulations in curved space!",' ',"V0.0");
 
     //define the various command line strings that can be passed in...
     //ValueArg<T> variableName("shortflag","longFlag","description",required or not, default value,"value type",CmdLine object to add to
@@ -78,7 +82,8 @@ int main(int argc, char*argv[])
 
 
     if(verbose)
-        printf("processes rank %i, local rank %i, world size %i\n",myRank,myLocalRank, worldSize);
+        printf("processes rank %i, world size %i\n",myRank, worldSize);
+        //printf("processes rank %i, local rank %i, world size %i\n",myRank,myLocalRank, worldSize);
 
     shared_ptr<euclideanSpace> R3Space=make_shared<euclideanSpace>();
     shared_ptr<triangulatedMeshSpace> meshSpace=make_shared<triangulatedMeshSpace>();
@@ -102,7 +107,8 @@ int main(int argc, char*argv[])
     configuration->broadcastParticlePositions(pos);
 
 
-    shared_ptr<gaussianRepulsion> pairwiseForce = make_shared<gaussianRepulsion>(1.0,.5);
+    //shared_ptr<gaussianRepulsion> pairwiseForce = make_shared<gaussianRepulsion>(1.0,.5);
+    shared_ptr<harmonicRepulsion> pairwiseForce = make_shared<harmonicRepulsion>(1.0,1.0);//stiffness and sigma. this is a monodisperse setting
     pairwiseForce->setModel(configuration);
 
     shared_ptr<mpiSimulation> simulator=make_shared<mpiSimulation>(myRank,worldSize);

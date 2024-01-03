@@ -110,12 +110,12 @@ void hyperRectangularCellList::getCellNeighbors(int cellIndex, std::vector<int> 
     int xMin, xMax, yMin, yMax, zMin, zMax;
     if(periodicSpace)
         {
-        xMin = max(0,location.x-1);
-        xMax = min(cellNumbers.x-1,location.x+1);
-        yMin = max(0,location.y-1);
-        yMax = min(cellNumbers.y-1,location.y+1);
-        zMin = max(0,location.z-1);
-        zMax = min(cellNumbers.z-1,location.z+1);
+        xMin = std::max(0,location.x-1);
+        xMax = std::min(cellNumbers.x-1,location.x+1);
+        yMin = std::max(0,location.y-1);
+        yMax = std::min(cellNumbers.y-1,location.y+1);
+        zMin = std::max(0,location.z-1);
+        zMax = std::min(cellNumbers.z-1,location.z+1);
         for(int xx = xMin; xx < xMax; ++xx)
             for(int yy = yMin; yy < yMax; ++yy)
                 for(int zz = zMin; zz < zMax; ++zz)
@@ -136,6 +136,5 @@ void hyperRectangularCellList::getCellNeighbors(int cellIndex, std::vector<int> 
                                                     wrap(xx,cellNumbers.x),
                                                     wrap(xx,cellNumbers.y),
                                                     wrap(xx,cellNumbers.z)));
-                    
         };
     };

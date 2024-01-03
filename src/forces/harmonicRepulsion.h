@@ -6,7 +6,7 @@
 class harmonicRepulsion : public force
     {
     public:
-        harmonicRepulsion(double stiffnesss=1, double monodisperseRange=1, bool _monodisperse = true)
+        harmonicRepulsion(double stiffness=1, double monodisperseRange=1, bool _monodisperse = true)
             {
             k=stiffness;
             sigma = monodisperseRange;

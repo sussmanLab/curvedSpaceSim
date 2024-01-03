@@ -7,5 +7,6 @@ include_directories(incDirs)
 add_library(utility
     hyperRectangularCellList.cpp
     baseNeighborStructure.cpp
+    cellListNeighborStructure.cpp
     noiseSource.cpp
     )
