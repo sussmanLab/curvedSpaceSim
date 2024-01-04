@@ -39,6 +39,11 @@ void triangulatedMeshSpace::distanceWithSubmeshing(meshPosition &p1, std::vector
     };
 
 
+/*
+As a reminder: in the routine below, we assume that the point3 member of all of the meshPositions
+(i.e., p1.x), is actually just carrying around the real numbers corresponding to the barycentric
+coordinates of that point in the corresponding faceIndex (i.e., p1.faceIndex)
+*/
 void triangulatedMeshSpace::distance(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent)
     {
     if(submeshingActivated)
@@ -76,8 +81,10 @@ void triangulatedMeshSpace::distance(meshPosition &p1, std::vector<meshPosition>
     globalSMSP->remove_all_source_points();
     };
 
-/*!
-An important future refinement will make use of the fact that all of the core routines will guarantee the points stay on the mesh, so "locate" calls are not really needed
+/*
+As a reminder: in the routine below, we assume that the point3 member of all of the meshPositions
+(i.e., p1.x), is actually just carrying around the real numbers corresponding to the barycentric
+coordinates of that point in the corresponding faceIndex (i.e., p1.faceIndex)
 */
 void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displacementVector)
     {
