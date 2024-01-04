@@ -93,56 +93,48 @@ coordinates of that point in the corresponding faceIndex (i.e., p1.faceIndex)
 */
 void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displacementVector)
     {
-/*
     double distanceToTravel = vectorMagnitude(displacementVector);
-    pmpFaceLocation sourceLocation = PMP::locate(pos.x,surface);
+    pmpFaceLocation sourceLocation = meshPositionToFaceLocation(pos);
     point3 sourcePoint = PMP::construct_point(sourceLocation,surface);
     faceIndex currentSourceFace = sourceLocation.first;
-    vector3 currentSourceNormal = PMP::compute_face_normal(currentSourceFace,surface);
-    if (abs(currentSourceNormal*displacementVector) > 1e-18)
-        {
-        ERRORERROR("non-tangent displacement vector on a face");
-        }
 
-    point3 target = sourcePoint + displacementVector;
     std::vector<vertexIndex> vertexList;
-//    std::vector<point3> vertexPositions = getVertexPositions(surface,sourceLocation.first);
-*/
+    std::vector<point3> vertexPositions;
+
+    pmpBarycentricCoordinates targetBarycentricLocation;
+    bool continueShifting = true;
+    while(continueShifting)
+        {
+        vector3 currentSourceNormal = PMP::compute_face_normal(currentSourceFace,surface);
+        getVertexPositionsFromFace(surface,sourceLocation.first, vertexPositions);
+    
+        if (abs(currentSourceNormal*displacementVector) > 1e-18)
+            {
+            ERRORERROR("non-tangent displacement vector on a face");
+            //target = project_to_face(vertexPos, sourcePoint+displacementVector);
+            }
+
+        //target and currentMove are in reference to the current vector (which may be different from the original if we have wrapped around an edge)
+        point3 target = sourcePoint + displacementVector;
+        vector3 currentMove = vector3(sourcePoint, target); 
+        //get the current barycentric coordinates of the target
+        targetBarycentricLocation = PMP::barycentric_coordinates(vertexPositions[0],vertexPositions[1],vertexPositions[2],target); 
+        //if the targetBarycentricLocation is in the face, we have found our destination, so check this before implementing all of the intersection locating and vector rotating logic
+        bool intersectionWithEdge = false;
+        for (int cc = 0; cc <3; ++cc)
+            if(targetBarycentricLocation[cc] < 0) 
+                intersectionWithEdge = true;
+        if(!intersectionWithEdge)
+            {
+            continueShifting = false;
+            continue;
+            };
+        //the target barycentric location is outside the current face...find the intersection, and wrap into the next face
+        };
+    pos.faceIndex = sourceLocation.first;
+    pos.x = point3(targetBarycentricLocation[0],targetBarycentricLocation[1],targetBarycentricLocation[2]);
+
 /*
-  double travelLength = vectorMagnitude(move);
-
-  //short pseudo-projection routine in case we're slightly off the face (so code is general to arbitrary starting point) 
-  Face_location sourceLocation = PMP::locate(pos, mesh);
-  Point_3 source_point = PMP::construct_point(sourceLocation, mesh); //xyz point representing current source
-
-  Face_index currentSourceFace = sourceLocation.first;  
-  Vector_3 currentSourceNormal = PMP::compute_face_normal(currentSourceFace,mesh);
- 
-  Point_3 target = source_point+move;
-
-  std::vector<Vertex_index> vertexList;
-  std::vector<Point_3> vertexPos = getVertexPositions(mesh, sourceLocation.first);
-
-  //if the movement vector isn't quite in the tangent plane, put it there. 
-  if (abs(currentSourceNormal*move) > 0) {
-    target = project_to_face(vertexPos, pos+move);
-  }
-  Vector_3 current_move = Vector_3(source_point, target); 
-  
-  //if there is no intersection, avoid initalizing any of the intersection code
-  std::array<double,3> targetBary = PMP::barycentric_coordinates(vertexPos[0],vertexPos[1],vertexPos[2],target);
-  bool intersection = false;
-  
-  for (double bc: targetBary) {  
-    if (bc < 0) {
-      intersection = true; 
-    }
-  }
-
-  if (intersection == false) {
-     return source_point + current_move; 
-  }
-
   //initializations if there *is* an intersection
   std::vector<Point_3> targetVertices;
   std::vector<Point_3> forRotation;

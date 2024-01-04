@@ -53,7 +53,7 @@ int main(int argc, char*argv[])
     int randomFace = noise.getInt(0,nFaces-1);
     faceDescriptor fdTest(randomFace);
     double3 bary= noise.getRandomBarycentricSet();
-    pmpBarycentricCcoordinates baryTest = {bary.x,bary.y,bary.z};
+    pmpBarycentricCoordinates baryTest = {bary.x,bary.y,bary.z};
     pmpFaceLocation randomLocationOnRandomFace(randomFace,baryTest);
     
     

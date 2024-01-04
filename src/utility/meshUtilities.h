@@ -23,7 +23,7 @@ typedef triangleMesh::Vertex_index                                      vertexIn
 
 namespace CP = CGAL::parameters;
 namespace PMP = CGAL::Polygon_mesh_processing;
-typedef PMP::Barycentric_coordinates<FT>                                pmpBarycentricCcoordinates;
+typedef PMP::Barycentric_coordinates<FT>                                pmpBarycentricCoordinates;
 typedef PMP::Face_location<triangleMesh, FT>                            pmpFaceLocation;
 typedef CGAL::Face_around_target_circulator<triangleMesh>               faceCirculator;
 typedef typename boost::graph_traits<triangleMesh>::vertex_descriptor   vertexDescriptor;
