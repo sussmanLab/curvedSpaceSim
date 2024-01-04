@@ -1,6 +1,8 @@
 #ifndef triangulatedMeshSpace_H
 #define triangulatedMeshSpace_H
 
+#include "functionUtilities.h"
+#include "meshUtilities.h"
 #include "baseSpace.h"
 
 /*! \file triangulatedMeshSpace.h"
@@ -35,7 +37,5 @@ class triangulatedMeshSpace : public baseSpace
         triangleMesh surface;
     protected:
         bool submeshingActivated = false;
-
-        double vectorMagnitude(vector3 v);
     };
 #endif

@@ -2,10 +2,6 @@
 /*! \file triangulatedMeshSpace.cpp */
 #include <stdexcept>
 
-double triangulatedMeshSpace::vectorMagnitude(vector3 v)
-    {
-    return sqrt(v.squared_length());
-    };
 
 void triangulatedMeshSpace::loadMeshFromFile(std::string filename, bool verbose)
     {
@@ -41,7 +37,21 @@ void triangulatedMeshSpace::distance(meshPosition &p1, std::vector<meshPosition>
     pathFinder.build_aabb_tree(tree);
 
     //shortestPaths needs barycentric coordinates... for now this entails a conversion step. Potentially motivates a switch so that the meshPosition data type is always this faceLocation structure?
-    faceLocation sourcePoint = pathFinder.locate<AABB_face_graph_traits>(p1.x,tree);
+    smspFaceLocation sourcePoint = pathFinder.locate<AABB_face_graph_traits>(p1.x,tree);
+//can we do something like the following (where we access a barycentric coordinate finder, given that we, indeed, already know the triangle the point3 is sitting in?
+faceIndex fi = faceIndex(p1.faceIndex);
+vertexIndex vi1 = vertexIndex(0);//but obviously, grab the right indices
+vertexIndex vi2 = vertexIndex(1);
+vertexIndex vi3 = vertexIndex(2);
+/*
+smspBarycentricCoordinates bcc = Traits::Construct_barycentric_coordinates_in_triangle_3(
+                triangle3(surface.point(vi1),surface.point(vi2),surface.point(vi3))
+                ,p1.x);
+*/
+    smspFaceLocation nonLocateSP =  std::pair<faceIndex, smspBarycentricCoordinates>(faceIndex(p1.faceIndex),sourcePoint.second);//but replace sourcePoint.second with bcc
+
+
+
     pathFinder.add_source_point(sourcePoint.first,sourcePoint.second);
   
     pathFinder.build_sequence_tree();
@@ -50,7 +60,7 @@ void triangulatedMeshSpace::distance(meshPosition &p1, std::vector<meshPosition>
         {
         //pathPoints holds the sequence of intersection points between the shortest path and the meshed surface (edges, vertices, etc)
         std::vector<point3> pathPoints; 
-        faceLocation targetPoint = pathFinder.locate<AABB_face_graph_traits>(p2[ii].x,tree);
+        smspFaceLocation targetPoint = pathFinder.locate<AABB_face_graph_traits>(p2[ii].x,tree);
         shortestPathResult geodesic = pathFinder.shortest_path_points_to_source_points(targetPoint.first, targetPoint.second,  std::back_inserter(pathPoints));
         distances[ii] = std::get<0>(geodesic);
         //Note that the path goes from the target to source, so if we want to know path tangent at the source for force calculation, we must use the *end* of points[]
