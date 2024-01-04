@@ -1,6 +1,6 @@
 #include "hyperRectangularCellList.h"
 
-#include "functions.h"
+#include "functionUtilities.h"
 
 /*!
 This routine currently picks an even integer of cells in each dimension, close to but larger than the desired size, that fit in the box.

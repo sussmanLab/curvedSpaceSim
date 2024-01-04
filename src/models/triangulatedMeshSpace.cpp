@@ -36,6 +36,11 @@ void triangulatedMeshSpace::convertToEuclideanPositions(std::vector<meshPosition
 void triangulatedMeshSpace::distanceWithSubmeshing(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent)
     {
     UNWRITTENCODE("distance with submeshing not implemented yet");
+    //create submesh:
+
+
+
+    //create new surfaceMeshShortestPath based on it, follow the logic of the main distance routine. refactor code so it doesn't repeat
     };
 
 

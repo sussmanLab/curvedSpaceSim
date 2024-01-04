@@ -44,4 +44,7 @@ typedef CGAL::AABB_traits<K, AABB_face_graph_primitive>            AABB_face_gra
 typedef CGAL::AABB_tree<AABB_face_graph_traits>                         AABB_tree;
 
 smspFaceLocation meshPositionToFaceLocation(const meshPosition &p);
+void getVertexPositionsFromFace(triangleMesh &mesh, faceIndex i, std::vector<point3> &result);
+void getVertexIndicesFromFace(triangleMesh &mesh, faceIndex i, std::vector<point3> &result);
+
 #endif

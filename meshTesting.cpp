@@ -87,6 +87,16 @@ printf("(%f %f %f) (%f %f %f) %i %i\n",
                     loc2.second[0],loc2.second[1],loc2.second[2],
                     (int)loc2.first,randomFace
                     );
-
+profiler p4("getVP");
+p4.start();
+std::vector<point3> testV;
+getVertexPositionsFromFace(meshSpace->surface, loc2.first,testV);
+p4.end();
+printf("(%f %f %f) (%f %f %f) (%f %f %f)\n ",
+                                    testV[0][0],testV[0][1],testV[0][2],
+                                    testV[1][0],testV[1][1],testV[1][2],
+                                    testV[2][0],testV[2][1],testV[2][2]
+                                    );
+p4.print();
     return 0;
     };
