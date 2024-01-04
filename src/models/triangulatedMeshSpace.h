@@ -11,7 +11,14 @@
 
 //! A class that interfaces with CGAL functionality
 
-
+/*!
+On "loadMeshFromFile", loads a triangle mesh into the surface member and also initializes a global
+surfaceMeshShortestPath (and builds an associated AABB_tree), which can be used for any whole-mesh
+operations
+The triangulatedMeshSpace *ASSUMES* that the data contained in the meshPositions is not actually a
+(point3,faceIndex) pair, but rather a point3 which is storing the 3 Barycentric coordinates of the
+point. (and a faceIndex integer)
+*/
 class triangulatedMeshSpace : public baseSpace
     {
     public:
@@ -33,9 +40,14 @@ class triangulatedMeshSpace : public baseSpace
 
         void findIntersection(faceIndex sourceFace, point3 source, point3 target, std::vector<vertexIndex> &vertexIndices, point3 &intersectionPoint, std::vector<vertexIndex> &intersections);
 
+        //!given a vector of meshPositions that represent barycentric coordinates, fill a second vector of meshPositions that represent the corresponding R3 positions
+        void convertToEuclideanPositions(std::vector<meshPosition> &a, std::vector<meshPosition> &b);
+
         //data structures
         triangleMesh surface;
     protected:
         bool submeshingActivated = false;
+        shared_ptr<surfaceMeshShortestPath> globalSMSP;
+        AABB_tree globalTree;
     };
 #endif

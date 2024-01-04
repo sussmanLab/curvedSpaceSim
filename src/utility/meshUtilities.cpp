@@ -1,5 +1,6 @@
 #include "meshUtilities.h"
-void rotateVectorIntoFace()
+smspFaceLocation meshPositionToFaceLocation(const meshPosition &p)
     {
-    printf("blah");
+    smspBarycentricCoordinates target = {p.x[0],p.x[1],p.x[2]};
+    return smspFaceLocation(faceDescriptor(p.faceIndex),target);
     };

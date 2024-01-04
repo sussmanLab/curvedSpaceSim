@@ -12,7 +12,26 @@ void triangulatedMeshSpace::loadMeshFromFile(std::string filename, bool verbose)
         std::cerr << "Invalid input file." << std::endl;
         throw std::exception();
         };
+
+    globalSMSP = make_shared<surfaceMeshShortestPath>(surface);
+    AABB_tree globalTree;
+    globalSMSP->build_aabb_tree(globalTree);
+        
     };
+
+void triangulatedMeshSpace::convertToEuclideanPositions(std::vector<meshPosition> &a, std::vector<meshPosition> &b)
+    {
+    int N = a.size();
+    if(b.size()!=N)
+        b.resize(N);
+    for(int ii = 0; ii < N; ++ii)
+        {
+        smspFaceLocation sourcePoint = meshPositionToFaceLocation(a[ii]);
+        b[ii].x=globalSMSP->point(sourcePoint.first,sourcePoint.second);
+        b[ii].faceIndex = a[ii].faceIndex;
+        };
+    }
+
 
 void triangulatedMeshSpace::distanceWithSubmeshing(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent)
     {
@@ -32,36 +51,17 @@ void triangulatedMeshSpace::distance(meshPosition &p1, std::vector<meshPosition>
     startPathTangent.resize(nTargets);
     endPathTangent.resize(nTargets);
 
-    surfaceMeshShortestPath pathFinder(surface);
-    AABB_tree tree;
-    pathFinder.build_aabb_tree(tree);
+    smspFaceLocation sourcePoint = meshPositionToFaceLocation(p1);
 
-    //shortestPaths needs barycentric coordinates... for now this entails a conversion step. Potentially motivates a switch so that the meshPosition data type is always this faceLocation structure?
-    smspFaceLocation sourcePoint = pathFinder.locate<AABB_face_graph_traits>(p1.x,tree);
-//can we do something like the following (where we access a barycentric coordinate finder, given that we, indeed, already know the triangle the point3 is sitting in?
-faceIndex fi = faceIndex(p1.faceIndex);
-vertexIndex vi1 = vertexIndex(0);//but obviously, grab the right indices
-vertexIndex vi2 = vertexIndex(1);
-vertexIndex vi3 = vertexIndex(2);
-/*
-smspBarycentricCoordinates bcc = Traits::Construct_barycentric_coordinates_in_triangle_3(
-                triangle3(surface.point(vi1),surface.point(vi2),surface.point(vi3))
-                ,p1.x);
-*/
-    smspFaceLocation nonLocateSP =  std::pair<faceIndex, smspBarycentricCoordinates>(faceIndex(p1.faceIndex),sourcePoint.second);//but replace sourcePoint.second with bcc
-
-
-
-    pathFinder.add_source_point(sourcePoint.first,sourcePoint.second);
-  
-    pathFinder.build_sequence_tree();
+    globalSMSP->add_source_point(sourcePoint.first,sourcePoint.second);
+    globalSMSP->build_sequence_tree();
 
     for(int ii = 0; ii < nTargets; ++ii)
         {
+        smspFaceLocation targetPoint = meshPositionToFaceLocation(p2[ii]);
         //pathPoints holds the sequence of intersection points between the shortest path and the meshed surface (edges, vertices, etc)
         std::vector<point3> pathPoints; 
-        smspFaceLocation targetPoint = pathFinder.locate<AABB_face_graph_traits>(p2[ii].x,tree);
-        shortestPathResult geodesic = pathFinder.shortest_path_points_to_source_points(targetPoint.first, targetPoint.second,  std::back_inserter(pathPoints));
+        shortestPathResult geodesic = globalSMSP->shortest_path_points_to_source_points(targetPoint.first, targetPoint.second,  std::back_inserter(pathPoints));
         distances[ii] = std::get<0>(geodesic);
         //Note that the path goes from the target to source, so if we want to know path tangent at the source for force calculation, we must use the *end* of points[]
         int pathSize = pathPoints.size();
@@ -73,6 +73,7 @@ smspBarycentricCoordinates bcc = Traits::Construct_barycentric_coordinates_in_tr
         normalization = sqrt(endPathTangent[ii].squared_length());
         endPathTangent[ii] /= normalization;
         };
+    globalSMSP->remove_all_source_points();
     };
 
 /*!
@@ -80,6 +81,7 @@ An important future refinement will make use of the fact that all of the core ro
 */
 void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displacementVector)
     {
+/*
     double distanceToTravel = vectorMagnitude(displacementVector);
     pmpFaceLocation sourceLocation = PMP::locate(pos.x,surface);
     point3 sourcePoint = PMP::construct_point(sourceLocation,surface);
@@ -93,7 +95,7 @@ void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displac
     point3 target = sourcePoint + displacementVector;
     std::vector<vertexIndex> vertexList;
 //    std::vector<point3> vertexPositions = getVertexPositions(surface,sourceLocation.first);
-
+*/
 /*
   double travelLength = vectorMagnitude(move);
 

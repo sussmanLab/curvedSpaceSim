@@ -2,6 +2,7 @@
 #define noiseSource_H
 
 #include "std_include.h"
+#include "dataTypes.h"
 
 /*! \file noiseSource.h */
 //!A class that gives access to a RNG on the cpu and gpu
@@ -34,6 +35,7 @@ class noiseSource
         //!Get a real from normal distribution
         double getRealNormal(double mean =0., double std =1.);
 
+        double3 getRandomBarycentricSet();
         //!Set the array size of the cuda rngs
         void initialize(int _N)
             {

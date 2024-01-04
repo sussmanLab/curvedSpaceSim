@@ -2,6 +2,7 @@
 #define meshUtilities_h
 
 #include "cgalIncludesAndTypedefs.h"
+#include "pointDataType.h"
 
 #include <CGAL/Surface_mesh.h>
 #include <CGAL/Surface_mesh_shortest_path.h>
@@ -42,5 +43,5 @@ typedef CGAL::AABB_face_graph_triangle_primitive<triangleMesh>          AABB_fac
 typedef CGAL::AABB_traits<K, AABB_face_graph_primitive>            AABB_face_graph_traits;
 typedef CGAL::AABB_tree<AABB_face_graph_traits>                         AABB_tree;
 
-void rotateVectorIntoFace();
+smspFaceLocation meshPositionToFaceLocation(const meshPosition &p);
 #endif

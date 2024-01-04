@@ -35,6 +35,17 @@ double noiseSource::getRealNormal(double mean, double std)
     return answer;
     };
 
+double3 noiseSource::getRandomBarycentricSet()
+    {
+    double3 ans;
+    double u,v;
+    u=getRealUniform(0,1);
+    v=getRealUniform(0,1-u);
+    ans.x=u;
+    ans.y=v;
+    ans.z=1-u-v;
+    return ans;
+    };
 void noiseSource::setReproducibleSeed(int _seed)
     {
     RNGSeed = _seed;
