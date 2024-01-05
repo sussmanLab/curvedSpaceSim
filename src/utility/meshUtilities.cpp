@@ -51,3 +51,52 @@ bool intersectionOfLinesInBarycentricCoordinates(pmpBarycentricCoordinates line1
     return (intersectionScale1 >= 0 && intersectionScale1 <=1 &&
             intersectionScale2 >= 0 && intersectionScale2 <=1 );
     };
+
+bool intersectionBarycentricLinesV1V2(pmpBarycentricCoordinates line2Start, pmpBarycentricCoordinates line2End, pmpBarycentricCoordinates &intersectionPoint)
+    {
+    double intersectionScale1, intersectionScale2,denominator;
+    denominator = line2Start[0]+line2Start[1] - line2End[0]-line2End[1];
+    if(denominator ==0)
+        return false;
+
+    intersectionScale1 = -(-line2End[1]+line2End[1]*line2Start[0] + line2Start[1] - line2End[0]*line2Start[1])/denominator;
+    intersectionScale2 = (-1+line2Start[0]+line2Start[1])/denominator;
+
+    intersectionPoint[0]= line2Start[0] + intersectionScale2*(line2End[0]-line2Start[0]);
+    intersectionPoint[1]= line2Start[1] + intersectionScale2*(line2End[1]-line2Start[1]);
+    intersectionPoint[2]= line2Start[2] + intersectionScale2*(line2End[2]-line2Start[2]);
+    return (intersectionScale1 >= 0 && intersectionScale1 <=1 &&
+            intersectionScale2 >= 0 && intersectionScale2 <=1 );
+    };
+bool intersectionBarycentricLinesV2V3(pmpBarycentricCoordinates line2Start, pmpBarycentricCoordinates line2End, pmpBarycentricCoordinates &intersectionPoint)
+    {
+    double intersectionScale1, intersectionScale2,denominator;
+    denominator = -line2End[0] + line2Start[0];
+    if(denominator ==0)
+        return false;
+
+    intersectionScale1 = -(line2End[0] - line2Start[0] + line2End[1]*line2Start[0] - line2End[0]*line2Start[1])/denominator;
+    intersectionScale2 = (line2Start[0])/denominator;
+
+    intersectionPoint[0]= line2Start[0] + intersectionScale2*(line2End[0]-line2Start[0]);
+    intersectionPoint[1]= line2Start[1] + intersectionScale2*(line2End[1]-line2Start[1]);
+    intersectionPoint[2]= line2Start[2] + intersectionScale2*(line2End[2]-line2Start[2]);
+    return (intersectionScale1 >= 0 && intersectionScale1 <=1 &&
+            intersectionScale2 >= 0 && intersectionScale2 <=1 );
+    };
+bool intersectionBarycentricLinesV3V1(pmpBarycentricCoordinates line2Start, pmpBarycentricCoordinates line2End, pmpBarycentricCoordinates &intersectionPoint)
+    {
+    double intersectionScale1, intersectionScale2,denominator;
+    denominator = line2Start[1]-line2End[1];
+    if(denominator ==0)
+        return false;
+
+    intersectionScale1 = (line2End[0]*line2Start[1] - line2End[1]*line2Start[0])/denominator;
+    intersectionScale2 = line2Start[1]/denominator;
+
+    intersectionPoint[0]= line2Start[0] + intersectionScale2*(line2End[0]-line2Start[0]);
+    intersectionPoint[1]= line2Start[1] + intersectionScale2*(line2End[1]-line2Start[1]);
+    intersectionPoint[2]= line2Start[2] + intersectionScale2*(line2End[2]-line2Start[2]);
+    return (intersectionScale1 >= 0 && intersectionScale1 <=1 &&
+            intersectionScale2 >= 0 && intersectionScale2 <=1 );
+    };
