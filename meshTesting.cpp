@@ -16,11 +16,11 @@
 
 void printPoint(point3 a)
     {
-    printf("{%f,%f,%f},",a.x[0],a.x[1],a.x[2];)
+    printf("{%f,%f,%f},",a[0],a[1],a[2]);
     }
 void printBary(smspBarycentricCoordinates a)
     {
-    printf("{%f,%f,%f},",a[0],a[1],a[2];)
+    printf("{%f,%f,%f},",a[0],a[1],a[2]);
     }
 
 using namespace TCLAP;
@@ -69,15 +69,12 @@ int main(int argc, char*argv[])
     
     smspFaceLocation smspRL = randomLocationOnRandomFace;
 
-    randomFace = noise.getInt(0,nFaces-1);
-    faceDescriptor fdTest(randomFace);
-    double3 bary= noise.getRandomBarycentricSet();
-    pmpBarycentricCoordinates baryTest = {bary.x,bary.y,bary.z};
-
+for(int ii = 0; ii < 10; ++ii)
+{
 randomFace = noise.getInt(0,nFaces-1);
-fDtest = faceDescriptor(randomFace);
+faceDescriptor fDtest2(randomFace);
 std::vector<point3> vertices;
-getVertexPositionsFromFace(meshSpace->surface, randomFace, vertices);
+getVertexPositionsFromFace(meshSpace->surface, faceDescriptor(randomFace), vertices);
 printf("{");
 printPoint(vertices[0]);
 printPoint(vertices[1]);
@@ -87,21 +84,21 @@ printPoint(vertices[2]);
     source[0] = sourcePoint.x;
     source[1] = sourcePoint.y;
     source[2] = sourcePoint.z;
-    target[0]=noise.getRandomUniform(-2,2);
-    target[1]=noise.getRandomUniform(-2,2);
+    target[0]=noise.getRealUniform(-2,2);
+    target[1]=noise.getRealUniform(-2,2);
     target[2]=1-target[0]-target[1];
-intersectionBarycentricLinesV1V2(source,target,i1);
-intersectionBarycentricLinesV2V3(source,target,i2);
-intersectionBarycentricLinesV3V1(source,target,i3);
+bool ii1 = intersectionBarycentricLinesV1V2(source,target,i1);
+bool ii2 = intersectionBarycentricLinesV2V3(source,target,i2);
+bool ii3 = intersectionBarycentricLinesV3V1(source,target,i3);
 printBary(source);
 printBary(target);
-printBary(i1);
-printBary(i2);
-printBary(i3);
-printf("}");
-
-point3 targetPoint = pathFinder.point(smspRL.first,smspRL.second);
+if (ii1) printBary(i1);
+if (ii2) printBary(i2);
+if (ii3)printBary(i3);
+printf("}\n");
+}
 /*
+point3 targetPoint = pathFinder.point(smspRL.first,smspRL.second);
 profiler p2("smsp initialize");
 p2.start();
 surfaceMeshShortestPath pathFinder(meshSpace->surface);
