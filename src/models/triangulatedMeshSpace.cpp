@@ -101,6 +101,7 @@ void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displac
     std::vector<vertexIndex> vertexList;
     std::vector<point3> vertexPositions;
 
+    pmpBarycentricCoordinates sourceBarycentricLocation = sourceLocation.second;
     pmpBarycentricCoordinates targetBarycentricLocation;
     bool continueShifting = true;
     while(continueShifting)
@@ -108,7 +109,7 @@ void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displac
         vector3 currentSourceNormal = PMP::compute_face_normal(currentSourceFace,surface);
         getVertexPositionsFromFace(surface,sourceLocation.first, vertexPositions);
     
-        if (abs(currentSourceNormal*displacementVector) > 1e-18)
+        if (abs(currentSourceNormal*displacementVector) > THRESHOLD)
             {
             ERRORERROR("non-tangent displacement vector on a face");
             //target = project_to_face(vertexPos, sourcePoint+displacementVector);
@@ -129,7 +130,43 @@ void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displac
             continueShifting = false;
             continue;
             };
-        //the target barycentric location is outside the current face...find the intersection, and wrap into the next face
+
+        //the target barycentric location is outside the current face...find the intersection
+        pmpBarycentricCoordinates iCheck, intersectionPoint;
+        std::vector<int> uninvolvedVertex;
+        bool v1v2Intersection = intersectionBarcentricLinesV1V2(sourceBarycentricLocation,targetBarycentricLocation,iCheck);
+        if(v1v2Intersection)
+            {
+            intersectionPoint = iCheck;
+            uninvolvedVertex.push_back(2);
+            }
+        bool v2v3Intersection = intersectionBarcentricLinesV2V3(sourceBarycentricLocation,targetBarycentricLocation,iCheck);
+        if(v2v3Intersection)
+            {
+            intersectionPoint = iCheck;
+            uninvolvedVertex.push_back(0);
+            }
+        bool v3v1Intersection = intersectionBarcentricLinesV3V1(sourceBarycentricLocation,targetBarycentricLocation,iCheck);
+        if(v3v1Intersection)
+            {
+            intersectionPoint = iCheck;
+            uninvolvedVertex.push_back(1);
+            }
+        if(uninvolvedVertex.size()== 2)
+            {
+            UNWRITTENCODE("line goes through a vertex...write this routine");
+            }
+        if(uninvolvedVertex.size() != 1)
+            {
+            ERRORERROR("a barycentric coordinate of the target is negative, but neither 1 nor 2 intersections were found. Apparently some debugging is needed!");
+            };
+        /*
+        Assume at this point that only one intersection point was found
+        intersectionPoint contains the barycentric coordinates of the intersection point 
+        on a current face. Identify the next face (one of the entries of intersectionPoint
+        will be zero, identifying the uninvolved vertex, subtract the distance travelled from
+        source to intersection, and update the face index to wrap into the next face.
+        */
         };
     pos.faceIndex = sourceLocation.first;
     pos.x = point3(targetBarycentricLocation[0],targetBarycentricLocation[1],targetBarycentricLocation[2]);
