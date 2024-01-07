@@ -60,11 +60,11 @@ bool findTriangleEdgeIntersectionInformation(pmpBarycentricCoordinates sourceBar
 
 void printPoint(point3 a)
     {
-    printf("{%f,%f,%f},",a[0],a[1],a[2]);
+    printf("{%f,%f,%f}",a[0],a[1],a[2]);
     };
 void printBary(smspBarycentricCoordinates a)
     {
-    printf("{%f,%f,%f},",a[0],a[1],a[2]);
+    printf("{%f,%f,%f}",a[0],a[1],a[2]);
     };
 
 

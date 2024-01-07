@@ -147,6 +147,16 @@ void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displac
         the edge according to the angle of the face normals. 
         */
         point3 edgeIntersectionPoint = globalSMSP->point(currentSourceFace,intersectionPoint);
+printf("{");
+printPoint(sourcePoint);printf(",");
+printPoint(target);printf(",");
+printPoint(vertexPositions[0]);printf(",");
+printPoint(vertexPositions[1]);printf(",");
+printPoint(vertexPositions[2]);printf(",");
+printPoint(edgeIntersectionPoint); printf("},");
+
+
+
         sourcePoint = edgeIntersectionPoint;
         //vector3 vectorToIntersection = vector3(sourcePoint,edgeIntersectionPoint);
         //double distanceToIntersectionPoint = sqrt(vectorToIntersection.squared_length());
