@@ -58,4 +58,14 @@ bool intersectionBarycentricLinesV3V1(pmpBarycentricCoordinates line2Start, pmpB
 //Go through each of the vAvB edge intersection functions
 bool findTriangleEdgeIntersectionInformation(pmpBarycentricCoordinates sourceBarycentricLocation, pmpBarycentricCoordinates targetBarycentricLocation, pmpBarycentricCoordinates &intersectionPoint, std::vector<vertexIndex> vertexList,  std::vector<vertexIndex> &involvedVertex,std::vector<int> &uninvolvedVertex);
 
+void printPoint(point3 a)
+    {
+    printf("{%f,%f,%f},",a[0],a[1],a[2]);
+    };
+void printBary(smspBarycentricCoordinates a)
+    {
+    printf("{%f,%f,%f},",a[0],a[1],a[2]);
+    };
+
+
 #endif
