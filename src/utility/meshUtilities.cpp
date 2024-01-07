@@ -100,3 +100,33 @@ bool intersectionBarycentricLinesV3V1(pmpBarycentricCoordinates line2Start, pmpB
     return (intersectionScale1 >= 0 && intersectionScale1 <=1 &&
             intersectionScale2 >= 0 && intersectionScale2 <=1 );
     };
+
+bool findTriangleEdgeIntersectionInformation(pmpBarycentricCoordinates sourceBarycentricLocation, pmpBarycentricCoordinates targetBarycentricLocation, pmpBarycentricCoordinates &intersectionPoint, std::vector<vertexIndex> vertexList,  std::vector<vertexIndex> &involvedVertex,std::vector<int> &uninvolvedVertex)
+    {
+    pmpBarycentricCoordinates iCheck;
+    bool v1v2Intersection = intersectionBarcentricLinesV1V2(sourceBarycentricLocation,targetBarycentricLocation,iCheck);
+    if(v1v2Intersection)
+        {
+        intersectionPoint = iCheck;
+        uninvolvedVertex.push_back(2);
+        involvedVertex.push_back(vertexList[0]);
+        involvedVertex.push_back(vertexList[1]);
+        }
+    bool v2v3Intersection = intersectionBarcentricLinesV2V3(sourceBarycentricLocation,targetBarycentricLocation,iCheck);
+    if(v2v3Intersection)
+        {
+        intersectionPoint = iCheck;
+        uninvolvedVertex.push_back(0);
+        involvedVertex.push_back(vertexList[1]);
+        involvedVertex.push_back(vertexList[2]);
+        }
+    bool v3v1Intersection = intersectionBarcentricLinesV3V1(sourceBarycentricLocation,targetBarycentricLocation,iCheck);
+    if(v3v1Intersection)
+        {
+        intersectionPoint = iCheck;
+        uninvolvedVertex.push_back(1);
+        involvedVertex.push_back(vertexList[2]);
+        involvedVertex.push_back(vertexList[0]);
+        }
+    }
+

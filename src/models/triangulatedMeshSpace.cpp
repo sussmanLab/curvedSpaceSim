@@ -101,24 +101,21 @@ void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displac
     std::vector<vertexIndex> vertexList;
     std::vector<point3> vertexPositions;
 
+    getVertexPositionsFromFace(surface,currentSourceFace, vertexPositions);
     pmpBarycentricCoordinates sourceBarycentricLocation = sourceLocation.second;
     pmpBarycentricCoordinates targetBarycentricLocation;
     bool continueShifting = true;
-    point3 target;
+    vector3 currentSourceNormal = PMP::compute_face_normal(currentSourceFace,surface);
+    if (abs(currentSourceNormal*displacementVector) > THRESHOLD)
+        {
+        ERRORERROR("non-tangent displacement vector on a face");
+        //target = project_to_face(vertexPos, sourcePoint+displacementVector);
+        }
+    point3 target = sourcePoint + displacementVector;
+    vector3 currentMove = vector3(sourcePoint, target); 
+
     while(continueShifting)
         {
-        vector3 currentSourceNormal = PMP::compute_face_normal(currentSourceFace,surface);
-        getVertexPositionsFromFace(surface,sourceLocation.first, vertexPositions);
-    
-        if (abs(currentSourceNormal*displacementVector) > THRESHOLD)
-            {
-            ERRORERROR("non-tangent displacement vector on a face");
-            //target = project_to_face(vertexPos, sourcePoint+displacementVector);
-            }
-
-        //target and currentMove are in reference to the current vector (which may be different from the original if we have wrapped around an edge)
-        target = sourcePoint + displacementVector;
-        vector3 currentMove = vector3(sourcePoint, target); 
         //get the current barycentric coordinates of the target
         targetBarycentricLocation = PMP::barycentric_coordinates(vertexPositions[0],vertexPositions[1],vertexPositions[2],target); 
         //if the targetBarycentricLocation is in the face, we have found our destination, so check this before implementing all of the intersection locating and vector rotating logic
@@ -131,63 +128,38 @@ void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displac
             continueShifting = false;
             continue;
             };
-        getVertexIndicesFromFace(surface,sourceLocation.first, vertexList);
+        getVertexIndicesFromFace(surface,currentSourceFace, vertexList);
         //the target barycentric location is outside the current face...find the intersection
-        pmpBarycentricCoordinates iCheck, intersectionPoint;
+        pmpBarycentricCoordinatesintersectionPoint;
         std::vector<int> uninvolvedVertex;
         std::vector<vertexIndex> involvedVertex;
-        bool v1v2Intersection = intersectionBarcentricLinesV1V2(sourceBarycentricLocation,targetBarycentricLocation,iCheck);
-        if(v1v2Intersection)
-            {
-            intersectionPoint = iCheck;
-            uninvolvedVertex.push_back(2);
-            involvedVertex.push_back(vertexList[0]);
-            involvedVertex.push_back(vertexList[1]);
-            }
-        bool v2v3Intersection = intersectionBarcentricLinesV2V3(sourceBarycentricLocation,targetBarycentricLocation,iCheck);
-        if(v2v3Intersection)
-            {
-            intersectionPoint = iCheck;
-            uninvolvedVertex.push_back(0);
-            involvedVertex.push_back(vertexList[1]);
-            involvedVertex.push_back(vertexList[2]);
-            }
-        bool v3v1Intersection = intersectionBarcentricLinesV3V1(sourceBarycentricLocation,targetBarycentricLocation,iCheck);
-        if(v3v1Intersection)
-            {
-            intersectionPoint = iCheck;
-            uninvolvedVertex.push_back(1);
-            involvedVertex.push_back(vertexList[2]);
-            involvedVertex.push_back(vertexList[0]);
-            }
+
+        findTriangleEdgeIntersectionInformation(sourceBarycentricLocation,targetBarycentricLocation,intersectionPoint, vertexList, involvedVertex,uninvolvedVertex);
         if(uninvolvedVertex.size()== 2)
-            {
-            UNWRITTENCODE("line goes through a vertex...write this routine");
-            }
+            {UNWRITTENCODE("line goes through a vertex...write this routine");}
         if(uninvolvedVertex.size() != 1)
-            {
             ERRORERROR("a barycentric coordinate of the target is negative, but neither 1 nor 2 intersections were found. Apparently some debugging is needed!");
-            };
         /*
-        Assume at this point that only one intersection point was found
+        Assume at this point that only one intersection point was found.
         intersectionPoint contains the barycentric coordinates of the intersection point 
-        on a current face. Identify the next face (one of the entries of intersectionPoint
-        will be zero, identifying the uninvolved vertex, subtract the distance travelled from
-        source to intersection, and update the face index to wrap into the next face.
+        on a current face. Identify the next face from the relevant halfEdge, update current
+        move to be from the edge intersection to the original target, and rotate it around
+        the edge according to the angle of the face normals. 
         */
-        point3 edgeIntersectionPoint = globalSMSP->point(currentSourceFace,intersectionPoint.second);
+        point3 edgeIntersectionPoint = globalSMSP->point(currentSourceFace,intersectionPoint);
         sourcePoint = edgeIntersectionPoint;
         //vector3 vectorToIntersection = vector3(sourcePoint,edgeIntersectionPoint);
         //double distanceToIntersectionPoint = sqrt(vectorToIntersection.squared_length());
 
         //update the move vector to intersection->target
         currentMove = vector3(edgeIntersectionPoint, target);
+
         //identify the next faceIndex from the shared intersected edge
-        int nextFace;
         halfedgeIndex intersectedEdge = surface.halfedge(involvedVertex[0],involvedVertex[1]);
         faceIndex provisionalTargetFace = surface.face(intersectedEdge);
         if (provisionalTargetFace == currentSourceFace) 
             provisionalTargetFace= surface.face(surface.opposite(intersectedEdge));
+
         //find the new target after rotating current move into the tangent plane ofthe new face
         vector3 targetNormal = PMP::compute_face_normal(provisionalTargetFace,surface);
         double normalDotProduct = currentSourceNormal*targetNormal;
@@ -196,66 +168,15 @@ void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displac
         axisVector /= vectorMagnitude(axisVector);
         std::vector<point3> axis = {sourcePoint, sourcePoint+axisVector};
         target = rotateAboutAxis(target, axis,angle);
-
         displacementVector = vector3(sourcePoint, target);
+
         //update source face index info and new bary coords in  the new face.
-        //double check logic and remove redundancies
-        /*
-  */
+        currentSourceFace = provisionalTargetFace;
+        getVertexPositionsFromFace(surface,currentSourceFace, vertexPositions);
+        sourceBarycentricLocation = PMP::barycentric_coordinates(vertexPositions[0],vertexPositions[1],vertexPositions[2],sourceBarycentricLocation);
+        currentSourceNormal = targetNormal;
         };
 
     pos.faceIndex = sourceLocation.first;
     pos.x = point3(targetBarycentricLocation[0],targetBarycentricLocation[1],targetBarycentricLocation[2]);
-
-/*
-  //initializations if there *is* an intersection
-  std::vector<Point_3> targetVertices;
-  std::vector<Point_3> forRotation;
-  Point_3 rotatedTarget;
-  Face_index currentTargetFace;
-  //Vector_3 currentTargetFaceNormal;
-  double lengthToSharedElement;
-  double rotationAngle;
-  double overlap;
-
-  while(intersection){
-    //vertexList = getVertexPositions(mesh,currentSourceFace);
-    vertexList = getVertexIndices(mesh,currentSourceFace);
-
-
-    std::pair<Point_3, std::vector<Vertex_index>> intersection_info = find_intersection(mesh, currentSourceFace, source_point, source_point+current_move, vertexList);
-    Point_3 intersection_point = intersection_info.first;
-    std::vector<Vertex_index> intersected_elements = intersection_info.second;
-    
-    if (intersection_point == Point_3(1000,1000,1000)) {
-      intersection = false;
-      break;
-    }
-
-    Vector_3 vector_to_intersection = Vector_3(source_point, intersection_point);
-    double lengthToSharedElement = vectorMagnitude(vector_to_intersection); //how far we've traveled
-    current_move = reduceVector(current_move, lengthToSharedElement);         //decrease move size by length to intersected vertex/edge --
-                                                                            //effectively the step where we "walk" to that intersection
-    
-    target = intersection_point+current_move; //storage of where the move vector currently points for rotation later
-    
-    currentTargetFace = getTargetFace(intersected_elements, vector_to_intersection, currentSourceFace, mesh); //face we're about to walk into;
-    
-    source_point = intersection_point;//update source to be the most recent intersection point -- finish walking there
-
-    Face_location newMoveLocation = rotateIntoNewFace(mesh, currentSourceFace, currentTargetFace, source_point, target);
-    Point_3 rotatedTarget = PMP::construct_point(newMoveLocation,mesh);
-
-    //check that we've rotated in the right direction via overlap
-    current_move = Vector_3(source_point, rotatedTarget);//source is now intersection
-    currentSourceFace = currentTargetFace;
-  }
-  //source_point+move is the location in the original face if there were no intersections, and it will 
-  //be the location in the unfolded mesh if there were intersections (from an edge intersection to a spot
-  //within a face)
-  
-  Point_3 fTarget = source_point+current_move;
-  return fTarget;  
-  */
-UNWRITTENCODE("displace particle");
     };
