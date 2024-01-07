@@ -5,7 +5,7 @@ smspFaceLocation meshPositionToFaceLocation(const meshPosition &p)
     return smspFaceLocation(faceDescriptor(p.faceIndex),target);
     };
 
-void getVertexIndicesFromFace(triangleMesh &mesh, faceIndex i, std::vector<point3> &result)
+void getVertexIndicesFromFace(triangleMesh &mesh, faceIndex i, std::vector<vertexIndex> &result)
     {
     if(result.size()!=3)
         result.resize(3);
@@ -14,7 +14,7 @@ void getVertexIndicesFromFace(triangleMesh &mesh, faceIndex i, std::vector<point
     for(halfedgeIndex hi : halfedges_around_face(hf, mesh))
         {
         vertexIndex vi = source(hi,mesh);
-        result[elements] = mesh.point(vi);
+        result[elements] = vi;
         elements +=1;
         };
     };

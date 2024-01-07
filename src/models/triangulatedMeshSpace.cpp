@@ -104,6 +104,7 @@ void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displac
     pmpBarycentricCoordinates sourceBarycentricLocation = sourceLocation.second;
     pmpBarycentricCoordinates targetBarycentricLocation;
     bool continueShifting = true;
+    point3 target;
     while(continueShifting)
         {
         vector3 currentSourceNormal = PMP::compute_face_normal(currentSourceFace,surface);
@@ -116,7 +117,7 @@ void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displac
             }
 
         //target and currentMove are in reference to the current vector (which may be different from the original if we have wrapped around an edge)
-        point3 target = sourcePoint + displacementVector;
+        target = sourcePoint + displacementVector;
         vector3 currentMove = vector3(sourcePoint, target); 
         //get the current barycentric coordinates of the target
         targetBarycentricLocation = PMP::barycentric_coordinates(vertexPositions[0],vertexPositions[1],vertexPositions[2],target); 
@@ -130,27 +131,34 @@ void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displac
             continueShifting = false;
             continue;
             };
-
+        getVertexIndicesFromFace(surface,sourceLocation.first, vertexList);
         //the target barycentric location is outside the current face...find the intersection
         pmpBarycentricCoordinates iCheck, intersectionPoint;
         std::vector<int> uninvolvedVertex;
+        std::vector<vertexIndex> involvedVertex;
         bool v1v2Intersection = intersectionBarcentricLinesV1V2(sourceBarycentricLocation,targetBarycentricLocation,iCheck);
         if(v1v2Intersection)
             {
             intersectionPoint = iCheck;
             uninvolvedVertex.push_back(2);
+            involvedVertex.push_back(vertexList[0]);
+            involvedVertex.push_back(vertexList[1]);
             }
         bool v2v3Intersection = intersectionBarcentricLinesV2V3(sourceBarycentricLocation,targetBarycentricLocation,iCheck);
         if(v2v3Intersection)
             {
             intersectionPoint = iCheck;
             uninvolvedVertex.push_back(0);
+            involvedVertex.push_back(vertexList[1]);
+            involvedVertex.push_back(vertexList[2]);
             }
         bool v3v1Intersection = intersectionBarcentricLinesV3V1(sourceBarycentricLocation,targetBarycentricLocation,iCheck);
         if(v3v1Intersection)
             {
             intersectionPoint = iCheck;
             uninvolvedVertex.push_back(1);
+            involvedVertex.push_back(vertexList[2]);
+            involvedVertex.push_back(vertexList[0]);
             }
         if(uninvolvedVertex.size()== 2)
             {
@@ -167,7 +175,35 @@ void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displac
         will be zero, identifying the uninvolved vertex, subtract the distance travelled from
         source to intersection, and update the face index to wrap into the next face.
         */
+        point3 edgeIntersectionPoint = globalSMSP->point(currentSourceFace,intersectionPoint.second);
+        sourcePoint = edgeIntersectionPoint;
+        //vector3 vectorToIntersection = vector3(sourcePoint,edgeIntersectionPoint);
+        //double distanceToIntersectionPoint = sqrt(vectorToIntersection.squared_length());
+
+        //update the move vector to intersection->target
+        currentMove = vector3(edgeIntersectionPoint, target);
+        //identify the next faceIndex from the shared intersected edge
+        int nextFace;
+        halfedgeIndex intersectedEdge = surface.halfedge(involvedVertex[0],involvedVertex[1]);
+        faceIndex provisionalTargetFace = surface.face(intersectedEdge);
+        if (provisionalTargetFace == currentSourceFace) 
+            provisionalTargetFace= surface.face(surface.opposite(intersectedEdge));
+        //find the new target after rotating current move into the tangent plane ofthe new face
+        vector3 targetNormal = PMP::compute_face_normal(provisionalTargetFace,surface);
+        double normalDotProduct = currentSourceNormal*targetNormal;
+        double angle = acos(normalDotProduct);
+        vector3 axisVector = CGAL::cross_product(currentSourceNormal,targetNormal);
+        axisVector /= vectorMagnitude(axisVector);
+        std::vector<point3> axis = {sourcePoint, sourcePoint+axisVector};
+        target = rotateAboutAxis(target, axis,angle);
+
+        displacementVector = vector3(sourcePoint, target);
+        //update source face index info and new bary coords in  the new face.
+        //double check logic and remove redundancies
+        /*
+  */
         };
+
     pos.faceIndex = sourceLocation.first;
     pos.x = point3(targetBarycentricLocation[0],targetBarycentricLocation[1],targetBarycentricLocation[2]);
 
@@ -223,9 +259,3 @@ void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displac
   */
 UNWRITTENCODE("displace particle");
     };
-
-void triangulatedMeshSpace::findIntersection(faceIndex sourceFace, point3 source, point3 target, std::vector<vertexIndex> &vertexIndices, point3 &intersectionPoint, std::vector<vertexIndex> &intersections)
-    {
-    UNWRITTENCODE("findIntersection unwritten");
-    }
-

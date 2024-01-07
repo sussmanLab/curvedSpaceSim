@@ -38,8 +38,6 @@ class triangulatedMeshSpace : public baseSpace
 
         void useSubmeshingRoutines(bool _useSubMesh){submeshingActivated = _useSubMesh;};
 
-        void findIntersection(faceIndex sourceFace, point3 source, point3 target, std::vector<vertexIndex> &vertexIndices, point3 &intersectionPoint, std::vector<vertexIndex> &intersections);
-
         //!given a vector of meshPositions that represent barycentric coordinates, fill a second vector of meshPositions that represent the corresponding R3 positions
         void convertToEuclideanPositions(std::vector<meshPosition> &a, std::vector<meshPosition> &b);
 
