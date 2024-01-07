@@ -106,16 +106,20 @@ void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displac
     pmpBarycentricCoordinates targetBarycentricLocation;
     bool continueShifting = true;
     vector3 currentSourceNormal = PMP::compute_face_normal(currentSourceFace,surface);
+    //target = project_to_face(vertexPositions, sourcePoint+displacementVector);
     if (abs(currentSourceNormal*displacementVector) > THRESHOLD)
         {
+         printf("%g,\n", abs(currentSourceNormal*displacementVector));
         ERRORERROR("non-tangent displacement vector on a face");
-        //target = project_to_face(vertexPos, sourcePoint+displacementVector);
         }
     point3 target = sourcePoint + displacementVector;
     vector3 currentMove = vector3(sourcePoint, target); 
+    halfedgeIndex lastUsedHalfedge(-1);
 
+int iter= 0;
     while(continueShifting)
         {
+iter+=1;
         //get the current barycentric coordinates of the target
         targetBarycentricLocation = PMP::barycentric_coordinates(vertexPositions[0],vertexPositions[1],vertexPositions[2],target); 
         //if the targetBarycentricLocation is in the face, we have found our destination, so check this before implementing all of the intersection locating and vector rotating logic
@@ -130,11 +134,11 @@ void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displac
             };
         getVertexIndicesFromFace(surface,currentSourceFace, vertexList);
         //the target barycentric location is outside the current face...find the intersection
-        pmpBarycentricCoordinatesintersectionPoint;
+        pmpBarycentricCoordinates intersectionPoint;
         std::vector<int> uninvolvedVertex;
         std::vector<vertexIndex> involvedVertex;
 
-        findTriangleEdgeIntersectionInformation(sourceBarycentricLocation,targetBarycentricLocation,intersectionPoint, vertexList, involvedVertex,uninvolvedVertex);
+        findTriangleEdgeIntersectionInformation(sourceBarycentricLocation,targetBarycentricLocation,intersectionPoint, vertexList,lastUsedHalfedge,surface, involvedVertex,uninvolvedVertex);
         if(uninvolvedVertex.size()== 2)
             {UNWRITTENCODE("line goes through a vertex...write this routine");}
         if(uninvolvedVertex.size() != 1)
@@ -183,10 +187,12 @@ printPoint(edgeIntersectionPoint); printf("},");
         //update source face index info and new bary coords in  the new face.
         currentSourceFace = provisionalTargetFace;
         getVertexPositionsFromFace(surface,currentSourceFace, vertexPositions);
-        sourceBarycentricLocation = PMP::barycentric_coordinates(vertexPositions[0],vertexPositions[1],vertexPositions[2],sourceBarycentricLocation);
+        sourceBarycentricLocation = PMP::barycentric_coordinates(vertexPositions[0],vertexPositions[1],vertexPositions[2],edgeIntersectionPoint);
         currentSourceNormal = targetNormal;
+        lastUsedHalfedge = intersectedEdge;
+if(iter ==4) ERRORERROR("saD");
         };
 
-    pos.faceIndex = sourceLocation.first;
+    pos.faceIndex = currentSourceFace;
     pos.x = point3(targetBarycentricLocation[0],targetBarycentricLocation[1],targetBarycentricLocation[2]);
     };

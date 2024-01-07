@@ -60,6 +60,25 @@ int main(int argc, char*argv[])
     
     smspFaceLocation smspRL = randomLocationOnRandomFace;
 
+smspBarycentricCoordinates  target;
+target[0]=noise.getRealUniform(-2.5,2.5);
+target[1]=noise.getRealUniform(-2.5,2.5);
+target[2]=1-target[0]-target[1];
+pmpFaceLocation targetFL(fdTest, target);
+
+point3 targetPoint = PMP::construct_point(targetFL,meshSpace->surface);
+point3 sourcePoint = PMP::construct_point(randomLocationOnRandomFace,meshSpace->surface);
+vector3 displacementVector(sourcePoint,targetPoint);
+meshPosition testPoint;
+testPoint.x = point3(randomLocationOnRandomFace.second[0],randomLocationOnRandomFace.second[1],randomLocationOnRandomFace.second[2]);
+testPoint.faceIndex = fdTest;
+cout <<endl;
+meshSpace->displaceParticle(testPoint, displacementVector);
+cout <<endl;
+
+
+/*
+//spot test of edge intersection detection
 for(int ii = 0; ii < 10; ++ii)
 {
 randomFace = noise.getInt(0,nFaces-1);
@@ -88,7 +107,9 @@ if (ii2) printBary(i2);
 if (ii3)printBary(i3);
 printf("}\n");
 }
+*/
 /*
+//spot testing of simple timing
 point3 targetPoint = pathFinder.point(smspRL.first,smspRL.second);
 profiler p2("smsp initialize");
 p2.start();
