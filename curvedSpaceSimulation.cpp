@@ -56,10 +56,15 @@ int main(int argc, char*argv[])
     shared_ptr<euclideanSpace> R3Space=make_shared<euclideanSpace>();
     shared_ptr<triangulatedMeshSpace> meshSpace=make_shared<triangulatedMeshSpace>();
     meshSpace->loadMeshFromFile(meshName,verbose);
-
+    meshSpace->useSubmeshingRoutines(false);
+    if(programBranch >=1)
+        meshSpace->useSubmeshingRoutines(true);
 
     shared_ptr<simpleModel> configuration=make_shared<simpleModel>(N);
-    configuration->setSpace(R3Space);
+    if(programBranch >= 0)
+        configuration->setSpace(meshSpace);
+    else
+        configuration->setSpace(R3Space);
 
 
     //for testing, just initialize particles randomly in a small space
@@ -67,11 +72,24 @@ int main(int argc, char*argv[])
     vector<meshPosition> pos(N);
     for(int ii = 0; ii < N; ++ii)
         {
-        point3 p(noise.getRealUniform(-.5,.5),noise.getRealUniform(-.5,.5),noise.getRealUniform(-.5,.5));
-        pos[ii].x=p;
-        pos[ii].faceIndex=ii;
-        if(verbose)
-            cout << p[0] <<"  " << p[1] << "  " << p[2] << endl;
+        if(programBranch<0)
+            {
+            point3 p(noise.getRealUniform(-.5,.5),noise.getRealUniform(-.5,.5),noise.getRealUniform(-.5,.5));
+            pos[ii].x=p;
+            pos[ii].faceIndex=ii;
+            if(verbose)
+                cout << p[0] <<"  " << p[1] << "  " << p[2] << endl;
+            }
+        else
+            {//barycentric coords
+            double3 baryPoint;
+            baryPoint.x=noise.getRealUniform();
+            baryPoint.y=noise.getRealUniform(0,1-baryPoint.x);
+            baryPoint.z=1-baryPoint.x-baryPoint.y;
+            point3 p(baryPoint.x,baryPoint.y,baryPoint.z);
+            pos[ii].x=p;
+            pos[ii].faceIndex= noise.getInt(0,meshSpace->surface.number_of_faces()-1);
+            }
         }
     configuration->setParticlePositions(pos);
 
@@ -121,25 +139,29 @@ vector3 vv;
     std::vector<double> minPos(3,-minMaxDim);
     std::vector<double> maxPos(3,minMaxDim);
     shared_ptr<cellListNeighborStructure> cellList = make_shared<cellListNeighborStructure>(minPos,maxPos,1.0);
-    //note that you can set a new neighbor structure from the beginning, or add one in the middle of the simulation, etc
 
-    configuration->setNeighborStructure(cellList);
     profiler timer2("various parts of the code 2");
-
-    for (int ii = maximumIterations/2; ii < maximumIterations; ++ii)
+    if(programBranch <0)
         {
-        timer2.start();
-        simulator->performTimestep();
-        timer2.end();
-        if(ii%100 == 99)
+        //note that you can set a new neighbor structure from the beginning, or add one in the middle of the simulation, etc
+
+        configuration->setNeighborStructure(cellList);
+
+        for (int ii = maximumIterations/2; ii < maximumIterations; ++ii)
             {
-            getFlatVectorOfPositions(configuration,posToSave);
-            vvdat.writeState(posToSave,dt*ii);
-            double fNorm,fMax;
-            fNorm = energyMinimizer->squaredTotalForceNorm;
-            fMax = energyMinimizer->maximumForceNorm;
-            printf("step %i fN %f fM %f\n",ii,fNorm,fMax);
-            }
+            timer2.start();
+            simulator->performTimestep();
+            timer2.end();
+            if(ii%100 == 99)
+                {
+                getFlatVectorOfPositions(configuration,posToSave);
+                vvdat.writeState(posToSave,dt*ii);
+                double fNorm,fMax;
+                fNorm = energyMinimizer->squaredTotalForceNorm;
+                fMax = energyMinimizer->maximumForceNorm;
+                printf("step %i fN %f fM %f\n",ii,fNorm,fMax);
+                }
+            };
         };
 
     timer.print();

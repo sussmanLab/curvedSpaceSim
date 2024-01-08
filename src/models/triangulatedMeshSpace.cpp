@@ -108,8 +108,10 @@ void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displac
     //target = project_to_face(vertexPositions, sourcePoint+displacementVector);
     if (abs(currentSourceNormal*displacementVector) > THRESHOLD)
         {
-         printf("%g,\n", abs(currentSourceNormal*displacementVector));
-        ERRORERROR("non-tangent displacement vector on a face");
+        //printf("%g,\n", abs(currentSourceNormal*displacementVector));
+        displacementVector -= (currentSourceNormal*displacementVector)*currentSourceNormal;
+        //printf("%g,\n", abs(currentSourceNormal*displacementVector));
+        //ERRORERROR("non-tangent displacement vector on a face");
         }
     point3 target = sourcePoint + displacementVector;
     vector3 currentMove = vector3(sourcePoint, target);
