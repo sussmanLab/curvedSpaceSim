@@ -14,6 +14,8 @@ class euclideanSpace : public baseSpace
         virtual void displaceParticle(meshPosition &pos, vector3 &displacementVector);
 
         virtual void distance(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent);
+
+        virtual void meshPositionToEuclideanLocation(std::vector<meshPosition> &p1, std::vector<double3> &result);
         
     };
 #endif

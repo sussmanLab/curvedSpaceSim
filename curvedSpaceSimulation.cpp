@@ -94,8 +94,8 @@ int main(int argc, char*argv[])
     configuration->setParticlePositions(pos);
 
 
-    //shared_ptr<gaussianRepulsion> pairwiseForce = make_shared<gaussianRepulsion>(1.0,.5);
-    shared_ptr<harmonicRepulsion> pairwiseForce = make_shared<harmonicRepulsion>(1.0,1.0);//stiffness and sigma. this is a monodisperse setting
+    shared_ptr<gaussianRepulsion> pairwiseForce = make_shared<gaussianRepulsion>(1.0,.1);
+    //shared_ptr<harmonicRepulsion> pairwiseForce = make_shared<harmonicRepulsion>(1.0,1.0);//stiffness and sigma. this is a monodisperse setting
     pairwiseForce->setModel(configuration);
 
     shared_ptr<simulation> simulator=make_shared<simulation>();

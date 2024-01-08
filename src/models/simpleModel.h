@@ -72,14 +72,17 @@ class simpleModel
         //!list of list of distances neighbors
         vector<vector<double>> neighborDistances;
 
+
         //!particle types
         //GPUArray<int> types;
         //!particle radii
         //GPUArray<scalar> radii;
         //!particle masses
         //GPUArray<scalar> masses;
-
-
+        
+        //sometimes, you just want the actual positions of particles
+        vector<double3> euclideanLocations;
+        void fillEuclideanLocations();
     protected:
         shared_ptr<baseSpace> space;
         shared_ptr<baseNeighborStructure> neighborStructure;

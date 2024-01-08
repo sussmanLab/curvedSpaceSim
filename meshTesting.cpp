@@ -56,8 +56,8 @@ int main(int argc, char*argv[])
     double3 bary= noise.getRandomBarycentricSet();
     pmpBarycentricCoordinates baryTest = {bary.x,bary.y,bary.z};
     pmpFaceLocation randomLocationOnRandomFace(randomFace,baryTest);
-    
-    
+
+
     smspFaceLocation smspRL = randomLocationOnRandomFace;
 profiler p1("geodesic");
 profiler p2("shift");
@@ -93,7 +93,10 @@ meshSpace->distance(rlrf,pos2,distances,startPath,endPath);
 p1.end();
 p1.print();
 p2.print();
-
+cout <<endl;
+for(int ii = 0; ii < distances.size();++ii)
+    printf("%f\t",distances[ii]);
+cout <<endl;
 /*
 //spot test of edge intersection detection
 for(int ii = 0; ii < 10; ++ii)

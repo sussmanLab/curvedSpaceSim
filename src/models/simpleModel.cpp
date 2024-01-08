@@ -20,6 +20,7 @@ void simpleModel::initializeSimpleModel(int n)
     N=n;
 
     positions.resize(n);
+    euclideanLocations.resize(n);
     velocities.resize(n);
     forces.resize(n);
     neighbors.resize(n);
@@ -33,6 +34,11 @@ void simpleModel::initializeSimpleModel(int n)
 
     neighborStructure = make_shared<baseNeighborStructure>();
     };
+
+void simpleModel::fillEuclideanLocations()
+    {
+    space->meshPositionToEuclideanLocation(positions,euclideanLocations);
+    }
 
 void simpleModel::moveParticles(vector<vector3> &disp)
     {

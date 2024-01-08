@@ -22,5 +22,8 @@ class baseSpace
 
         //!Given a source particle and a vector of target points, determine the geodesic distance and store the start and end path tangents along the paths. The tangents are stored as NORMALIZED vectors
         virtual void distance(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent) = 0;
+
+        //given a vector of meshPositions, extract some double3 information
+        virtual void meshPositionToEuclideanLocation(std::vector<meshPosition> &p1, std::vector<double3> &result)=0;
     };
 #endif
