@@ -16,13 +16,14 @@
 void getFlatVectorOfPositions(shared_ptr<simpleModel> model, vector<double> &pos)
     {
     int N = model->N;
+    model->fillEuclideanLocations();
     pos.resize(3*N);
     for (int ii = 0; ii < N; ++ii)
         {
-        point3 p = model->positions[ii].x;
-        pos[3*ii+0] = p[0];
-        pos[3*ii+1] = p[1];
-        pos[3*ii+2] = p[2];
+        double3 p = model->euclideanLocations[ii];
+        pos[3*ii+0] = p.x;
+        pos[3*ii+1] = p.y;
+        pos[3*ii+2] = p.z;
         }
     };
 
@@ -94,7 +95,7 @@ int main(int argc, char*argv[])
     configuration->setParticlePositions(pos);
 
 
-    shared_ptr<gaussianRepulsion> pairwiseForce = make_shared<gaussianRepulsion>(1.0,.1);
+    shared_ptr<gaussianRepulsion> pairwiseForce = make_shared<gaussianRepulsion>(1.0,.5);
     //shared_ptr<harmonicRepulsion> pairwiseForce = make_shared<harmonicRepulsion>(1.0,1.0);//stiffness and sigma. this is a monodisperse setting
     pairwiseForce->setModel(configuration);
 
@@ -123,14 +124,29 @@ vector3 vv;
         timer.start();
         simulator->performTimestep();
         timer.end();
-        if(ii%100 == 99)
+        if(programBranch <0)
             {
-            getFlatVectorOfPositions(configuration,posToSave);
-            vvdat.writeState(posToSave,dt*ii);
-            double fNorm,fMax;
-            fNorm = energyMinimizer->squaredTotalForceNorm;
-            fMax = energyMinimizer->maximumForceNorm;
-            printf("step %i fN %f fM %f\n",ii,fNorm,fMax);
+            if(ii%100 == 99)
+                {
+                getFlatVectorOfPositions(configuration,posToSave);
+                vvdat.writeState(posToSave,dt*ii);
+                double fNorm,fMax;
+                fNorm = energyMinimizer->squaredTotalForceNorm;
+                fMax = energyMinimizer->maximumForceNorm;
+                printf("step %i fN %f fM %f\n",ii,fNorm,fMax);
+                }
+            }
+        else
+            {
+            if(ii%10 == 9)//just for testing, a different save frequency
+                {
+                getFlatVectorOfPositions(configuration,posToSave);
+                vvdat.writeState(posToSave,dt*ii);
+                double fNorm,fMax;
+                fNorm = energyMinimizer->squaredTotalForceNorm;
+                fMax = energyMinimizer->maximumForceNorm;
+                printf("step %i fN %f fM %f\n",ii,fNorm,fMax);
+                }
             }
         };
 
