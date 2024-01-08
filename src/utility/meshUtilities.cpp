@@ -60,9 +60,9 @@ bool intersectionBarycentricLinesV1V2(pmpBarycentricCoordinates line2Start, pmpB
     if(denominator ==0)
         return false;
 
-    intersectionScale1 = -(-line2End[1]+line2End[1]*line2Start[0] + line2Start[1] - line2End[0]*line2Start[1])/denominator;
+    intersectionScale1 = (-line2End[1]+line2End[1]*line2Start[0] + line2Start[1] - line2End[0]*line2Start[1])/denominator;
     intersectionScale2 = (-1+line2Start[0]+line2Start[1])/denominator;
-
+//printf("\n 12 scales: %f\t%f\n",intersectionScale1,intersectionScale2);
     intersectionPoint[0]= line2Start[0] + intersectionScale2*(line2End[0]-line2Start[0]);
     intersectionPoint[1]= line2Start[1] + intersectionScale2*(line2End[1]-line2Start[1]);
     intersectionPoint[2]= line2Start[2] + intersectionScale2*(line2End[2]-line2Start[2]);
@@ -78,6 +78,7 @@ bool intersectionBarycentricLinesV2V3(pmpBarycentricCoordinates line2Start, pmpB
 
     intersectionScale1 = -(line2End[0] - line2Start[0] + line2End[1]*line2Start[0] - line2End[0]*line2Start[1])/denominator;
     intersectionScale2 = (line2Start[0])/denominator;
+//printf("\n 23 scales: %f\t%f\n",intersectionScale1,intersectionScale2);
 
     intersectionPoint[0]= line2Start[0] + intersectionScale2*(line2End[0]-line2Start[0]);
     intersectionPoint[1]= line2Start[1] + intersectionScale2*(line2End[1]-line2Start[1]);
@@ -94,6 +95,7 @@ bool intersectionBarycentricLinesV3V1(pmpBarycentricCoordinates line2Start, pmpB
 
     intersectionScale1 = (line2End[0]*line2Start[1] - line2End[1]*line2Start[0])/denominator;
     intersectionScale2 = line2Start[1]/denominator;
+//printf("\n 31 scales: %f\t%f\n",intersectionScale1,intersectionScale2);
 
     intersectionPoint[0]= line2Start[0] + intersectionScale2*(line2End[0]-line2Start[0]);
     intersectionPoint[1]= line2Start[1] + intersectionScale2*(line2End[1]-line2Start[1]);
@@ -106,36 +108,33 @@ bool findTriangleEdgeIntersectionInformation(pmpBarycentricCoordinates sourceBar
     {
     pmpBarycentricCoordinates iCheck;
 
-//    if(!(previousHalfEdge == surface.halfedge(vertexList[0],vertexList[1]) || previousHalfEdge == surface.halfedge(vertexList[1],vertexList[0])))
+    if(!(previousHalfEdge == surface.halfedge(vertexList[0],vertexList[1]) || previousHalfEdge == surface.halfedge(vertexList[1],vertexList[0])))
         {
         bool v1v2Intersection = intersectionBarycentricLinesV1V2(sourceBarycentricLocation,targetBarycentricLocation,iCheck);
         if(v1v2Intersection )
             {
-                printf("v1v2\t");
             intersectionPoint = iCheck;
             uninvolvedVertex.push_back(2);
             involvedVertex.push_back(vertexList[0]);
             involvedVertex.push_back(vertexList[1]);
             }
         };
-//    if(!(previousHalfEdge == surface.halfedge(vertexList[1],vertexList[2]) || previousHalfEdge == surface.halfedge(vertexList[2],vertexList[1])))
+    if(!(previousHalfEdge == surface.halfedge(vertexList[1],vertexList[2]) || previousHalfEdge == surface.halfedge(vertexList[2],vertexList[1])))
         {
         bool v2v3Intersection = intersectionBarycentricLinesV2V3(sourceBarycentricLocation,targetBarycentricLocation,iCheck);
         if(v2v3Intersection )
             {
-                printf("v2v3\t");
             intersectionPoint = iCheck;
             uninvolvedVertex.push_back(0);
             involvedVertex.push_back(vertexList[1]);
             involvedVertex.push_back(vertexList[2]);
             }
         };
-//    if(!(previousHalfEdge == surface.halfedge(vertexList[2],vertexList[0]) || previousHalfEdge == surface.halfedge(vertexList[0],vertexList[2])))
+    if(!(previousHalfEdge == surface.halfedge(vertexList[2],vertexList[0]) || previousHalfEdge == surface.halfedge(vertexList[0],vertexList[2])))
         {
         bool v3v1Intersection = intersectionBarycentricLinesV3V1(sourceBarycentricLocation,targetBarycentricLocation,iCheck);
         if(v3v1Intersection )
             {
-                printf("v3v1\t");
             intersectionPoint = iCheck;
             uninvolvedVertex.push_back(1);
             involvedVertex.push_back(vertexList[2]);

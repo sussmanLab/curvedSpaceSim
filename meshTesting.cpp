@@ -59,7 +59,12 @@ int main(int argc, char*argv[])
     
     
     smspFaceLocation smspRL = randomLocationOnRandomFace;
+profiler p1("geodesic");
+profiler p2("shift");
 
+vector<meshPosition> pos2;
+for(int ii = 0; ii < 50; ++ii)
+{
 smspBarycentricCoordinates  target;
 target[0]=noise.getRealUniform(-2.5,2.5);
 target[1]=noise.getRealUniform(-2.5,2.5);
@@ -72,10 +77,22 @@ vector3 displacementVector(sourcePoint,targetPoint);
 meshPosition testPoint;
 testPoint.x = point3(randomLocationOnRandomFace.second[0],randomLocationOnRandomFace.second[1],randomLocationOnRandomFace.second[2]);
 testPoint.faceIndex = fdTest;
-cout <<endl;
+p2.start();
 meshSpace->displaceParticle(testPoint, displacementVector);
-cout <<endl;
-
+p2.end();
+pos2.push_back(testPoint);
+}
+vector<double> distances;
+vector<vector3> startPath;
+vector<vector3> endPath;
+meshPosition rlrf;
+rlrf.x = point3(randomLocationOnRandomFace.second[0],randomLocationOnRandomFace.second[1],randomLocationOnRandomFace.second[2]);
+rlrf.faceIndex = randomLocationOnRandomFace.first;
+p1.start();
+meshSpace->distance(rlrf,pos2,distances,startPath,endPath);
+p1.end();
+p1.print();
+p2.print();
 
 /*
 //spot test of edge intersection detection

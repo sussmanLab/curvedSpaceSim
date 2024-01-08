@@ -16,7 +16,6 @@ void triangulatedMeshSpace::loadMeshFromFile(std::string filename, bool verbose)
     globalSMSP = make_shared<surfaceMeshShortestPath>(surface);
     AABB_tree globalTree;
     globalSMSP->build_aabb_tree(globalTree);
-        
     };
 
 void triangulatedMeshSpace::convertToEuclideanPositions(std::vector<meshPosition> &a, std::vector<meshPosition> &b)
@@ -70,7 +69,7 @@ void triangulatedMeshSpace::distance(meshPosition &p1, std::vector<meshPosition>
         {
         smspFaceLocation targetPoint = meshPositionToFaceLocation(p2[ii]);
         //pathPoints holds the sequence of intersection points between the shortest path and the meshed surface (edges, vertices, etc)
-        std::vector<point3> pathPoints; 
+        std::vector<point3> pathPoints;
         shortestPathResult geodesic = globalSMSP->shortest_path_points_to_source_points(targetPoint.first, targetPoint.second,  std::back_inserter(pathPoints));
         distances[ii] = std::get<0>(geodesic);
         //Note that the path goes from the target to source, so if we want to know path tangent at the source for force calculation, we must use the *end* of points[]
@@ -113,7 +112,7 @@ void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displac
         ERRORERROR("non-tangent displacement vector on a face");
         }
     point3 target = sourcePoint + displacementVector;
-    vector3 currentMove = vector3(sourcePoint, target); 
+    vector3 currentMove = vector3(sourcePoint, target);
     halfedgeIndex lastUsedHalfedge(-1);
 
 int iter= 0;
@@ -121,11 +120,11 @@ int iter= 0;
         {
 iter+=1;
         //get the current barycentric coordinates of the target
-        targetBarycentricLocation = PMP::barycentric_coordinates(vertexPositions[0],vertexPositions[1],vertexPositions[2],target); 
+        targetBarycentricLocation = PMP::barycentric_coordinates(vertexPositions[0],vertexPositions[1],vertexPositions[2],target);
         //if the targetBarycentricLocation is in the face, we have found our destination, so check this before implementing all of the intersection locating and vector rotating logic
         bool intersectionWithEdge = false;
         for (int cc = 0; cc <3; ++cc)
-            if(targetBarycentricLocation[cc] < 0) 
+            if(targetBarycentricLocation[cc] < 0)
                 intersectionWithEdge = true;
         if(!intersectionWithEdge)
             {
@@ -145,20 +144,23 @@ iter+=1;
             ERRORERROR("a barycentric coordinate of the target is negative, but neither 1 nor 2 intersections were found. Apparently some debugging is needed!");
         /*
         Assume at this point that only one intersection point was found.
-        intersectionPoint contains the barycentric coordinates of the intersection point 
+        intersectionPoint contains the barycentric coordinates of the intersection point
         on a current face. Identify the next face from the relevant halfEdge, update current
         move to be from the edge intersection to the original target, and rotate it around
-        the edge according to the angle of the face normals. 
+        the edge according to the angle of the face normals.
         */
         point3 edgeIntersectionPoint = globalSMSP->point(currentSourceFace,intersectionPoint);
+/*
 printf("{");
 printPoint(sourcePoint);printf(",");
 printPoint(target);printf(",");
 printPoint(vertexPositions[0]);printf(",");
 printPoint(vertexPositions[1]);printf(",");
 printPoint(vertexPositions[2]);printf(",");
+printBary(sourceBarycentricLocation);printf(",");
+printBary(targetBarycentricLocation);printf(",");
 printPoint(edgeIntersectionPoint); printf("},");
-
+*/
 
 
         sourcePoint = edgeIntersectionPoint;
@@ -171,7 +173,7 @@ printPoint(edgeIntersectionPoint); printf("},");
         //identify the next faceIndex from the shared intersected edge
         halfedgeIndex intersectedEdge = surface.halfedge(involvedVertex[0],involvedVertex[1]);
         faceIndex provisionalTargetFace = surface.face(intersectedEdge);
-        if (provisionalTargetFace == currentSourceFace) 
+        if (provisionalTargetFace == currentSourceFace)
             provisionalTargetFace= surface.face(surface.opposite(intersectedEdge));
 
         //find the new target after rotating current move into the tangent plane ofthe new face
@@ -190,7 +192,7 @@ printPoint(edgeIntersectionPoint); printf("},");
         sourceBarycentricLocation = PMP::barycentric_coordinates(vertexPositions[0],vertexPositions[1],vertexPositions[2],edgeIntersectionPoint);
         currentSourceNormal = targetNormal;
         lastUsedHalfedge = intersectedEdge;
-if(iter ==4) ERRORERROR("saD");
+if(iter ==40) ERRORERROR("saD");
         };
 
     pos.faceIndex = currentSourceFace;
