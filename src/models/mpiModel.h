@@ -50,6 +50,7 @@ class mpiModel : public simpleModel
         vector<double> doubleTransferBufferReceive;
 
         int largestNumberOfParticlesPerRank;
+        virtual void fillEuclideanLocations();
 
     protected:
         //the current rank has N of NTotal degrees of freedom in the globalPositions vector, corresponding to "for (int ii = minIdx; ii < maxIdx; ++ii)" type accesses

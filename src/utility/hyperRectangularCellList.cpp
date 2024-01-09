@@ -31,7 +31,7 @@ void hyperRectangularCellList::setGridSize(double _minimumGridSize)
 
     cellListIndexer = Index2D(nMax,totalCells);
     cellIndexer = Index3D(cellNumbers.x,cellNumbers.y,cellNumbers.z);
-printf("(%f %f %f) (%f %f %f)\n", minimumPositions[0], minimumPositions[1], minimumPositions[2],  maximumPositions[0], maximumPositions[1], maximumPositions[2]);
+//printf("(%f %f %f) (%f %f %f)\n", minimumPositions[0], minimumPositions[1], minimumPositions[2],  maximumPositions[0], maximumPositions[1], maximumPositions[2]);
 
     resetListSizes();
     };

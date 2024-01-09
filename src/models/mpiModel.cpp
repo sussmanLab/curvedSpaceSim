@@ -37,7 +37,7 @@ void mpiModel::initializeMPIModel(int n, int nTotal)
 
     NTotal = nTotal;
     globalPositions.resize(NTotal);
-
+    euclideanLocations.resize(NTotal);
     //transfer buffers are padded to all be the same size
     intTransferBufferSend.resize(largestNumberOfParticlesPerRank);
     doubleTransferBufferSend.resize(3*largestNumberOfParticlesPerRank);
@@ -120,4 +120,9 @@ void mpiModel::broadcastParticlePositions(vector<meshPosition> &p, int broadcast
     MPI_Bcast(&doubleTransferBufferReceive[0],3*NTotal,MPI_DOUBLE,broadcastRoot,MPI_COMM_WORLD);
     processReceivingBuffer();
 
+    };
+
+void mpiModel::fillEuclideanLocations()
+    {
+    space->meshPositionToEuclideanLocation(globalPositions,euclideanLocations);
     };

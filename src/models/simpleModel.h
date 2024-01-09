@@ -82,7 +82,7 @@ class simpleModel
         
         //sometimes, you just want the actual positions of particles
         vector<double3> euclideanLocations;
-        void fillEuclideanLocations();
+        virtual void fillEuclideanLocations();
     protected:
         shared_ptr<baseSpace> space;
         shared_ptr<baseNeighborStructure> neighborStructure;
