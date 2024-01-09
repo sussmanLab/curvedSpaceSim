@@ -4,6 +4,7 @@
 #include "functionUtilities.h"
 #include "meshUtilities.h"
 #include "baseSpace.h"
+#include "submesher.h"
 
 /*! \file triangulatedMeshSpace.h"
 * \brief defines an interface to CGAL mesh-based functionality
@@ -40,7 +41,10 @@ class triangulatedMeshSpace : public baseSpace
 
         void distanceWithSubmeshing(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent);
 
-        void useSubmeshingRoutines(bool _useSubMesh){submeshingActivated = _useSubMesh;};
+        void useSubmeshingRoutines(bool _useSubMesh, double maxDist = 1.0)
+            {submeshingActivated = _useSubMesh;
+            maximumDistance = maxDist;
+            };
 
         //!given a vector of meshPositions that represent barycentric coordinates, fill a second vector of meshPositions that represent the corresponding R3 positions
         void convertToEuclideanPositions(std::vector<meshPosition> &a, std::vector<meshPosition> &b);
@@ -51,5 +55,7 @@ class triangulatedMeshSpace : public baseSpace
         bool submeshingActivated = false;
         shared_ptr<surfaceMeshShortestPath> globalSMSP;
         AABB_tree globalTree;
+        submesher submeshAssistant;
+        double maximumDistance = 0;
     };
 #endif

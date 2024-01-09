@@ -1,9 +1,7 @@
 #include "submesher.h"
-#include <stack>
 #include "std_include.h"
-#include <map>
 
-triangleMesh submesher::constructSubmeshFromFaceSet(triangleMesh &mesh, std::set<faceIndex> &faces)
+triangleMesh submesher::constructSubmeshFromFaceSet(triangleMesh &mesh, std::set<faceIndex> &faces,std::map<vertexIndex,int> &vertexMap,std::map<faceIndex,int> &faceMap)
     {
     triangleMesh submesh;
     std::set<vertexIndex> vertexIndicesToAdd;
@@ -24,7 +22,6 @@ triangleMesh submesher::constructSubmeshFromFaceSet(triangleMesh &mesh, std::set
     submesh.reserve(nVertices,nEdgeEstimate,nFaces);
 
     //get a mapping between 0-indexed vertices we'll add and the corresponding vertex index ordering in the faces of the full mesh. Add the vertices whie we're at it
-    std::map<vertexIndex, int> vertexMap;
     int ii = 0;
     for (vertexIndex idx : vertexIndicesToAdd)
         {
@@ -33,20 +30,27 @@ triangleMesh submesher::constructSubmeshFromFaceSet(triangleMesh &mesh, std::set
         point3 vertexPosition = mesh.point(idx);
         submesh.add_vertex(vertexPosition);
         }
+    ii = 0;
     for(faceIndex currentFace : faces) 
         {
         getVertexIndicesFromFace(mesh,currentFace,vidx);
         submesh.add_face((vertexIndex) vertexMap[vidx[0]],
                          (vertexIndex) vertexMap[vidx[1]],
                          (vertexIndex) vertexMap[vidx[2]]);
+        faceMap.insert(std::make_pair(currentFace,ii));
+        ii+=1;
         };
 
-    printf("submesh with %i faces and %i vertices\n",submesh.number_of_vertices(),submesh.number_of_faces());
+    printf("submesh with %i faces and %i vertices; (%i, %i)\n",submesh.number_of_vertices(),submesh.number_of_faces(), nVertices,nFaces);
+    std::string outName("./subMesh.off");
+//    CGAL::IO::write_polygon_mesh(outName, submesh);
     return submesh;
     };
 
-triangleMesh submesher::constructSubmeshFromSourceAndTargets(triangleMesh &mesh, faceLocation &source, std::vector<faceLocation> &targets, double &maximumDistanceFromSource)
+triangleMesh submesher::constructSubmeshFromSourceAndTargets(triangleMesh &mesh, faceLocation &source, std::vector<faceLocation> &targets, double &maximumDistanceFromSource,std::map<vertexIndex,int> &vertexMap, std::map<faceIndex,int> &faceMap)
     {
+    faceMap.clear();
+    vertexMap.clear();
     double squaredDistanceThreshold = maximumDistanceFromSource*maximumDistanceFromSource;
     //details of the source point
     point3 sourcePoint = PMP::construct_point(source,mesh);
@@ -63,7 +67,7 @@ triangleMesh submesher::constructSubmeshFromSourceAndTargets(triangleMesh &mesh,
         if (target.first != sourceFace)
             goalFaces.insert(target.first);
     if(goalFaces.empty())
-        return constructSubmeshFromFaceSet(mesh,visitedFaces);
+        return constructSubmeshFromFaceSet(mesh,visitedFaces,vertexMap,faceMap);
 
     std::stack<faceIndex> explorationStack;
     std::vector<point3> faceVertices;
@@ -79,7 +83,7 @@ triangleMesh submesher::constructSubmeshFromSourceAndTargets(triangleMesh &mesh,
             goalFaces.erase(neighboringFace);
         };
     if(goalFaces.empty())
-        return constructSubmeshFromFaceSet(mesh,visitedFaces);
+        return constructSubmeshFromFaceSet(mesh,visitedFaces,vertexMap,faceMap);
 
     //Next, move to a breadth-first search of faces that checks every connected face
     faceIndex currentFace;
@@ -110,7 +114,10 @@ triangleMesh submesher::constructSubmeshFromSourceAndTargets(triangleMesh &mesh,
             }
         };
     if(!goalFaces.empty())
+        {
+        printf("number of goal faces left: %i\n",goalFaces.size());
         ERRORERROR("exploration stack finished traversal without finding all goal faces. Error");
+        }
 
-    return constructSubmeshFromFaceSet(mesh,visitedFaces);
+    return constructSubmeshFromFaceSet(mesh,visitedFaces,vertexMap,faceMap);
     };

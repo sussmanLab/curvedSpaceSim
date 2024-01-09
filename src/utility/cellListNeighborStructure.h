@@ -21,5 +21,6 @@ class cellListNeighborStructure : public baseNeighborStructure
         hyperRectangularCellList cellList;
 
         void findCandidateCellList(meshPosition &p, std::vector<int> &cells);
+        double squaredInteractionRange;
     };
 #endif

@@ -15,6 +15,8 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <stack>
+#include <map>
 #include <string.h>
 #include <stdexcept>
 #include <cassert>

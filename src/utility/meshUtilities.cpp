@@ -34,7 +34,12 @@ void getVertexPositionsFromFace(triangleMesh &mesh, faceIndex i, std::vector<poi
     };
 
 /*
-https://math.stackexchange.com/questions/3995636/point-of-intersection-of-two-lines-in-barycentric-coordinate-system
+Let a line in barycentric coordinates be 
+l(t,start,end) = start + t(end-start),
+where start = (u,v,w) for w=1-u-v,
+then given two lines, solve for an intersection point between the given segments (i.e., 
+0 <= t1 <= 1 and 
+0 <= t2 <= 1
 */
 bool intersectionOfLinesInBarycentricCoordinates(pmpBarycentricCoordinates line1Start, pmpBarycentricCoordinates line1End, pmpBarycentricCoordinates line2Start, pmpBarycentricCoordinates line2End, pmpBarycentricCoordinates &intersectionPoint)
     {

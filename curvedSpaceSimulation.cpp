@@ -59,8 +59,9 @@ int main(int argc, char*argv[])
     shared_ptr<triangulatedMeshSpace> meshSpace=make_shared<triangulatedMeshSpace>();
     meshSpace->loadMeshFromFile(meshName,verbose);
     meshSpace->useSubmeshingRoutines(false);
+    double maximumInteractionRange = 1.0;
     if(programBranch >=1)
-        meshSpace->useSubmeshingRoutines(true);
+        meshSpace->useSubmeshingRoutines(true,maximumInteractionRange);
 
     shared_ptr<simpleModel> configuration=make_shared<simpleModel>(N);
     if(programBranch >= 0)

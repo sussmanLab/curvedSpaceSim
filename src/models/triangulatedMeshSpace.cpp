@@ -69,12 +69,69 @@ void triangulatedMeshSpace::convertToEuclideanPositions(std::vector<meshPosition
 
 void triangulatedMeshSpace::distanceWithSubmeshing(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent)
     {
-    UNWRITTENCODE("distance with submeshing not implemented yet");
     //create submesh:
+    smspFaceLocation sourcePoint = meshPositionToFaceLocation(p1);
+    std::vector<smspFaceLocation> faceTargetsForSubmesh(p2.size());
+    for(int ii = 0; ii < p2.size(); ++ii)
+        faceTargetsForSubmesh[ii] = meshPositionToFaceLocation(p2[ii]);
+    std::map<faceIndex,int> faceMap;
+    std::map<vertexIndex,int> vertexMap;
+    triangleMesh submesh = submeshAssistant.constructSubmeshFromSourceAndTargets(surface, sourcePoint,faceTargetsForSubmesh,maximumDistance,vertexMap,faceMap);
+
+    //one issue: the original barycentric coordinates may get permuted in the submesh (i.e., the ordering of vertices around a face is not guaranteed to be preserved)
+    std::vector<vertexIndex> vIdx1;
+    std::vector<vertexIndex> vIdx2;
+    for(int ii = 0; ii < p2.size(); ++ii)
+        {
+        smspBarycentricCoordinates originalCoordinates = faceTargetsForSubmesh[ii].second;
+        getVertexIndicesFromFace(surface,faceTargetsForSubmesh[ii].first,vIdx1);
+        getVertexIndicesFromFace(submesh,(faceIndex)faceMap[faceTargetsForSubmesh[ii].first],vIdx2);
+        smspBarycentricCoordinates newCoordinates;
+        }
+printf("vertex correspondance: (%i %i %i) -> (%i %i %i)\n",vIdx1[0],vIdx1[1],vIdx1[2],vIdx2[0],vIdx2[1],vIdx2[2]);
+printf("face %i corresponds to face %i\n",sourcePoint.first, faceMap[sourcePoint.first]);
+std::vector<point3> vps;
+getVertexPositionsFromFace(surface, sourcePoint.first, vps);
+printPoint(vps[0]);
+printPoint(vps[1]);
+printPoint(vps[2]);
+getVertexPositionsFromFace(submesh, (faceIndex) faceMap[sourcePoint.first], vps);
+printPoint(vps[0]);
+printPoint(vps[1]);
+printPoint(vps[2]);
+
+    //create local surfaceMeshShortestPath
+    surfaceMeshShortestPath localSMSP(submesh);
+    AABB_tree localTree;
+    localSMSP.build_aabb_tree(localTree);
+    localSMSP.add_source_point((faceIndex)faceMap[sourcePoint.first],sourcePoint.second);
+    localSMSP.build_sequence_tree();
+
+    // follow the logic of the main distance routine. eventually refactor code so it doesn't repeat
+    int nTargets = p2.size();
+    distances.resize(nTargets);
+    startPathTangent.resize(nTargets);
+    endPathTangent.resize(nTargets);
 
 
-
-    //create new surfaceMeshShortestPath based on it, follow the logic of the main distance routine. refactor code so it doesn't repeat
+    for(int ii = 0; ii < nTargets; ++ii)
+        {
+        smspFaceLocation targetPoint = faceTargetsForSubmesh[ii];
+        //pathPoints holds the sequence of intersection points between the shortest path and the meshed surface (edges, vertices, etc)
+        std::vector<point3> pathPoints;
+        shortestPathResult geodesic = localSMSP.shortest_path_points_to_source_points((faceIndex) faceMap[targetPoint.first], targetPoint.second,  std::back_inserter(pathPoints));
+        distances[ii] = std::get<0>(geodesic);
+        //Note that the path goes from the target to source, so if we want to know path tangent at the source for force calculation, we must use the *end* of points[]
+        int pathSize = pathPoints.size();
+        startPathTangent[ii] = vector3(pathPoints[pathSize-2],pathPoints[pathSize-1]);
+        endPathTangent[ii] = vector3(pathPoints[0],pathPoints[1]);
+        //normalize path tangents
+        double normalization = sqrt(startPathTangent[ii].squared_length());
+        startPathTangent[ii] /= normalization;
+        normalization = sqrt(endPathTangent[ii].squared_length());
+        endPathTangent[ii] /= normalization;
+        };
+    localSMSP.remove_all_source_points();
     };
 
 

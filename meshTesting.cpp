@@ -13,6 +13,7 @@
 #include "vectorValueDatabase.h"
 #include "cellListNeighborStructure.h"
 #include "meshUtilities.h"
+#include "submesher.h"
 
 using namespace TCLAP;
 int main(int argc, char*argv[])
@@ -63,25 +64,34 @@ profiler p1("geodesic");
 profiler p2("shift");
 
 vector<meshPosition> pos2;
+vector<pmpFaceLocation> faceTargets;
 for(int ii = 0; ii < 50; ++ii)
-{
-smspBarycentricCoordinates  target;
-target[0]=noise.getRealUniform(-2.5,2.5);
-target[1]=noise.getRealUniform(-2.5,2.5);
-target[2]=1-target[0]-target[1];
-pmpFaceLocation targetFL(fdTest, target);
+    {
+    smspBarycentricCoordinates  target;
+    target[0]=noise.getRealUniform(-2.5,2.5);
+    target[1]=noise.getRealUniform(-2.5,2.5);
+    target[2]=1-target[0]-target[1];
+    pmpFaceLocation targetFL(fdTest, target);
 
-point3 targetPoint = PMP::construct_point(targetFL,meshSpace->surface);
-point3 sourcePoint = PMP::construct_point(randomLocationOnRandomFace,meshSpace->surface);
-vector3 displacementVector(sourcePoint,targetPoint);
-meshPosition testPoint;
-testPoint.x = point3(randomLocationOnRandomFace.second[0],randomLocationOnRandomFace.second[1],randomLocationOnRandomFace.second[2]);
-testPoint.faceIndex = fdTest;
-p2.start();
-meshSpace->displaceParticle(testPoint, displacementVector);
-p2.end();
-pos2.push_back(testPoint);
-}
+    point3 targetPoint = PMP::construct_point(targetFL,meshSpace->surface);
+    point3 sourcePoint = PMP::construct_point(randomLocationOnRandomFace,meshSpace->surface);
+    vector3 displacementVector(sourcePoint,targetPoint);
+    meshPosition testPoint;
+    testPoint.x = point3(randomLocationOnRandomFace.second[0],randomLocationOnRandomFace.second[1],randomLocationOnRandomFace.second[2]);
+    testPoint.faceIndex = fdTest;
+    p2.start();
+    meshSpace->displaceParticle(testPoint, displacementVector);
+    p2.end();
+    pos2.push_back(testPoint);
+    targetFL.first=(faceIndex) testPoint.faceIndex;
+
+    targetFL.second[0] = testPoint.x[0];
+    targetFL.second[1] = testPoint.x[1];
+    targetFL.second[2] = testPoint.x[2];
+
+    faceTargets.push_back(targetFL);
+    }
+
 vector<double> distances;
 vector<vector3> startPath;
 vector<vector3> endPath;
@@ -94,9 +104,50 @@ p1.end();
 p1.print();
 p2.print();
 cout <<endl;
+vector<faceLocation> faceTargetsForSubmesh;
+double maxDist = .8;//just a random scale for testing the submesher
+vector<meshPosition> mpTargetsForSubmesh;
 for(int ii = 0; ii < distances.size();++ii)
-    printf("%f\t",distances[ii]);
-cout <<endl;
+    {
+    if(distances[ii] < maxDist)
+        {
+        point3 pp = PMP::construct_point(faceTargets[ii],meshSpace->surface);
+        meshPosition mp;
+        mp.x = point3(faceTargets[ii].second[0],faceTargets[ii].second[1],faceTargets[ii].second[2]);
+        mp.faceIndex = faceTargets[ii].first;
+        printf("{%f,%f,%f},",pp[0],pp[1],pp[2]);
+        faceTargetsForSubmesh.push_back(faceTargets[ii]);
+        mpTargetsForSubmesh.push_back(mp);
+        }
+    }
+cout <<endl <<" assessing performance on a submesh with " << faceTargetsForSubmesh.size() << " targets" << endl;
+submesher submeshAssistant;
+profiler pSubmesh("submesh construction");
+profiler pSubG("submesh construction and geodesic finding");
+pSubmesh.start();
+std::map<faceIndex,int> fMap;
+std::map<vertexIndex,int> vMap;
+triangleMesh submesh = submeshAssistant.constructSubmeshFromSourceAndTargets(meshSpace->surface, randomLocationOnRandomFace, faceTargetsForSubmesh,maxDist,vMap,fMap);
+pSubmesh.end();
+pSubmesh.print();
+
+vector<double> distancesSubmesh;
+profiler p0("geodesic subset");
+p0.start();
+meshSpace->distance(rlrf,mpTargetsForSubmesh,distances,startPath,endPath);
+p0.end();
+p0.print();
+meshSpace->useSubmeshingRoutines(true,maxDist);
+
+pSubG.start();
+meshSpace->distance(rlrf,mpTargetsForSubmesh,distancesSubmesh,startPath,endPath);
+pSubG.end();
+pSubG.print();
+int jj = 0;
+for (int ii = 0; ii < distances.size(); ++ii)
+    {
+        printf("%f\n",distances[ii] - distancesSubmesh[ii]);
+    }
 /*
 //spot test of edge intersection detection
 for(int ii = 0; ii < 10; ++ii)

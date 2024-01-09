@@ -15,7 +15,7 @@ class baseNeighborStructure
     public:
         baseNeighborStructure(){};
 
-        virtual void setInteractionRange(double range){};
+        virtual void setInteractionRange(double range){maximumInteractionRange = range;};
         //!initialize any helper structure with a set of points (e.g., populating a cell list with a vector of points to sort)
         virtual void initialize(std::vector<meshPosition> &_particles);
 
@@ -27,5 +27,7 @@ class baseNeighborStructure
 
         //!Some neighbor structures, on initialization, need to know that the positions are euclidean (e.g., cell lists that partition space)
         bool requireEuclideanPositions = false;
+
+        double maximumInteractionRange;
     };
 #endif
