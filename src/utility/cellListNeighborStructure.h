@@ -1,5 +1,5 @@
 #ifndef cellListNeighborStructure_H
-#define cellListStructure_H
+#define cellListNeighborStructure_H
 
 #include  "baseNeighborStructure.h"
 #include "hyperRectangularCellList.h"
