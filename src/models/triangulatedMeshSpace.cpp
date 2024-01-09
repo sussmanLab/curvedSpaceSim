@@ -6,11 +6,19 @@
 void triangulatedMeshSpace::loadMeshFromFile(std::string filename, bool verbose)
     {
     if(verbose)
+        {
         printf("loading from file %s\n",filename.c_str());
+        }
     if(!CGAL::IO::read_polygon_mesh(filename, surface) || !CGAL::is_triangle_mesh(surface))
         {
         std::cerr << "Invalid input file." << std::endl;
         throw std::exception();
+        };
+    if(verbose)
+        {
+        int nFaces = surface.number_of_faces();
+        int nVertices = surface.number_of_vertices();
+        printf("input mesh has %i faces and %i vertices\n",nFaces,nVertices);
         };
 
     globalSMSP = make_shared<surfaceMeshShortestPath>(surface);
