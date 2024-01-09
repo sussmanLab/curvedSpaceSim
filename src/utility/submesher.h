@@ -2,6 +2,8 @@
 #define submesher_H
 
 #include "meshUtilities.h"
+#include <set>
+typedef PMP::Face_location<triangleMesh, FT>                            faceLocation;
 
 /*! \file submesher.h */
 
@@ -18,5 +20,8 @@ class submesher
         submesher(){};
 
         triangleMesh constructSubmeshFromSourceAndTargets(triangleMesh &mesh, faceLocation &source, std::vector<faceLocation> &targets, double &maximumDistanceFromSource);
+
+    protected:
+        triangleMesh constructSubmeshFromFaceSet(triangleMesh &mesh, std::set<faceIndex> &faces);
     };
 #endif
