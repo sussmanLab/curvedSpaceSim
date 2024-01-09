@@ -5,6 +5,11 @@ void euclideanSpace::displaceParticle(meshPosition &pos, vector3 &displacementVe
     pos.x += displacementVector;
     };
 
+void euclideanSpace::meshPositionToEuclideanLocation(std::vector<meshPosition> &p1, std::vector<meshPosition> &result)
+    {
+    result=p1;
+    };
+
 void euclideanSpace::meshPositionToEuclideanLocation(std::vector<meshPosition> &p1, std::vector<double3> &result)
     {
     if(result.size()!=p1.size())

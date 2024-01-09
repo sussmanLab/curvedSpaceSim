@@ -158,17 +158,17 @@ vector3 vv;
     shared_ptr<cellListNeighborStructure> cellList = make_shared<cellListNeighborStructure>(minPos,maxPos,1.0);
 
     profiler timer2("various parts of the code 2");
-    if(programBranch <0)
+    //note that you can set a new neighbor structure from the beginning, or add one in the middle of the simulation, etc
+
+    configuration->setNeighborStructure(cellList);
+
+    for (int ii = maximumIterations/2; ii < maximumIterations; ++ii)
         {
-        //note that you can set a new neighbor structure from the beginning, or add one in the middle of the simulation, etc
-
-        configuration->setNeighborStructure(cellList);
-
-        for (int ii = maximumIterations/2; ii < maximumIterations; ++ii)
+        timer2.start();
+        simulator->performTimestep();
+        timer2.end();
+        if(programBranch <0)
             {
-            timer2.start();
-            simulator->performTimestep();
-            timer2.end();
             if(ii%100 == 99)
                 {
                 getFlatVectorOfPositions(configuration,posToSave);
@@ -178,7 +178,19 @@ vector3 vv;
                 fMax = energyMinimizer->maximumForceNorm;
                 printf("step %i fN %f fM %f\n",ii,fNorm,fMax);
                 }
-            };
+            }
+        else
+            {
+            if(ii%10 == 9)//just for testing, a different save frequency
+                {
+                getFlatVectorOfPositions(configuration,posToSave);
+                vvdat.writeState(posToSave,dt*ii);
+                double fNorm,fMax;
+                fNorm = energyMinimizer->squaredTotalForceNorm;
+                fMax = energyMinimizer->maximumForceNorm;
+                printf("step %i fN %f fM %f\n",ii,fNorm,fMax);
+                }
+            }
         };
 
     timer.print();

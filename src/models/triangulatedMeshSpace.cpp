@@ -5,6 +5,7 @@
 
 void triangulatedMeshSpace::loadMeshFromFile(std::string filename, bool verbose)
     {
+    positionsAreEuclidean = false;
     if(verbose)
         {
         printf("loading from file %s\n",filename.c_str());
@@ -25,6 +26,18 @@ void triangulatedMeshSpace::loadMeshFromFile(std::string filename, bool verbose)
     AABB_tree globalTree;
     globalSMSP->build_aabb_tree(globalTree);
     };
+
+void triangulatedMeshSpace::meshPositionToEuclideanLocation(std::vector<meshPosition> &p1, std::vector<meshPosition> &result)
+    {
+    if(result.size()!=p1.size())
+        result.resize(p1.size());
+    for(int ii = 0; ii < p1.size();++ii)
+        {
+        smspFaceLocation sourcePoint = meshPositionToFaceLocation(p1[ii]);
+        point3 b=globalSMSP->point(sourcePoint.first,sourcePoint.second);
+        result[ii].x=b;
+        };
+    }
 
 void triangulatedMeshSpace::meshPositionToEuclideanLocation(std::vector<meshPosition> &p1, std::vector<double3> &result)
     {

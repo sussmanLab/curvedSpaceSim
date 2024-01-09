@@ -48,8 +48,22 @@ void mpiModel::initializeMPIModel(int n, int nTotal)
 
 void mpiModel::findNeighbors(double maximumInteractionRange)
     {
+    //first, determine any needed neighbor structure initialization
     neighborStructure->setInteractionRange(maximumInteractionRange);
-    neighborStructure->initialize(globalPositions);
+    if(neighborStructure->requireEuclideanPositions)
+        {
+        if(space->positionsAreEuclidean)
+            {
+            neighborStructure->initialize(globalPositions);
+            }
+        else
+            {
+            space->meshPositionToEuclideanLocation(globalPositions,euclideanMeshPosition);
+            neighborStructure->initialize(euclideanMeshPosition);
+            }
+        }
+    else
+        neighborStructure->initialize(globalPositions);
 
     //i are particles on this rank; j are particles in the global vector
 

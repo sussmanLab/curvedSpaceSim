@@ -50,8 +50,22 @@ void simpleModel::moveParticles(vector<vector3> &disp)
 
 void simpleModel::findNeighbors(double maximumInteractionRange)
     {
+    //first, determine any needed neighbor structure initialization
     neighborStructure->setInteractionRange(maximumInteractionRange);
-    neighborStructure->initialize(positions);
+    if(neighborStructure->requireEuclideanPositions)
+        {
+        if(space->positionsAreEuclidean)
+            {
+            neighborStructure->initialize(positions);
+            }
+        else
+            {
+            space->meshPositionToEuclideanLocation(positions,euclideanMeshPosition);
+            neighborStructure->initialize(euclideanMeshPosition);
+            }
+        }
+    else
+        neighborStructure->initialize(positions);
     for (int ii =0; ii < N; ++ii)
         {
         //use the neighborStructure to find candidate neighbors. This function will fill the indices of the neighbors[ii] data structure and populate the positions of the corresponding targetParticles

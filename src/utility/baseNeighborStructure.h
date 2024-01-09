@@ -24,5 +24,8 @@ class baseNeighborStructure
 
         std::vector<int> indices;
         std::vector<meshPosition> particles;
+
+        //!Some neighbor structures, on initialization, need to know that the positions are euclidean (e.g., cell lists that partition space)
+        bool requireEuclideanPositions = false;
     };
 #endif

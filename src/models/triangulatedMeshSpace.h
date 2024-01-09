@@ -36,6 +36,8 @@ class triangulatedMeshSpace : public baseSpace
 
         virtual void meshPositionToEuclideanLocation(std::vector<meshPosition> &p1, std::vector<double3> &result);
 
+        virtual void meshPositionToEuclideanLocation(std::vector<meshPosition> &p1, std::vector<meshPosition> &result);
+
         void distanceWithSubmeshing(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent);
 
         void useSubmeshingRoutines(bool _useSubMesh){submeshingActivated = _useSubMesh;};

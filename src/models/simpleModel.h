@@ -86,6 +86,8 @@ class simpleModel
     protected:
         shared_ptr<baseSpace> space;
         shared_ptr<baseNeighborStructure> neighborStructure;
+        //!For compatibility across spaces (e.g., mesh-based spaces), a space may have internal functionality to jam euclidean data into a meshPosition. This can be used for neighborStructures
+        vector<meshPosition> euclideanMeshPosition;
 
     };
 typedef shared_ptr<simpleModel> ConfigPtr;
