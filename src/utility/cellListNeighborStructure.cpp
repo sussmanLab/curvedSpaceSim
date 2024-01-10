@@ -7,6 +7,7 @@ cellListNeighborStructure::cellListNeighborStructure(std::vector<double> &minPos
 
 void cellListNeighborStructure::setInteractionRange(double range)
     {
+    requireEuclideanPositions = true;
     maximumInteractionRange = range;
     squaredInteractionRange = maximumInteractionRange*maximumInteractionRange;
     cellList.setGridSize(range);
@@ -36,7 +37,6 @@ void cellListNeighborStructure::constructCandidateNeighborList(meshPosition &p, 
     std::vector<int> cellsToSearch;
     cellList.getCellNeighbors(primaryCellIndex, cellsToSearch);
 
-
     int cellNumber = cellsToSearch.size();
     for (int cc = 0; cc < cellNumber; ++cc)
         {
@@ -45,9 +45,11 @@ void cellListNeighborStructure::constructCandidateNeighborList(meshPosition &p, 
         for(int ii = 0; ii < localNumberOfCells; ++ii)
             {
             int idx = cellList.indices[cellList.cellListIndexer(ii,currentCellIndex)];
+
             if( (particleIndex + offset) != idx)
                 {
-                if(CGAL::squared_distance(p.x, particles[idx].x) < squaredInteractionRange)
+                double dist2 = CGAL::squared_distance(p.x, particles[idx].x);
+                if(dist2 < squaredInteractionRange)
                     {
                     candidateParticles.push_back(particles[idx]);
                     candidateNeighborIndices.push_back(indices[idx]);

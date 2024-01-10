@@ -51,6 +51,8 @@ class triangulatedMeshSpace : public baseSpace
 
         //data structures
         triangleMesh surface;
+        double3 minVertexPosition;
+        double3 maxVertexPosition;
     protected:
         bool submeshingActivated = false;
         shared_ptr<surfaceMeshShortestPath> globalSMSP;

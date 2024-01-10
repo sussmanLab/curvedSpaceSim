@@ -15,12 +15,33 @@ void triangulatedMeshSpace::loadMeshFromFile(std::string filename, bool verbose)
         std::cerr << "Invalid input file." << std::endl;
         throw std::exception();
         };
+    int nFaces = surface.number_of_faces();
+    int nVertices = surface.number_of_vertices();
     if(verbose)
         {
-        int nFaces = surface.number_of_faces();
-        int nVertices = surface.number_of_vertices();
         printf("input mesh has %i faces and %i vertices\n",nFaces,nVertices);
         };
+    //set domain in which surface lives
+    minVertexPosition.x = 0;minVertexPosition.y = 0;minVertexPosition.z = 0;
+    maxVertexPosition.x = 0;maxVertexPosition.y = 0;maxVertexPosition.z = 0;
+    for (vertexIndex v : surface.vertices())
+        {
+        point3 p = surface.point(v);
+        if(p[0] < minVertexPosition.x)
+            minVertexPosition.x = p[0];
+        if(p[1] < minVertexPosition.y)
+            minVertexPosition.y = p[1];
+        if(p[2] < minVertexPosition.z)
+            minVertexPosition.z = p[2];
+        if(p[0] > maxVertexPosition.x)
+            maxVertexPosition.x = p[0];
+        if(p[1] > maxVertexPosition.y)
+            maxVertexPosition.y = p[1];
+        if(p[2] > maxVertexPosition.z)
+            maxVertexPosition.z = p[2];
+        };
+    if(verbose)
+        printf("mesh spans (%f,%f,%f) to (%f,%f,%f)\n", minVertexPosition.x,minVertexPosition.y,minVertexPosition.z, maxVertexPosition.x,maxVertexPosition.y,maxVertexPosition.z);
 
     globalSMSP = make_shared<surfaceMeshShortestPath>(surface);
     AABB_tree globalTree;
@@ -78,29 +99,42 @@ void triangulatedMeshSpace::distanceWithSubmeshing(meshPosition &p1, std::vector
     std::map<vertexIndex,int> vertexMap;
     triangleMesh submesh = submeshAssistant.constructSubmeshFromSourceAndTargets(surface, sourcePoint,faceTargetsForSubmesh,maximumDistance,vertexMap,faceMap);
 
-    //one issue: the original barycentric coordinates may get permuted in the submesh (i.e., the ordering of vertices around a face is not guaranteed to be preserved)
-    std::vector<vertexIndex> vIdx1;
-    std::vector<vertexIndex> vIdx2;
+    //Note that in the process of submeshing, the original barycentric coordinates may get permuted
+    //in the submesh (i.e., the ordering of vertices around a face is not guaranteed to be preserved)
+    std::vector<point3> vertexPositions1;
+    std::vector<point3> vertexPositions2;
+    //first, fix the source point
+    getVertexPositionsFromFace(surface, sourcePoint.first,vertexPositions1);
+    getVertexPositionsFromFace(submesh, (faceIndex) faceMap[sourcePoint.first], vertexPositions2);
+    std::map<point3,int> sourcePointVertexOrderMap;
+    sourcePointVertexOrderMap.insert(std::make_pair(vertexPositions1[0],0));
+    sourcePointVertexOrderMap.insert(std::make_pair(vertexPositions1[1],1));
+    sourcePointVertexOrderMap.insert(std::make_pair(vertexPositions1[2],2));
+    smspBarycentricCoordinates originalCoordinates = sourcePoint.second;
+    smspBarycentricCoordinates newCoordinates;
+    newCoordinates[0] =originalCoordinates[sourcePointVertexOrderMap[vertexPositions2[0]]];
+    newCoordinates[1] =originalCoordinates[sourcePointVertexOrderMap[vertexPositions2[1]]];
+    newCoordinates[2] =originalCoordinates[sourcePointVertexOrderMap[vertexPositions2[2]]];
+    sourcePoint.second = newCoordinates;
+
+    //then all target points
     for(int ii = 0; ii < p2.size(); ++ii)
         {
-        smspBarycentricCoordinates originalCoordinates = faceTargetsForSubmesh[ii].second;
-        getVertexIndicesFromFace(surface,faceTargetsForSubmesh[ii].first,vIdx1);
-        getVertexIndicesFromFace(submesh,(faceIndex)faceMap[faceTargetsForSubmesh[ii].first],vIdx2);
-        smspBarycentricCoordinates newCoordinates;
+        smspFaceLocation targetFaceLocation = faceTargetsForSubmesh[ii];
+        getVertexPositionsFromFace(surface, targetFaceLocation.first,vertexPositions1);
+        getVertexPositionsFromFace(submesh,  (faceIndex) faceMap[targetFaceLocation.first],vertexPositions2);
+        std::map<point3,int> pointVertexOrderMap;
+        originalCoordinates = faceTargetsForSubmesh[ii].second;
+        pointVertexOrderMap.insert(std::make_pair(vertexPositions1[0],0));
+        pointVertexOrderMap.insert(std::make_pair(vertexPositions1[1],1));
+        pointVertexOrderMap.insert(std::make_pair(vertexPositions1[2],2));
+        newCoordinates[0] =originalCoordinates[pointVertexOrderMap[vertexPositions2[0]]];
+        newCoordinates[1] =originalCoordinates[pointVertexOrderMap[vertexPositions2[1]]];
+        newCoordinates[2] =originalCoordinates[pointVertexOrderMap[vertexPositions2[2]]];
+        faceTargetsForSubmesh[ii].second = newCoordinates;
         }
-printf("vertex correspondance: (%i %i %i) -> (%i %i %i)\n",vIdx1[0],vIdx1[1],vIdx1[2],vIdx2[0],vIdx2[1],vIdx2[2]);
-printf("face %i corresponds to face %i\n",sourcePoint.first, faceMap[sourcePoint.first]);
-std::vector<point3> vps;
-getVertexPositionsFromFace(surface, sourcePoint.first, vps);
-printPoint(vps[0]);
-printPoint(vps[1]);
-printPoint(vps[2]);
-getVertexPositionsFromFace(submesh, (faceIndex) faceMap[sourcePoint.first], vps);
-printPoint(vps[0]);
-printPoint(vps[1]);
-printPoint(vps[2]);
 
-    //create local surfaceMeshShortestPath
+    //now that indexing is all re-aligned, create local surfaceMeshShortestPath
     surfaceMeshShortestPath localSMSP(submesh);
     AABB_tree localTree;
     localSMSP.build_aabb_tree(localTree);
@@ -113,7 +147,6 @@ printPoint(vps[2]);
     startPathTangent.resize(nTargets);
     endPathTangent.resize(nTargets);
 
-
     for(int ii = 0; ii < nTargets; ++ii)
         {
         smspFaceLocation targetPoint = faceTargetsForSubmesh[ii];
@@ -123,8 +156,8 @@ printPoint(vps[2]);
         distances[ii] = std::get<0>(geodesic);
         //Note that the path goes from the target to source, so if we want to know path tangent at the source for force calculation, we must use the *end* of points[]
         int pathSize = pathPoints.size();
-        startPathTangent[ii] = vector3(pathPoints[pathSize-2],pathPoints[pathSize-1]);
-        endPathTangent[ii] = vector3(pathPoints[0],pathPoints[1]);
+        startPathTangent[ii] = -vector3(pathPoints[pathSize-2],pathPoints[pathSize-1]);
+        endPathTangent[ii] = -vector3(pathPoints[0],pathPoints[1]);
         //normalize path tangents
         double normalization = sqrt(startPathTangent[ii].squared_length());
         startPathTangent[ii] /= normalization;
@@ -166,8 +199,8 @@ void triangulatedMeshSpace::distance(meshPosition &p1, std::vector<meshPosition>
         distances[ii] = std::get<0>(geodesic);
         //Note that the path goes from the target to source, so if we want to know path tangent at the source for force calculation, we must use the *end* of points[]
         int pathSize = pathPoints.size();
-        startPathTangent[ii] = vector3(pathPoints[pathSize-2],pathPoints[pathSize-1]);
-        endPathTangent[ii] = vector3(pathPoints[0],pathPoints[1]);
+        startPathTangent[ii] = -vector3(pathPoints[pathSize-2],pathPoints[pathSize-1]);
+        endPathTangent[ii] = -vector3(pathPoints[0],pathPoints[1]);
         //normalize path tangents
         double normalization = sqrt(startPathTangent[ii].squared_length());
         startPathTangent[ii] /= normalization;
@@ -197,7 +230,6 @@ void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displac
     pmpBarycentricCoordinates targetBarycentricLocation;
     bool continueShifting = true;
     vector3 currentSourceNormal = PMP::compute_face_normal(currentSourceFace,surface);
-    //target = project_to_face(vertexPositions, sourcePoint+displacementVector);
     if (abs(currentSourceNormal*displacementVector) > THRESHOLD)
         {
         //printf("%g,\n", abs(currentSourceNormal*displacementVector));
@@ -244,22 +276,7 @@ iter+=1;
         the edge according to the angle of the face normals.
         */
         point3 edgeIntersectionPoint = globalSMSP->point(currentSourceFace,intersectionPoint);
-/*
-printf("{");
-printPoint(sourcePoint);printf(",");
-printPoint(target);printf(",");
-printPoint(vertexPositions[0]);printf(",");
-printPoint(vertexPositions[1]);printf(",");
-printPoint(vertexPositions[2]);printf(",");
-printBary(sourceBarycentricLocation);printf(",");
-printBary(targetBarycentricLocation);printf(",");
-printPoint(edgeIntersectionPoint); printf("},");
-*/
-
-
         sourcePoint = edgeIntersectionPoint;
-        //vector3 vectorToIntersection = vector3(sourcePoint,edgeIntersectionPoint);
-        //double distanceToIntersectionPoint = sqrt(vectorToIntersection.squared_length());
 
         //update the move vector to intersection->target
         currentMove = vector3(edgeIntersectionPoint, target);
@@ -286,7 +303,7 @@ printPoint(edgeIntersectionPoint); printf("},");
         sourceBarycentricLocation = PMP::barycentric_coordinates(vertexPositions[0],vertexPositions[1],vertexPositions[2],edgeIntersectionPoint);
         currentSourceNormal = targetNormal;
         lastUsedHalfedge = intersectedEdge;
-if(iter ==40) ERRORERROR("saD");
+        if(iter ==4000000) ERRORERROR("Error: shifted across an extremely  large number of faces... is this an error, or an accidental call with an extremely large displacement vector? ");
         };
 
     pos.faceIndex = currentSourceFace;

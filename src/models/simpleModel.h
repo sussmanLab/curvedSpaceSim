@@ -83,11 +83,15 @@ class simpleModel
         //sometimes, you just want the actual positions of particles
         vector<double3> euclideanLocations;
         virtual void fillEuclideanLocations();
+
+        void setVerbose(bool v){verbose = v;};
     protected:
         shared_ptr<baseSpace> space;
         shared_ptr<baseNeighborStructure> neighborStructure;
         //!For compatibility across spaces (e.g., mesh-based spaces), a space may have internal functionality to jam euclidean data into a meshPosition. This can be used for neighborStructures
         vector<meshPosition> euclideanMeshPosition;
+
+        bool verbose = false;
 
     };
 typedef shared_ptr<simpleModel> ConfigPtr;

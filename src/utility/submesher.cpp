@@ -41,9 +41,11 @@ triangleMesh submesher::constructSubmeshFromFaceSet(triangleMesh &mesh, std::set
         ii+=1;
         };
 
+    /* //debugging
     printf("submesh with %i faces and %i vertices; (%i, %i)\n",submesh.number_of_vertices(),submesh.number_of_faces(), nVertices,nFaces);
     std::string outName("./subMesh.off");
-//    CGAL::IO::write_polygon_mesh(outName, submesh);
+    CGAL::IO::write_polygon_mesh(outName, submesh);
+    */
     return submesh;
     };
 
@@ -108,16 +110,46 @@ triangleMesh submesher::constructSubmeshFromSourceAndTargets(triangleMesh &mesh,
                 };
             visitedFaces.insert(neighboringFace);
             if(goalFaces.count(neighboringFace)>0)
+                {
                 goalFaces.erase(neighboringFace);
+                }
 
             explorationStack.push(neighboringFace);
             }
         };
+    /*
+     The final case is one in which the sphere of maximum distance from the 
+     source point intersects part of a triangle but none of its vertices. This 
+     can happen for a face at the very boundary, of all visited faces, so we can simply add any remaining goal faces
+    */
+    for(faceIndex currentFace : goalFaces)
+        visitedFaces.insert(currentFace);
+
+    /*//debugging
     if(!goalFaces.empty())
         {
         printf("number of goal faces left: %i\n",goalFaces.size());
+        triangleMesh submesh = constructSubmeshFromFaceSet(mesh,visitedFaces,vertexMap,faceMap);
+        printf("vertices={");
+        for(vertexIndex v : submesh.vertices())
+            {
+                printPoint(submesh.point(v));printf(",");
+            }
+        printf("};\n");
+        printf("targets={");
+        for(int ii = 0; ii < targets.size(); ++ii)
+            {
+                printPoint(PMP::construct_point(targets[ii],mesh));printf(",");
+            }
+        printf("};\n");
+
+        printf("goal faces:\n");
+        for (faceLocation target: targets)
+            printf("%i\t",target.first);
+        printf("\n sourceface: %i \n",sourceFace);
         ERRORERROR("exploration stack finished traversal without finding all goal faces. Error");
         }
+        */
 
     return constructSubmeshFromFaceSet(mesh,visitedFaces,vertexMap,faceMap);
     };

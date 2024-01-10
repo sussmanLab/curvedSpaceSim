@@ -67,6 +67,7 @@ int main(int argc, char*argv[])
     ValueArg<int> particleNumberSwitchArg("n","number","number of particles to simulate",false,20,"int",cmd);
     ValueArg<int> iterationsArg("i","iterations","number of performTimestep calls to make",false,1000,"int",cmd);
     ValueArg<string> meshSwitchArg("m","meshSwitch","filename of the mesh you want to load",false,"../exampleMeshes/torus_isotropic_remesh.off","string",cmd);
+    ValueArg<double> interactionRangeArg("a","interactionRange","range ofthe interaction to set for both potential and cell list",false,1.,"double",cmd);
     SwitchArg reproducibleSwitch("r","reproducible","reproducible random number generation", cmd, true);
     SwitchArg verboseSwitch("v","verbose","output more things to screen ", cmd, false);
 
@@ -78,6 +79,7 @@ int main(int argc, char*argv[])
     int maximumIterations = iterationsArg.getValue();
     string meshName = meshSwitchArg.getValue();
     double dt = 0.01;
+    double maximumInteractionRange= interactionRangeArg.getValue();
     bool verbose= verboseSwitch.getValue();
     bool reproducible = reproducibleSwitch.getValue();
 
@@ -90,15 +92,32 @@ int main(int argc, char*argv[])
     shared_ptr<triangulatedMeshSpace> meshSpace=make_shared<triangulatedMeshSpace>();
     meshSpace->loadMeshFromFile(meshName,verbose);
     meshSpace->useSubmeshingRoutines(false);
-    double maximumInteractionRange = 1.0;
     if(programBranch >=1)
         meshSpace->useSubmeshingRoutines(true,maximumInteractionRange);
 
     shared_ptr<mpiModel> configuration=make_shared<mpiModel>(N,myRank,worldSize,verbose);
+    if(verbose)
+        configuration->setVerbose(true);
     if(programBranch >= 0)
         configuration->setSpace(meshSpace);
     else
         configuration->setSpace(R3Space);
+
+    //testing cellListNeighborStructure in euclidean, non-periodic spaces...make a cell list with the following minimum and maximum dimensions, and unit grid size
+    double minMaxDim = pow((double)N,(1./3.));
+    std::vector<double> minPos(3,-minMaxDim);
+    std::vector<double> maxPos(3,minMaxDim);
+    if(programBranch >= 0)
+        {
+        minPos[0] = meshSpace->minVertexPosition.x;
+        minPos[1] = meshSpace->minVertexPosition.y;
+        minPos[2] = meshSpace->minVertexPosition.z;
+        maxPos[0] = meshSpace->maxVertexPosition.x;
+        maxPos[1] = meshSpace->maxVertexPosition.y;
+        maxPos[2] = meshSpace->maxVertexPosition.z;
+        };
+    shared_ptr<cellListNeighborStructure> cellList = make_shared<cellListNeighborStructure>(minPos,maxPos,maximumInteractionRange);
+    configuration->setNeighborStructure(cellList);
 
     //for testing, just initialize particles randomly in a small space
     noiseSource noise(reproducible);
@@ -129,7 +148,7 @@ int main(int argc, char*argv[])
 
 
     //shared_ptr<gaussianRepulsion> pairwiseForce = make_shared<gaussianRepulsion>(1.0,.5);
-    shared_ptr<harmonicRepulsion> pairwiseForce = make_shared<harmonicRepulsion>(1.0,1.0);//stiffness and sigma. this is a monodisperse setting
+    shared_ptr<harmonicRepulsion> pairwiseForce = make_shared<harmonicRepulsion>(1.0,maximumInteractionRange);//stiffness and sigma. this is a monodisperse setting
     pairwiseForce->setModel(configuration);
 
     shared_ptr<mpiSimulation> simulator=make_shared<mpiSimulation>(myRank,worldSize);
@@ -185,14 +204,7 @@ vector3 vv;
             }
         };
 
-    //testing cellListNeighborStructure in euclidean, non-periodic spaces...make a cell list with the following minimum and maximum dimensions, and unit grid size
-    double minMaxDim = pow((double)N,(1./3.));
-    std::vector<double> minPos(3,-minMaxDim);
-    std::vector<double> maxPos(3,minMaxDim);
-    shared_ptr<cellListNeighborStructure> cellList = make_shared<cellListNeighborStructure>(minPos,maxPos,1.0);
     profiler timer2("various parts of the code 2");
-    if(programBranch <0)
-        {
         //note that you can set a new neighbor structure from the beginning, or add one in the middle of the simulation, etc
 
         configuration->setNeighborStructure(cellList);
@@ -202,9 +214,21 @@ vector3 vv;
             timer2.start();
             simulator->performTimestep();
             timer2.end();
-            if(ii%100 == 99)
+            if(programBranch <0)
                 {
-                if(myRank ==0)
+                if(ii%100 == 99 && myRank ==0)
+                    {
+                    getFlatVectorOfPositions(configuration,posToSave);
+                    vvdat.writeState(posToSave,dt*ii);
+                    double fNorm,fMax;
+                    fNorm = energyMinimizer->squaredTotalForceNorm;
+                    fMax = energyMinimizer->maximumForceNorm;
+                    printf("step %i fN %f fM %f\n",ii,fNorm,fMax);
+                    }
+                }
+            else
+                {
+                if(ii%10 == 9  && myRank == 0)//just for testing, a different save frequency
                     {
                     getFlatVectorOfPositions(configuration,posToSave);
                     vvdat.writeState(posToSave,dt*ii);
@@ -215,7 +239,6 @@ vector3 vv;
                     }
                 }
             }
-        };
 
     if(myRank ==0)
         {

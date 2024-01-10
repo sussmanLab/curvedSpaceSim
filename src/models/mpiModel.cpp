@@ -50,17 +50,11 @@ void mpiModel::findNeighbors(double maximumInteractionRange)
     {
     //first, determine any needed neighbor structure initialization
     neighborStructure->setInteractionRange(maximumInteractionRange);
-    if(neighborStructure->requireEuclideanPositions)
+    bool euclideanNeighborsMeshPositions = neighborStructure->requireEuclideanPositions && !space->positionsAreEuclidean;
+    if(euclideanNeighborsMeshPositions)
         {
-        if(space->positionsAreEuclidean)
-            {
-            neighborStructure->initialize(globalPositions);
-            }
-        else
-            {
-            space->meshPositionToEuclideanLocation(globalPositions,euclideanMeshPosition);
-            neighborStructure->initialize(euclideanMeshPosition);
-            }
+        space->meshPositionToEuclideanLocation(globalPositions,euclideanMeshPosition);
+        neighborStructure->initialize(euclideanMeshPosition);
         }
     else
         neighborStructure->initialize(globalPositions);
@@ -71,13 +65,29 @@ void mpiModel::findNeighbors(double maximumInteractionRange)
         {
         //use the neighborStructure to find candidate neighbors. This function will fill the indices of the neighbors[ii] data structure and populate the positions of the corresponding targetParticles. minIdx provides the necessary offset for indexing between positions and globalPositions
         vector<meshPosition> targetParticles;
-        neighborStructure->constructCandidateNeighborList(positions[ii], ii, neighbors[ii], targetParticles,minIdx);
+        //if needed, target a euclidean position
+        if(euclideanNeighborsMeshPositions)
+            neighborStructure->constructCandidateNeighborList(euclideanMeshPosition[ii+minIdx], ii, neighbors[ii], targetParticles);
+        else
+            neighborStructure->constructCandidateNeighborList(positions[ii], ii, neighbors[ii], targetParticles);
+
+        //if needed, re-fill targetParticles with space-appropriate data
+        if(euclideanNeighborsMeshPositions)
+            {
+            for(int jj = 0; jj < neighbors[ii].size();++jj)
+                targetParticles[jj] = positions[neighbors[ii][jj]];
+            };
 
         //additionally use the space to populate the list of distances and separation vectors
         vector<vector3> placeholderVector;
         vector<vector3> tangentVector;
         vector<double> distances;
-        space->distance(positions[ii],targetParticles,distances,tangentVector,placeholderVector);
+        if(neighborStructure->requireEuclideanPositions && !(space->positionsAreEuclidean))
+            {
+            space->distance(positions[ii],targetParticles,distances,tangentVector,placeholderVector);
+            }
+        else
+            space->distance(positions[ii],targetParticles,distances,tangentVector,placeholderVector);
         neighborDistances[ii] = distances;
         neighborVectors[ii] = tangentVector;
         };

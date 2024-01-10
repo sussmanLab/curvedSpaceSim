@@ -143,11 +143,10 @@ pSubG.start();
 meshSpace->distance(rlrf,mpTargetsForSubmesh,distancesSubmesh,startPath,endPath);
 pSubG.end();
 pSubG.print();
-int jj = 0;
+double jj = 0;
 for (int ii = 0; ii < distances.size(); ++ii)
-    {
-        printf("%f\n",distances[ii] - distancesSubmesh[ii]);
-    }
+    jj += distances[ii] - distancesSubmesh[ii];
+printf("total difference in computed distances between full and submesh routines: %f\n", jj);
 /*
 //spot test of edge intersection detection
 for(int ii = 0; ii < 10; ++ii)
