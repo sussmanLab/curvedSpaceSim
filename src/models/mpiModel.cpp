@@ -50,7 +50,7 @@ void mpiModel::findNeighbors(double maximumInteractionRange)
     {
     //first, determine any needed neighbor structure initialization
     neighborStructure->setInteractionRange(maximumInteractionRange);
-    bool euclideanNeighborsMeshPositions = neighborStructure->requireEuclideanPositions && !space->positionsAreEuclidean;
+    bool euclideanNeighborsMeshPositions = (neighborStructure->requireEuclideanPositions && !space->positionsAreEuclidean);
     if(euclideanNeighborsMeshPositions)
         {
         space->meshPositionToEuclideanLocation(globalPositions,euclideanMeshPosition);
@@ -75,7 +75,7 @@ void mpiModel::findNeighbors(double maximumInteractionRange)
         if(euclideanNeighborsMeshPositions)
             {
             for(int jj = 0; jj < neighbors[ii].size();++jj)
-                targetParticles[jj] = positions[neighbors[ii][jj]];
+                targetParticles[jj] = globalPositions[neighbors[ii][jj]];
             };
 
         //additionally use the space to populate the list of distances and separation vectors

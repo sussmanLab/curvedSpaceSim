@@ -52,7 +52,7 @@ void simpleModel::findNeighbors(double maximumInteractionRange)
     {
     //first, determine any needed neighbor structure initialization
     neighborStructure->setInteractionRange(maximumInteractionRange);
-    bool euclideanNeighborsMeshPositions = neighborStructure->requireEuclideanPositions && !space->positionsAreEuclidean;
+    bool euclideanNeighborsMeshPositions = (neighborStructure->requireEuclideanPositions && !space->positionsAreEuclidean);
     if(euclideanNeighborsMeshPositions)
         {
         space->meshPositionToEuclideanLocation(positions,euclideanMeshPosition);
