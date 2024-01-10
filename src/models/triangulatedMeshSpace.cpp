@@ -1,6 +1,7 @@
 #include "triangulatedMeshSpace.h"
 /*! \file triangulatedMeshSpace.cpp */
 #include <stdexcept>
+#include <CGAL/Polygon_mesh_processing/IO/polygon_mesh_io.h>
 
 
 void triangulatedMeshSpace::loadMeshFromFile(std::string filename, bool verbose)
@@ -10,9 +11,17 @@ void triangulatedMeshSpace::loadMeshFromFile(std::string filename, bool verbose)
         {
         printf("loading from file %s\n",filename.c_str());
         }
-    if(!CGAL::IO::read_polygon_mesh(filename, surface) || !CGAL::is_triangle_mesh(surface))
+    if(!CGAL::IO::read_polygon_mesh(filename, surface))
         {
-        std::cerr << "Invalid input file." << std::endl;
+        if(!CGAL::Polygon_mesh_processing::IO::read_polygon_mesh(filename, surface))
+            {
+            std::cerr << "Invalid input file." << std::endl;
+            throw std::exception();
+            }
+        };
+    if(!CGAL::is_triangle_mesh(surface))
+        {
+        std::cerr << "Non-triangular mesh" << std::endl;
         throw std::exception();
         };
     int nFaces = surface.number_of_faces();
