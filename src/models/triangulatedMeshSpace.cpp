@@ -2,6 +2,7 @@
 /*! \file triangulatedMeshSpace.cpp */
 #include <stdexcept>
 #include <CGAL/Polygon_mesh_processing/IO/polygon_mesh_io.h>
+#include <CGAL/Polygon_mesh_processing/connected_components.h>
 
 
 void triangulatedMeshSpace::loadMeshFromFile(std::string filename, bool verbose)
@@ -143,39 +144,65 @@ void triangulatedMeshSpace::distanceWithSubmeshing(meshPosition &p1, std::vector
         faceTargetsForSubmesh[ii].second = newCoordinates;
         }
 
-    //now that indexing is all re-aligned, create local surfaceMeshShortestPath
-    surfaceMeshShortestPath localSMSP(submesh);
-    AABB_tree localTree;
-    localSMSP.build_aabb_tree(localTree);
-    localSMSP.add_source_point((faceIndex)faceMap[sourcePoint.first],sourcePoint.second);
-    localSMSP.build_sequence_tree();
-
-    // follow the logic of the main distance routine. eventually refactor code so it doesn't repeat
     int nTargets = p2.size();
     distances.resize(nTargets);
     startPathTangent.resize(nTargets);
     endPathTangent.resize(nTargets);
 
-    for(int ii = 0; ii < nTargets; ++ii)
+    //Do we need to worry about a submesh which could in principle have multiple connected components?
+    if(!dangerousSubmeshing)
         {
-        smspFaceLocation targetPoint = faceTargetsForSubmesh[ii];
-        //pathPoints holds the sequence of intersection points between the shortest path and the meshed surface (edges, vertices, etc)
-        std::vector<point3> pathPoints;
-        shortestPathResult geodesic = localSMSP.shortest_path_points_to_source_points((faceIndex) faceMap[targetPoint.first], targetPoint.second,  std::back_inserter(pathPoints));
-        distances[ii] = std::get<0>(geodesic);
-        //Note that the path goes from the target to source, so if we want to know path tangent at the source for force calculation, we must use the *end* of points[]
-        int pathSize = pathPoints.size();
-        startPathTangent[ii] = -vector3(pathPoints[pathSize-2],pathPoints[pathSize-1]);
-        endPathTangent[ii] = -vector3(pathPoints[0],pathPoints[1]);
-        //normalize path tangents
-        double normalization = sqrt(startPathTangent[ii].squared_length());
-        startPathTangent[ii] /= normalization;
-        normalization = sqrt(endPathTangent[ii].squared_length());
-        endPathTangent[ii] /= normalization;
-        };
-    localSMSP.remove_all_source_points();
-    };
+        //now that indexing is all re-aligned, create local surfaceMeshShortestPath
+        shared_ptr<surfaceMeshShortestPath> localSMSP = make_shared<surfaceMeshShortestPath>(submesh);
+        AABB_tree localTree;
+        localSMSP->build_aabb_tree(localTree);
+        localSMSP->add_source_point((faceIndex)faceMap[sourcePoint.first],sourcePoint.second);
+        localSMSP->build_sequence_tree();
 
+        // follow the logic of the main distance routine. eventually refactor code so it doesn't repeat
+
+        for(int ii = 0; ii < nTargets; ++ii)
+            {
+            smspFaceLocation targetPoint = faceTargetsForSubmesh[ii];
+            //pathPoints holds the sequence of intersection points between the shortest path and the meshed surface (edges, vertices, etc)
+            std::vector<point3> pathPoints;
+            shortestPathResult geodesic = localSMSP->shortest_path_points_to_source_points((faceIndex) faceMap[targetPoint.first], targetPoint.second,  std::back_inserter(pathPoints));
+            distances[ii] = std::get<0>(geodesic);
+            //Note that the path goes from the target to source, so if we want to know path tangent at the source for force calculation, we must use the *end* of points[]
+            int pathSize = pathPoints.size();
+            startPathTangent[ii] = -vector3(pathPoints[pathSize-2],pathPoints[pathSize-1]);
+            endPathTangent[ii] = -vector3(pathPoints[0],pathPoints[1]);
+            //normalize path tangents
+            double normalization = sqrt(startPathTangent[ii].squared_length());
+            startPathTangent[ii] /= normalization;
+            normalization = sqrt(endPathTangent[ii].squared_length());
+            endPathTangent[ii] /= normalization;
+            };
+        localSMSP->remove_all_source_points();
+        }
+    else
+        {
+        printf("%i %i\n",submesh.number_of_vertices(),submesh.number_of_faces());
+        triangleMesh::Property_map<faceDescriptor, std::size_t> connectedComponents = submesh.add_property_map<faceDescriptor, std::size_t>("f:CC").first;
+        //int numberOfComponents = 
+        CGAL::Polygon_mesh_processing::connected_components(submesh,connectedComponents);
+        //the zeroth component should be the one that includes the source face
+        filteredGraph ffg(submesh, 0, connectedComponents);
+        CGAL::copy_face_graph(ffg,submesh);
+
+        
+       // printf("number of connected components found:%i\n", numberOfComponents);
+        printf("%i %i\n",submesh.number_of_vertices(),submesh.number_of_faces());
+        filteredGraph ffg2(submesh, 0, connectedComponents);
+        triangleMesh newSubmesh;
+        CGAL::copy_face_graph(ffg2,newSubmesh);
+
+        
+       // printf("number of connected components found:%i\n", numberOfComponents);
+        printf("%i %i\n",newSubmesh.number_of_vertices(),newSubmesh.number_of_faces());
+        UNWRITTENCODE("Asda");
+        }
+    };
 
 /*
 As a reminder: in the routine below, we assume that the point3 member of all of the meshPositions

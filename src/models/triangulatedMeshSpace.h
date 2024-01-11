@@ -41,9 +41,10 @@ class triangulatedMeshSpace : public baseSpace
 
         void distanceWithSubmeshing(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent);
 
-        void useSubmeshingRoutines(bool _useSubMesh, double maxDist = 1.0)
+        void useSubmeshingRoutines(bool _useSubMesh, double maxDist = 1.0, bool _danger = false)
             {submeshingActivated = _useSubMesh;
             maximumDistance = maxDist;
+            dangerousSubmeshing = _danger;
             };
 
         //!given a vector of meshPositions that represent barycentric coordinates, fill a second vector of meshPositions that represent the corresponding R3 positions
@@ -54,10 +55,13 @@ class triangulatedMeshSpace : public baseSpace
         double3 minVertexPosition;
         double3 maxVertexPosition;
     protected:
-        bool submeshingActivated = false;
         shared_ptr<surfaceMeshShortestPath> globalSMSP;
         AABB_tree globalTree;
+        //data structures associated with submeshing routines
+        bool submeshingActivated = false;
         submesher submeshAssistant;
         double maximumDistance = 0;
+        //data structures associated with the potential for "dangerous" submeshes -- these can occur when submeshing routine is capable of returning a submesh with multiple connected components (e.g., when dealing with a surface that looks like an elephant's ear)
+        bool dangerousSubmeshing = false;
     };
 #endif

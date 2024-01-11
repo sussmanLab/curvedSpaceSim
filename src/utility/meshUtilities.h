@@ -15,6 +15,7 @@
 #include <CGAL/boost/graph/helpers.h>
 #include <CGAL/Dynamic_property_map.h>
 #include <CGAL/boost/graph/iterator.h>
+#include <CGAL/boost/graph/Face_filtered_graph.h>
 
 typedef CGAL::Surface_mesh<point3>                                      triangleMesh;
 typedef triangleMesh::Face_index                                        faceIndex;
@@ -42,6 +43,8 @@ typedef surfaceMeshShortestPath::Shortest_path_result                   shortest
 typedef CGAL::AABB_face_graph_triangle_primitive<triangleMesh>          AABB_face_graph_primitive;
 typedef CGAL::AABB_traits<K, AABB_face_graph_primitive>            AABB_face_graph_traits;
 typedef CGAL::AABB_tree<AABB_face_graph_traits>                         AABB_tree;
+
+typedef CGAL::Face_filtered_graph<triangleMesh>                         filteredGraph;
 
 smspFaceLocation meshPositionToFaceLocation(const meshPosition &p);
 void getVertexPositionsFromFace(triangleMesh &mesh, faceIndex i, std::vector<point3> &result);

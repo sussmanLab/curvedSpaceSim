@@ -29,6 +29,7 @@ int main(int argc, char*argv[])
     ValueArg<int> iterationsArg("i","iterations","number of performTimestep calls to make",false,1000,"int",cmd);
     ValueArg<string> meshSwitchArg("m","meshSwitch","filename of the mesh you want to load",false,"../exampleMeshes/torus_isotropic_remesh.off","string",cmd);
     SwitchArg reproducibleSwitch("r","reproducible","reproducible random number generation", cmd, true);
+    SwitchArg dangerousSwitch("d","dangerousMeshes","meshes where submeshes are dangerous", cmd, false);
     SwitchArg verboseSwitch("v","verbose","output more things to screen ", cmd, false);
 
     //parse the arguments
@@ -41,6 +42,7 @@ int main(int argc, char*argv[])
     double dt = 0.01;
     bool verbose= verboseSwitch.getValue();
     bool reproducible = reproducibleSwitch.getValue();
+    bool dangerous = dangerousSwitch.getValue();
 
     noiseSource noise(reproducible);
 
@@ -137,7 +139,7 @@ p0.start();
 meshSpace->distance(rlrf,mpTargetsForSubmesh,distances,startPath,endPath);
 p0.end();
 p0.print();
-meshSpace->useSubmeshingRoutines(true,maxDist);
+meshSpace->useSubmeshingRoutines(true,maxDist,dangerous);
 
 pSubG.start();
 meshSpace->distance(rlrf,mpTargetsForSubmesh,distancesSubmesh,startPath,endPath);
