@@ -2,6 +2,12 @@
 
 Lorum ipsum, to the max
 
+# TODO list: 
+
+submesh: switch to breadth-first search with early stopping (optional, not obviously better)
+submesh: handle case of submesher returning multiple connected components (NEEDED)
+
+
 # Requirements
 
 ## CMAKE 3.11 minimum

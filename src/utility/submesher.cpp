@@ -87,7 +87,10 @@ triangleMesh submesher::constructSubmeshFromSourceAndTargets(triangleMesh &mesh,
     if(goalFaces.empty())
         return constructSubmeshFromFaceSet(mesh,visitedFaces,vertexMap,faceMap);
 
-    //Next, move to a breadth-first search of faces that checks every connected face
+    //Next, move to a depth-first search of faces that checks every connected face
+    /*
+    TODO: switch to breadth-first and add an early-stopping condition?
+    */
     faceIndex currentFace;
     while(!explorationStack.empty())
         {
@@ -118,12 +121,18 @@ triangleMesh submesher::constructSubmeshFromSourceAndTargets(triangleMesh &mesh,
             }
         };
     /*
-     The final case is one in which the sphere of maximum distance from the 
+     An edge case is one in which the sphere of maximum distance from the 
      source point intersects part of a triangle but none of its vertices. This 
-     can happen for a face at the very boundary, of all visited faces, so we can simply add any remaining goal faces
+     can happen for a face at the very boundary, of all visited faces, so to deal with it we can simply add any remaining goal faces
     */
     for(faceIndex currentFace : goalFaces)
         visitedFaces.insert(currentFace);
+
+    /*
+    TODO: another edge case to handle is when our visited faces no longer form a connected component (i.e. if we have submeshed two
+    disconnected sides of a flat pancake). In this case the large connected component with the source face containts all of the
+    targets within the right geodesic distance, and the other connected components(s) are unreachable. Handle that with some restructuring
+    */
 
     /*//debugging
     if(!goalFaces.empty())
