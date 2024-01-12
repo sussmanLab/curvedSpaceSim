@@ -40,12 +40,12 @@ int main(int argc, char*argv[])
     ValueArg<int> programBranchSwitchArg("z","programBranchSwitch","an integer controlling program branch",false,0,"int",cmd);
     ValueArg<int> particleNumberSwitchArg("n","number","number of particles to simulate",false,20,"int",cmd);
     ValueArg<int> iterationsArg("i","iterations","number of performTimestep calls to make",false,1000,"int",cmd);
+    ValueArg<int> saveFrequencyArg("s","saveFrequency","how often a file gets updated",false,100,"int",cmd);
     ValueArg<string> meshSwitchArg("m","meshSwitch","filename of the mesh you want to load",false,"../exampleMeshes/torus_isotropic_remesh.off","string",cmd);
     ValueArg<double> interactionRangeArg("a","interactionRange","range ofthe interaction to set for both potential and cell list",false,1.,"double",cmd);
     ValueArg<double> deltaTArg("t","dt","timestep size",false,.01,"double",cmd);
 
     SwitchArg reproducibleSwitch("r","reproducible","reproducible random number generation", cmd, true);
-    SwitchArg dangerousSwitch("d","dangerousMeshes","meshes where submeshes are dangerous", cmd, false);
     SwitchArg verboseSwitch("v","verbose","output more things to screen ", cmd, false);
 
     //parse the arguments
@@ -54,12 +54,13 @@ int main(int argc, char*argv[])
     int programBranch = programBranchSwitchArg.getValue();
     int N = particleNumberSwitchArg.getValue();
     int maximumIterations = iterationsArg.getValue();
+    int saveFrequency = saveFrequencyArg.getValue();
     string meshName = meshSwitchArg.getValue();
     double dt = deltaTArg.getValue();
     double maximumInteractionRange= interactionRangeArg.getValue();
     bool verbose= verboseSwitch.getValue();
     bool reproducible = reproducibleSwitch.getValue();
-    bool dangerous = dangerousSwitch.getValue();
+    bool dangerous = false; //not used right now
 
     shared_ptr<euclideanSpace> R3Space=make_shared<euclideanSpace>();
     shared_ptr<triangulatedMeshSpace> meshSpace=make_shared<triangulatedMeshSpace>();
@@ -142,75 +143,23 @@ vector3 vv;
     vectorValueDatabase vvdat(posToSave.size(),"./testTrajectory.nc",NcFile::Replace);
     vvdat.writeState(posToSave,0);
 
-    for (int ii = 0; ii < maximumIterations/2; ++ii)
+    for (int ii = 0; ii < maximumIterations; ++ii)
         {
         timer.start();
         simulator->performTimestep();
         timer.end();
-        if(programBranch <0)
+        if(ii%saveFrequency == saveFrequency-1)
             {
-            if(ii%100 == 99)
-                {
-                getFlatVectorOfPositions(configuration,posToSave);
-                vvdat.writeState(posToSave,dt*ii);
-                double fNorm,fMax;
-                fNorm = energyMinimizer->squaredTotalForceNorm;
-                fMax = energyMinimizer->maximumForceNorm;
-                printf("step %i fN %f fM %f\n",ii,fNorm,fMax);
-                }
+            getFlatVectorOfPositions(configuration,posToSave);
+            vvdat.writeState(posToSave,dt*ii);
+            double fNorm,fMax;
+            fNorm = energyMinimizer->squaredTotalForceNorm;
+            fMax = energyMinimizer->maximumForceNorm;
+            printf("step %i fN %f fM %f\n",ii,fNorm,fMax);
             }
-        else
-            {
-            if(ii%10 == 9)//just for testing, a different save frequency
-                {
-                getFlatVectorOfPositions(configuration,posToSave);
-                vvdat.writeState(posToSave,dt*ii);
-                double fNorm,fMax;
-                fNorm = energyMinimizer->squaredTotalForceNorm;
-                fMax = energyMinimizer->maximumForceNorm;
-                printf("step %i fN %f fM %f\n",ii,fNorm,fMax);
-                }
-            }
-        };
-
-
-    profiler timer2("various parts of the code 2");
-    //note that you can set a new neighbor structure from the beginning, or add one in the middle of the simulation, etc
-
-
-    for (int ii = maximumIterations/2; ii < maximumIterations; ++ii)
-        {
-        timer2.start();
-        simulator->performTimestep();
-        timer2.end();
-        if(programBranch <0)
-            {
-            if(ii%100 == 99)
-                {
-                getFlatVectorOfPositions(configuration,posToSave);
-                vvdat.writeState(posToSave,dt*ii);
-                double fNorm,fMax;
-                fNorm = energyMinimizer->squaredTotalForceNorm;
-                fMax = energyMinimizer->maximumForceNorm;
-                printf("step %i fN %f fM %f\n",ii,fNorm,fMax);
-                }
-            }
-        else
-            {
-            if(ii%10 == 9)//just for testing, a different save frequency
-                {
-                getFlatVectorOfPositions(configuration,posToSave);
-                vvdat.writeState(posToSave,dt*ii);
-                double fNorm,fMax;
-                fNorm = energyMinimizer->squaredTotalForceNorm;
-                fMax = energyMinimizer->maximumForceNorm;
-                printf("step %i fN %f fM %f\n",ii,fNorm,fMax);
-                }
-            }
-        };
+        }
 
     timer.print();
-    timer2.print();
 
     return 0;
     };
