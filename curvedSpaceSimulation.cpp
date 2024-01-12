@@ -42,6 +42,7 @@ int main(int argc, char*argv[])
     ValueArg<int> iterationsArg("i","iterations","number of performTimestep calls to make",false,1000,"int",cmd);
     ValueArg<string> meshSwitchArg("m","meshSwitch","filename of the mesh you want to load",false,"../exampleMeshes/torus_isotropic_remesh.off","string",cmd);
     ValueArg<double> interactionRangeArg("a","interactionRange","range ofthe interaction to set for both potential and cell list",false,1.,"double",cmd);
+    ValueArg<double> deltaTArg("t","dt","timestep size",false,.01,"double",cmd);
 
     SwitchArg reproducibleSwitch("r","reproducible","reproducible random number generation", cmd, true);
     SwitchArg dangerousSwitch("d","dangerousMeshes","meshes where submeshes are dangerous", cmd, false);
@@ -54,7 +55,7 @@ int main(int argc, char*argv[])
     int N = particleNumberSwitchArg.getValue();
     int maximumIterations = iterationsArg.getValue();
     string meshName = meshSwitchArg.getValue();
-    double dt = 0.01;
+    double dt = deltaTArg.getValue();
     double maximumInteractionRange= interactionRangeArg.getValue();
     bool verbose= verboseSwitch.getValue();
     bool reproducible = reproducibleSwitch.getValue();
