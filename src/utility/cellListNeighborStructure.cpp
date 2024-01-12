@@ -1,5 +1,5 @@
 #include "cellListNeighborStructure.h"
-
+#include "std_include.h"
 cellListNeighborStructure::cellListNeighborStructure(std::vector<double> &minPos, std::vector<double> &maxPos, double gridSize)
     {
     cellList.setDomainAndGridSize(minPos,maxPos,gridSize);
@@ -21,6 +21,7 @@ void cellListNeighborStructure::initialize(std::vector<meshPosition> &_particles
         {
         indices[ii]=ii;
         }
+//printf("%i %f\n", particles.size(),particles[0].x[0]);
     cellList.sort(particles);
     };
 

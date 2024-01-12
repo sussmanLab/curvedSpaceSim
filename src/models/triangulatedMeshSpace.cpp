@@ -114,89 +114,32 @@ void triangulatedMeshSpace::distanceWithSubmeshing(meshPosition &p1, std::vector
     startPathTangent.resize(nTargets);
     endPathTangent.resize(nTargets);
 
-    //Do we need to worry about a submesh which could in principle have multiple connected components?
-    if(!dangerousSubmeshing)
+    //Note that in the process of submeshing, the original barycentric coordinates may get permuted
+    //in the submesh (i.e., the ordering of vertices around a face is not guaranteed to be preserved)
+    //and the faceIndex needs to change
+    convertBarycentricCoordinates(surface,submesh,faceMap,sourcePoint);
+    for(int ii = 0; ii < nTargets; ++ii)
         {
-        //Note that in the process of submeshing, the original barycentric coordinates may get permuted
-        //in the submesh (i.e., the ordering of vertices around a face is not guaranteed to be preserved)
-        //and the faceIndex needs to change
-        convertBarycentricCoordinates(surface,submesh,faceMap,sourcePoint);
-        for(int ii = 0; ii < nTargets; ++ii)
-            {
-            convertBarycentricCoordinates(surface,submesh,faceMap,faceTargetsForSubmesh[ii]);
-            }
-        //now that indexing is all re-aligned, create local surfaceMeshShortestPath
-        shared_ptr<surfaceMeshShortestPath> localSMSP = make_shared<surfaceMeshShortestPath>(submesh);
-        AABB_tree localTree;
-        localSMSP->build_aabb_tree(localTree);
-        localSMSP->add_source_point(sourcePoint.first,sourcePoint.second);
-        localSMSP->build_sequence_tree();
-
-        //use it to compute distances and tangent vectors
-        for(int ii = 0; ii < nTargets; ++ii)
-            computePathDistanceAndTangents(localSMSP, faceTargetsForSubmesh[ii], distances[ii],startPathTangent[ii], endPathTangent[ii]);
-
-        localSMSP->remove_all_source_points();
+        convertBarycentricCoordinates(surface,submesh,faceMap,faceTargetsForSubmesh[ii]);
         }
-    else
+    //now that indexing is all re-aligned, create local surfaceMeshShortestPath
+    shared_ptr<surfaceMeshShortestPath> localSMSP = make_shared<surfaceMeshShortestPath>(submesh);
+    AABB_tree localTree;
+    localSMSP->build_aabb_tree(localTree);
+    localSMSP->add_source_point(sourcePoint.first,sourcePoint.second);
+    localSMSP->build_sequence_tree();
+    for(int ii = 0; ii < nTargets; ++ii)
         {
-        //printf("%i %i\n",submesh.number_of_vertices(),submesh.number_of_faces());
-
-        triangleMesh::Property_map<faceIndex,int> faceConnectedComponentIDMap = submesh.add_property_map<faceIndex,int>().first;
-        int numberOfComponents  = CGAL::Polygon_mesh_processing::connected_components(submesh,faceConnectedComponentIDMap);
-        cout << "num components "<< numberOfComponents<< endl;
-        int componentOfSourceFace = faceConnectedComponentIDMap[(faceIndex) 0];
-        printf("source face in component %i\n",componentOfSourceFace);
-
-        filteredGraph ffg(submesh,componentOfSourceFace,faceConnectedComponentIDMap);
-        triangleMesh newSubmesh;
-        //boost::unordered_map<faceDescriptor, faceDescriptor> faceToFaceMap;
-        boost::unordered_map<faceIndex, faceIndex> faceToFaceMap;
-        CGAL::copy_face_graph(ffg,newSubmesh,CGAL::parameters::face_to_face_map(boost::make_assoc_property_map(faceToFaceMap)));
-
-//        for(faceIndex f : submesh.faces())
-//            printf("face %i in component %i\n", (int) f, faceConnectedComponentIDMap[f]);
-
-//        for(faceIndex f : submesh.faces())
-//            printf("map size: %i, mapped face= %i =  %i\n", faceToFaceMap.size(),(int) f,faceToFaceMap[f]);
-//        printf("%i %i\n",newSubmesh.number_of_vertices(),newSubmesh.number_of_faces());
-
-        //make new faceMap
-        std::map<faceIndex,int> newFaceMap;
-        for(auto oldMapElement : faceMap)
+        computePathDistanceAndTangents(localSMSP, faceTargetsForSubmesh[ii], distances[ii],startPathTangent[ii], endPathTangent[ii]);
+        //if the submesh has multiple connected components, the distance will be returned as negative
+        if(distances[ii] <0)
             {
-            newFaceMap.insert(std::make_pair(
-                        oldMapElement.first,
-                        faceToFaceMap[(faceIndex)oldMapElement.second]));
-            };
-        
-        convertBarycentricCoordinates(surface,newSubmesh,newFaceMap,sourcePoint);
-        for(int ii = 0; ii < nTargets; ++ii)
-            {
-            if ( faceConnectedComponentIDMap[(faceIndex) ii] == componentOfSourceFace)
-                convertBarycentricCoordinates(surface,newSubmesh,newFaceMap,faceTargetsForSubmesh[ii]);
+            distances[ii] = 2.0*maximumDistance;
+            startPathTangent[ii] = {0,0,1};
+            endPathTangent[ii] = {0,0,1};
             }
-        //now that indexing is all re-aligned, create local surfaceMeshShortestPath
-        shared_ptr<surfaceMeshShortestPath> localSMSP = make_shared<surfaceMeshShortestPath>(newSubmesh);
-        AABB_tree localTree;
-        localSMSP->build_aabb_tree(localTree);
-        localSMSP->add_source_point(sourcePoint.first,sourcePoint.second);
-        localSMSP->build_sequence_tree();
-
-        //use it to compute distances and tangent vectors
-        for(int ii = 0; ii < nTargets; ++ii)
-            {
-            if ( faceConnectedComponentIDMap[(faceIndex) ii] == componentOfSourceFace)
-                computePathDistanceAndTangents(localSMSP, faceTargetsForSubmesh[ii], distances[ii],startPathTangent[ii], endPathTangent[ii]);
-            else
-                {
-                distances[ii] = 2.0*maximumDistance;
-                startPathTangent[ii] = {0,0,1};
-                endPathTangent[ii] = {0,0,1};
-                };
-            }
-        localSMSP->remove_all_source_points();
-        }
+        };
+    localSMSP->remove_all_source_points();
     };
 
 /*

@@ -11,6 +11,7 @@ class harmonicRepulsion : public force
             k=stiffness;
             sigma = monodisperseRange;
             monodisperse = _monodisperse;
+            maximumInteractionRange = monodisperseRange;
             };
 
         virtual double pairwiseEnergy(vector3 separation,double distance);

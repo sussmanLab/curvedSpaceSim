@@ -44,6 +44,7 @@ class triangulatedMeshSpace : public baseSpace
         void useSubmeshingRoutines(bool _useSubMesh, double maxDist = 1.0, bool _danger = false)
             {submeshingActivated = _useSubMesh;
             maximumDistance = maxDist;
+            //dangerous submeshing no longer needed, but might be revived later
             dangerousSubmeshing = _danger;
             };
 

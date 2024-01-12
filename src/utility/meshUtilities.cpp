@@ -173,6 +173,8 @@ void computePathDistanceAndTangents(std::shared_ptr<surfaceMeshShortestPath> &sm
     shortestPathResult geodesic = smsp->shortest_path_points_to_source_points(targetPoint.first, targetPoint.second,  std::back_inserter(pathPoints));
     distance = std::get<0>(geodesic);
     //Note that the path goes from the target to source, so if we want to know path tangent at the source for force calculation, we must use the *end* of points[]
+    if(distance < 0)
+        return;
     int pathSize = pathPoints.size();
     startPathTangent = -vector3(pathPoints[pathSize-2],pathPoints[pathSize-1]);
     endPathTangent = -vector3(pathPoints[0],pathPoints[1]);

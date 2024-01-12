@@ -1,6 +1,7 @@
 #include "hyperRectangularCellList.h"
 
 #include "functionUtilities.h"
+#include "std_include.h"
 
 /*!
 This routine currently picks an even integer of cells in each dimension, close to but larger than the desired size, that fit in the box.
@@ -31,7 +32,11 @@ void hyperRectangularCellList::setGridSize(double _minimumGridSize)
 
     cellListIndexer = Index2D(nMax,totalCells);
     cellIndexer = Index3D(cellNumbers.x,cellNumbers.y,cellNumbers.z);
+
 //printf("(%f %f %f) (%f %f %f)\n", minimumPositions[0], minimumPositions[1], minimumPositions[2],  maximumPositions[0], maximumPositions[1], maximumPositions[2]);
+//printf("gridSize %f, numbers = (%i %i %i), sizes = (%f %f %f) \n", currentMinimumGridSize, cellNumbers.x,cellNumbers.y,cellNumbers.z, cellSizes.x,cellSizes.y,cellSizes.z);
+
+//printf("totalCells = %i\n",totalCells);
 
     resetListSizes();
     };
@@ -39,6 +44,8 @@ void hyperRectangularCellList::setGridSize(double _minimumGridSize)
 void hyperRectangularCellList::resetListSizes()
     {
     //resize elementsPerCell and set to zero
+//printf("totalCells = %i\n",totalCells);
+
     elementsPerCell.resize(totalCells);
     for (int ii = 0; ii < totalCells; ++ii)
         elementsPerCell[ii] = 0;
@@ -85,6 +92,7 @@ void hyperRectangularCellList::sort(std::vector<meshPosition> &p)
         for (int ii = 0; ii < N; ++ii)
             {
             binIndex = positionToCellIndex(p[ii]);
+//printf("binIdx %i vecSize %i\n",binIndex,elementsPerCell.size());
             offset = elementsPerCell[binIndex];
             if(offset < nMax && !recompute)
                 {
@@ -97,6 +105,7 @@ void hyperRectangularCellList::sort(std::vector<meshPosition> &p)
                 nMax = nmax;
                 recompute = true;
                 }
+//printf("%i %i\n",offset,nmax);
             elementsPerCell[binIndex] += 1;
             };
         //allow the cell list data structures to shrink (especially usefull if at initialization particles were overdense
