@@ -109,41 +109,6 @@ void triangulatedMeshSpace::distanceWithSubmeshing(meshPosition &p1, std::vector
     std::map<vertexIndex,int> vertexMap;
     triangleMesh submesh = submeshAssistant.constructSubmeshFromSourceAndTargets(surface, sourcePoint,faceTargetsForSubmesh,maximumDistance,vertexMap,faceMap);
 
-    //Note that in the process of submeshing, the original barycentric coordinates may get permuted
-    //in the submesh (i.e., the ordering of vertices around a face is not guaranteed to be preserved)
-    std::vector<point3> vertexPositions1;
-    std::vector<point3> vertexPositions2;
-    //first, fix the source point
-    getVertexPositionsFromFace(surface, sourcePoint.first,vertexPositions1);
-    getVertexPositionsFromFace(submesh, (faceIndex) faceMap[sourcePoint.first], vertexPositions2);
-    std::map<point3,int> sourcePointVertexOrderMap;
-    sourcePointVertexOrderMap.insert(std::make_pair(vertexPositions1[0],0));
-    sourcePointVertexOrderMap.insert(std::make_pair(vertexPositions1[1],1));
-    sourcePointVertexOrderMap.insert(std::make_pair(vertexPositions1[2],2));
-    smspBarycentricCoordinates originalCoordinates = sourcePoint.second;
-    smspBarycentricCoordinates newCoordinates;
-    newCoordinates[0] =originalCoordinates[sourcePointVertexOrderMap[vertexPositions2[0]]];
-    newCoordinates[1] =originalCoordinates[sourcePointVertexOrderMap[vertexPositions2[1]]];
-    newCoordinates[2] =originalCoordinates[sourcePointVertexOrderMap[vertexPositions2[2]]];
-    sourcePoint.second = newCoordinates;
-
-    //then all target points
-    for(int ii = 0; ii < p2.size(); ++ii)
-        {
-        smspFaceLocation targetFaceLocation = faceTargetsForSubmesh[ii];
-        getVertexPositionsFromFace(surface, targetFaceLocation.first,vertexPositions1);
-        getVertexPositionsFromFace(submesh,  (faceIndex) faceMap[targetFaceLocation.first],vertexPositions2);
-        std::map<point3,int> pointVertexOrderMap;
-        originalCoordinates = faceTargetsForSubmesh[ii].second;
-        pointVertexOrderMap.insert(std::make_pair(vertexPositions1[0],0));
-        pointVertexOrderMap.insert(std::make_pair(vertexPositions1[1],1));
-        pointVertexOrderMap.insert(std::make_pair(vertexPositions1[2],2));
-        newCoordinates[0] =originalCoordinates[pointVertexOrderMap[vertexPositions2[0]]];
-        newCoordinates[1] =originalCoordinates[pointVertexOrderMap[vertexPositions2[1]]];
-        newCoordinates[2] =originalCoordinates[pointVertexOrderMap[vertexPositions2[2]]];
-        faceTargetsForSubmesh[ii].second = newCoordinates;
-        }
-
     int nTargets = p2.size();
     distances.resize(nTargets);
     startPathTangent.resize(nTargets);
@@ -152,54 +117,41 @@ void triangulatedMeshSpace::distanceWithSubmeshing(meshPosition &p1, std::vector
     //Do we need to worry about a submesh which could in principle have multiple connected components?
     if(!dangerousSubmeshing)
         {
+        //Note that in the process of submeshing, the original barycentric coordinates may get permuted
+        //in the submesh (i.e., the ordering of vertices around a face is not guaranteed to be preserved)
+        //and the faceIndex needs to change
+        convertBarycentricCoordinates(surface,submesh,faceMap,sourcePoint);
+        for(int ii = 0; ii < nTargets; ++ii)
+            {
+            convertBarycentricCoordinates(surface,submesh,faceMap,faceTargetsForSubmesh[ii]);
+            }
         //now that indexing is all re-aligned, create local surfaceMeshShortestPath
         shared_ptr<surfaceMeshShortestPath> localSMSP = make_shared<surfaceMeshShortestPath>(submesh);
         AABB_tree localTree;
         localSMSP->build_aabb_tree(localTree);
-        localSMSP->add_source_point((faceIndex)faceMap[sourcePoint.first],sourcePoint.second);
+        localSMSP->add_source_point(sourcePoint.first,sourcePoint.second);
         localSMSP->build_sequence_tree();
 
-        // follow the logic of the main distance routine. eventually refactor code so it doesn't repeat
-
+        //use it to compute distances and tangent vectors
         for(int ii = 0; ii < nTargets; ++ii)
-            {
-            smspFaceLocation targetPoint = faceTargetsForSubmesh[ii];
-            //pathPoints holds the sequence of intersection points between the shortest path and the meshed surface (edges, vertices, etc)
-            std::vector<point3> pathPoints;
-            shortestPathResult geodesic = localSMSP->shortest_path_points_to_source_points((faceIndex) faceMap[targetPoint.first], targetPoint.second,  std::back_inserter(pathPoints));
-            distances[ii] = std::get<0>(geodesic);
-            //Note that the path goes from the target to source, so if we want to know path tangent at the source for force calculation, we must use the *end* of points[]
-            int pathSize = pathPoints.size();
-            startPathTangent[ii] = -vector3(pathPoints[pathSize-2],pathPoints[pathSize-1]);
-            endPathTangent[ii] = -vector3(pathPoints[0],pathPoints[1]);
-            //normalize path tangents
-            double normalization = sqrt(startPathTangent[ii].squared_length());
-            startPathTangent[ii] /= normalization;
-            normalization = sqrt(endPathTangent[ii].squared_length());
-            endPathTangent[ii] /= normalization;
-            };
+            computePathDistanceAndTangents(localSMSP, faceTargetsForSubmesh[ii], distances[ii],startPathTangent[ii], endPathTangent[ii]);
+
         localSMSP->remove_all_source_points();
         }
     else
         {
         printf("%i %i\n",submesh.number_of_vertices(),submesh.number_of_faces());
-        triangleMesh::Property_map<faceDescriptor, std::size_t> connectedComponents = submesh.add_property_map<faceDescriptor, std::size_t>("f:CC").first;
-        //int numberOfComponents = 
-        CGAL::Polygon_mesh_processing::connected_components(submesh,connectedComponents);
-        //the zeroth component should be the one that includes the source face
-        filteredGraph ffg(submesh, 0, connectedComponents);
-        CGAL::copy_face_graph(ffg,submesh);
 
-        
-       // printf("number of connected components found:%i\n", numberOfComponents);
-        printf("%i %i\n",submesh.number_of_vertices(),submesh.number_of_faces());
-        filteredGraph ffg2(submesh, 0, connectedComponents);
+        triangleMesh::Property_map<faceIndex,int> faceConnectedComponentIDMap = submesh.add_property_map<faceIndex,int>().first;
+        int numberOfComponents  = CGAL::Polygon_mesh_processing::connected_components(submesh,faceConnectedComponentIDMap);
+        cout << "num components "<< numberOfComponents<< endl;
+        filteredGraph ffg(submesh,0,faceConnectedComponentIDMap);
         triangleMesh newSubmesh;
-        CGAL::copy_face_graph(ffg2,newSubmesh);
+        CGAL::copy_face_graph(ffg,newSubmesh);
 
-        
-       // printf("number of connected components found:%i\n", numberOfComponents);
+
         printf("%i %i\n",newSubmesh.number_of_vertices(),newSubmesh.number_of_faces());
+
         UNWRITTENCODE("Asda");
         }
     };
@@ -229,19 +181,7 @@ void triangulatedMeshSpace::distance(meshPosition &p1, std::vector<meshPosition>
     for(int ii = 0; ii < nTargets; ++ii)
         {
         smspFaceLocation targetPoint = meshPositionToFaceLocation(p2[ii]);
-        //pathPoints holds the sequence of intersection points between the shortest path and the meshed surface (edges, vertices, etc)
-        std::vector<point3> pathPoints;
-        shortestPathResult geodesic = globalSMSP->shortest_path_points_to_source_points(targetPoint.first, targetPoint.second,  std::back_inserter(pathPoints));
-        distances[ii] = std::get<0>(geodesic);
-        //Note that the path goes from the target to source, so if we want to know path tangent at the source for force calculation, we must use the *end* of points[]
-        int pathSize = pathPoints.size();
-        startPathTangent[ii] = -vector3(pathPoints[pathSize-2],pathPoints[pathSize-1]);
-        endPathTangent[ii] = -vector3(pathPoints[0],pathPoints[1]);
-        //normalize path tangents
-        double normalization = sqrt(startPathTangent[ii].squared_length());
-        startPathTangent[ii] /= normalization;
-        normalization = sqrt(endPathTangent[ii].squared_length());
-        endPathTangent[ii] /= normalization;
+        computePathDistanceAndTangents(globalSMSP, targetPoint, distances[ii],startPathTangent[ii], endPathTangent[ii]);
         };
     globalSMSP->remove_all_source_points();
     };

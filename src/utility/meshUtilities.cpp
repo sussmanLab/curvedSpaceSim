@@ -148,6 +148,42 @@ bool findTriangleEdgeIntersectionInformation(pmpBarycentricCoordinates sourceBar
         };
     }
 
+void convertBarycentricCoordinates(triangleMesh &mesh1, triangleMesh &mesh2, std::map<faceIndex,int> &faceMap, smspFaceLocation &locationToConvert)
+    {
+    std::vector<point3> vertexPositions1;
+    std::vector<point3> vertexPositions2;
+    getVertexPositionsFromFace(mesh1,locationToConvert.first,vertexPositions1);
+    getVertexPositionsFromFace(mesh2,(faceIndex) faceMap[locationToConvert.first],vertexPositions2);
+    std::map<point3,int> sourcePointVertexOrderMap;
+    sourcePointVertexOrderMap.insert(std::make_pair(vertexPositions1[0],0));
+    sourcePointVertexOrderMap.insert(std::make_pair(vertexPositions1[1],1));
+    sourcePointVertexOrderMap.insert(std::make_pair(vertexPositions1[2],2));
+    smspBarycentricCoordinates originalCoordinates = locationToConvert.second;
+    smspBarycentricCoordinates newCoordinates;
+    newCoordinates[0] =originalCoordinates[sourcePointVertexOrderMap[vertexPositions2[0]]];
+    newCoordinates[1] =originalCoordinates[sourcePointVertexOrderMap[vertexPositions2[1]]];
+    newCoordinates[2] =originalCoordinates[sourcePointVertexOrderMap[vertexPositions2[2]]];
+    locationToConvert.second = newCoordinates;
+    locationToConvert.first = (faceIndex)faceMap[locationToConvert.first];
+    }
+
+void computePathDistanceAndTangents(std::shared_ptr<surfaceMeshShortestPath> &smsp, smspFaceLocation &targetPoint, double &distance, vector3 &startPathTangent, vector3 &endPathTangent)
+    {
+    std::vector<point3> pathPoints;
+    shortestPathResult geodesic = smsp->shortest_path_points_to_source_points(targetPoint.first, targetPoint.second,  std::back_inserter(pathPoints));
+    distance = std::get<0>(geodesic);
+    //Note that the path goes from the target to source, so if we want to know path tangent at the source for force calculation, we must use the *end* of points[]
+    int pathSize = pathPoints.size();
+    startPathTangent = -vector3(pathPoints[pathSize-2],pathPoints[pathSize-1]);
+    endPathTangent = -vector3(pathPoints[0],pathPoints[1]);
+    //normalize path tangents
+    double normalization = sqrt(startPathTangent.squared_length());
+    startPathTangent /= normalization;
+    normalization = sqrt(endPathTangent.squared_length());
+    endPathTangent /= normalization;
+    }
+
+
 void printPoint(point3 a)
     {
     printf("{%f,%f,%f}",a[0],a[1],a[2]);

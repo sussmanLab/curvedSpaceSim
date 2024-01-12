@@ -16,6 +16,7 @@
 #include <CGAL/Dynamic_property_map.h>
 #include <CGAL/boost/graph/iterator.h>
 #include <CGAL/boost/graph/Face_filtered_graph.h>
+#include <memory>
 
 typedef CGAL::Surface_mesh<point3>                                      triangleMesh;
 typedef triangleMesh::Face_index                                        faceIndex;
@@ -60,6 +61,10 @@ bool intersectionBarycentricLinesV3V1(pmpBarycentricCoordinates line2Start, pmpB
 
 //Go through each of the vAvB edge intersection functions
 bool findTriangleEdgeIntersectionInformation(pmpBarycentricCoordinates sourceBarycentricLocation, pmpBarycentricCoordinates targetBarycentricLocation, pmpBarycentricCoordinates &intersectionPoint, std::vector<vertexIndex> vertexList, halfedgeIndex  previousHalfEdge, triangleMesh &surface, std::vector<vertexIndex> &involvedVertex,std::vector<int> &uninvolvedVertex);
+
+void convertBarycentricCoordinates(triangleMesh &mesh1, triangleMesh &mesh2, std::map<faceIndex,int> &faceMap, smspFaceLocation &locationToConvert);
+
+void computePathDistanceAndTangents(std::shared_ptr<surfaceMeshShortestPath> &smsp, smspFaceLocation &targetPoint, double &distance, vector3 &startPathTangent, vector3 &endPathTangent);
 
 void printPoint(point3 a);
 void printBary(smspBarycentricCoordinates a);
