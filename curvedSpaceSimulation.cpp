@@ -44,6 +44,7 @@ int main(int argc, char*argv[])
     ValueArg<double> interactionRangeArg("a","interactionRange","range ofthe interaction to set for both potential and cell list",false,1.,"double",cmd);
 
     SwitchArg reproducibleSwitch("r","reproducible","reproducible random number generation", cmd, true);
+    SwitchArg dangerousSwitch("d","dangerousMeshes","meshes where submeshes are dangerous", cmd, false);
     SwitchArg verboseSwitch("v","verbose","output more things to screen ", cmd, false);
 
     //parse the arguments
@@ -57,13 +58,14 @@ int main(int argc, char*argv[])
     double maximumInteractionRange= interactionRangeArg.getValue();
     bool verbose= verboseSwitch.getValue();
     bool reproducible = reproducibleSwitch.getValue();
+    bool dangerous = dangerousSwitch.getValue();
 
     shared_ptr<euclideanSpace> R3Space=make_shared<euclideanSpace>();
     shared_ptr<triangulatedMeshSpace> meshSpace=make_shared<triangulatedMeshSpace>();
     meshSpace->loadMeshFromFile(meshName,verbose);
     meshSpace->useSubmeshingRoutines(false);
     if(programBranch >=1)
-        meshSpace->useSubmeshingRoutines(true,maximumInteractionRange);
+        meshSpace->useSubmeshingRoutines(true,maximumInteractionRange,dangerous);
 
     shared_ptr<simpleModel> configuration=make_shared<simpleModel>(N);
     if(verbose)

@@ -140,19 +140,62 @@ void triangulatedMeshSpace::distanceWithSubmeshing(meshPosition &p1, std::vector
         }
     else
         {
-        printf("%i %i\n",submesh.number_of_vertices(),submesh.number_of_faces());
+        //printf("%i %i\n",submesh.number_of_vertices(),submesh.number_of_faces());
 
         triangleMesh::Property_map<faceIndex,int> faceConnectedComponentIDMap = submesh.add_property_map<faceIndex,int>().first;
         int numberOfComponents  = CGAL::Polygon_mesh_processing::connected_components(submesh,faceConnectedComponentIDMap);
         cout << "num components "<< numberOfComponents<< endl;
-        filteredGraph ffg(submesh,0,faceConnectedComponentIDMap);
+        int componentOfSourceFace = faceConnectedComponentIDMap[(faceIndex) 0];
+        printf("source face in component %i\n",componentOfSourceFace);
+
+        filteredGraph ffg(submesh,componentOfSourceFace,faceConnectedComponentIDMap);
         triangleMesh newSubmesh;
-        CGAL::copy_face_graph(ffg,newSubmesh);
+        //boost::unordered_map<faceDescriptor, faceDescriptor> faceToFaceMap;
+        boost::unordered_map<faceIndex, faceIndex> faceToFaceMap;
+        CGAL::copy_face_graph(ffg,newSubmesh,CGAL::parameters::face_to_face_map(boost::make_assoc_property_map(faceToFaceMap)));
 
+//        for(faceIndex f : submesh.faces())
+//            printf("face %i in component %i\n", (int) f, faceConnectedComponentIDMap[f]);
 
-        printf("%i %i\n",newSubmesh.number_of_vertices(),newSubmesh.number_of_faces());
+//        for(faceIndex f : submesh.faces())
+//            printf("map size: %i, mapped face= %i =  %i\n", faceToFaceMap.size(),(int) f,faceToFaceMap[f]);
+//        printf("%i %i\n",newSubmesh.number_of_vertices(),newSubmesh.number_of_faces());
 
-        UNWRITTENCODE("Asda");
+        //make new faceMap
+        std::map<faceIndex,int> newFaceMap;
+        for(auto oldMapElement : faceMap)
+            {
+            newFaceMap.insert(std::make_pair(
+                        oldMapElement.first,
+                        faceToFaceMap[(faceIndex)oldMapElement.second]));
+            };
+        
+        convertBarycentricCoordinates(surface,newSubmesh,newFaceMap,sourcePoint);
+        for(int ii = 0; ii < nTargets; ++ii)
+            {
+            if ( faceConnectedComponentIDMap[(faceIndex) ii] == componentOfSourceFace)
+                convertBarycentricCoordinates(surface,newSubmesh,newFaceMap,faceTargetsForSubmesh[ii]);
+            }
+        //now that indexing is all re-aligned, create local surfaceMeshShortestPath
+        shared_ptr<surfaceMeshShortestPath> localSMSP = make_shared<surfaceMeshShortestPath>(newSubmesh);
+        AABB_tree localTree;
+        localSMSP->build_aabb_tree(localTree);
+        localSMSP->add_source_point(sourcePoint.first,sourcePoint.second);
+        localSMSP->build_sequence_tree();
+
+        //use it to compute distances and tangent vectors
+        for(int ii = 0; ii < nTargets; ++ii)
+            {
+            if ( faceConnectedComponentIDMap[(faceIndex) ii] == componentOfSourceFace)
+                computePathDistanceAndTangents(localSMSP, faceTargetsForSubmesh[ii], distances[ii],startPathTangent[ii], endPathTangent[ii]);
+            else
+                {
+                distances[ii] = 2.0*maximumDistance;
+                startPathTangent[ii] = {0,0,1};
+                endPathTangent[ii] = {0,0,1};
+                };
+            }
+        localSMSP->remove_all_source_points();
         }
     };
 
