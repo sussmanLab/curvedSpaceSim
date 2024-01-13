@@ -33,7 +33,6 @@ double gradientDescent::getForceNorm()
     };
 double gradientDescent::getMaxForce()
     {
-    sim->computeForces();
     vector<double> maxNorm(1);
     maxNorm[0] = 0.0;
 
