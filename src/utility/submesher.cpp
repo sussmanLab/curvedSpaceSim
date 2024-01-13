@@ -72,7 +72,7 @@ triangleMesh submesher::constructSubmeshFromSourceAndTargets(triangleMesh &mesh,
         return constructSubmeshFromFaceSet(mesh,visitedFaces,vertexMap,faceMap);
 
     std::stack<faceIndex> explorationStack;
-    std::vector<point3> faceVertices;
+    std::vector<vertexIndex> faceVertices;
     faceIndex neighboringFace;
 
     halfedgeIndex hf = mesh.halfedge(sourceFace);
@@ -104,10 +104,10 @@ triangleMesh submesher::constructSubmeshFromSourceAndTargets(triangleMesh &mesh,
             if(visitedFaces.count(neighboringFace)>0)
                 continue;
             //ignore faces that are completely beyond the cutoff distance
-            getVertexPositionsFromFace(mesh,neighboringFace,faceVertices);
-            if (CGAL::squared_distance(sourcePoint,faceVertices[0]) > squaredDistanceThreshold &&
-                CGAL::squared_distance(sourcePoint,faceVertices[1]) > squaredDistanceThreshold &&
-                CGAL::squared_distance(sourcePoint,faceVertices[2]) > squaredDistanceThreshold)
+            getVertexIndicesFromFace(mesh,neighboringFace,faceVertices);
+            if (CGAL::squared_distance(sourcePoint,mesh.point(faceVertices[0])) > squaredDistanceThreshold &&
+                CGAL::squared_distance(sourcePoint,mesh.point(faceVertices[1])) > squaredDistanceThreshold &&
+                CGAL::squared_distance(sourcePoint,mesh.point(faceVertices[2])) > squaredDistanceThreshold)
                 {
                 continue;
                 };
