@@ -1,10 +1,10 @@
 #include "submesher.h"
 #include "std_include.h"
 
-triangleMesh submesher::constructSubmeshFromFaceSet(triangleMesh &mesh, std::set<faceIndex> &faces,std::map<vertexIndex,int> &vertexMap,std::map<faceIndex,int> &faceMap)
+triangleMesh submesher::constructSubmeshFromFaceSet(triangleMesh &mesh, std::unordered_set<faceIndex> &faces,std::unordered_map<vertexIndex,int> &vertexMap,std::unordered_map<faceIndex,int> &faceMap)
     {
     triangleMesh submesh;
-    std::set<vertexIndex> vertexIndicesToAdd;
+    std::unordered_set<vertexIndex> vertexIndicesToAdd;
     std::vector<vertexIndex> vidx;
     //get the unique set of vertices
     for(faceIndex currentFace : faces)
@@ -49,7 +49,7 @@ triangleMesh submesher::constructSubmeshFromFaceSet(triangleMesh &mesh, std::set
     return submesh;
     };
 
-triangleMesh submesher::constructSubmeshFromSourceAndTargets(triangleMesh &mesh, faceLocation &source, std::vector<faceLocation> &targets, double &maximumDistanceFromSource,std::map<vertexIndex,int> &vertexMap, std::map<faceIndex,int> &faceMap)
+triangleMesh submesher::constructSubmeshFromSourceAndTargets(triangleMesh &mesh, faceLocation &source, std::vector<faceLocation> &targets, double &maximumDistanceFromSource,std::unordered_map<vertexIndex,int> &vertexMap, std::unordered_map<faceIndex,int> &faceMap)
     {
     faceMap.clear();
     vertexMap.clear();
@@ -59,8 +59,8 @@ triangleMesh submesher::constructSubmeshFromSourceAndTargets(triangleMesh &mesh,
     faceIndex sourceFace = source.first;
 
     //define some sets to keep track of unique faces that have been visited or should be
-    std::set<faceIndex> goalFaces;
-    std::set<faceIndex> visitedFaces;
+    std::unordered_set<faceIndex> goalFaces;
+    std::unordered_set<faceIndex> visitedFaces;
     visitedFaces.insert(sourceFace);
 
     //first, add to the list of goal faces all faces which contain a target point (and aren't the sourceFace). return early if all of the targets are  in the source face or

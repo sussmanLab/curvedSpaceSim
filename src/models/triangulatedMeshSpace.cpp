@@ -105,8 +105,8 @@ void triangulatedMeshSpace::distanceWithSubmeshing(meshPosition &p1, std::vector
     std::vector<smspFaceLocation> faceTargetsForSubmesh(p2.size());
     for(int ii = 0; ii < p2.size(); ++ii)
         faceTargetsForSubmesh[ii] = meshPositionToFaceLocation(p2[ii]);
-    std::map<faceIndex,int> faceMap;
-    std::map<vertexIndex,int> vertexMap;
+    std::unordered_map<faceIndex,int> faceMap;
+    std::unordered_map<vertexIndex,int> vertexMap;
     triangleMesh submesh = submeshAssistant.constructSubmeshFromSourceAndTargets(surface, sourcePoint,faceTargetsForSubmesh,maximumDistance,vertexMap,faceMap);
 
     int nTargets = p2.size();

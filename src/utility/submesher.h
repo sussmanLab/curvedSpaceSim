@@ -20,9 +20,9 @@ class submesher
         submesher(){};
 
         //Note that the faceMap gets filled with a map to translate between the original faceIndex of the mesh and the new faceIndex of the submesh
-        triangleMesh constructSubmeshFromSourceAndTargets(triangleMesh &mesh, faceLocation &source, std::vector<faceLocation> &targets, double &maximumDistanceFromSource, std::map<vertexIndex,int> &vertexMap, std::map<faceIndex,int> &faceMap);
+        triangleMesh constructSubmeshFromSourceAndTargets(triangleMesh &mesh, faceLocation &source, std::vector<faceLocation> &targets, double &maximumDistanceFromSource, std::unordered_map<vertexIndex,int> &vertexMap, std::unordered_map<faceIndex,int> &faceMap);
 
     protected:
-        triangleMesh constructSubmeshFromFaceSet(triangleMesh &mesh, std::set<faceIndex> &faces,std::map<vertexIndex,int> &vertexMap, std::map<faceIndex,int> &faceMap);
+        triangleMesh constructSubmeshFromFaceSet(triangleMesh &mesh, std::unordered_set<faceIndex> &faces,std::unordered_map<vertexIndex,int> &vertexMap, std::unordered_map<faceIndex,int> &faceMap);
     };
 #endif

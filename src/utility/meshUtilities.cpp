@@ -148,13 +148,13 @@ bool findTriangleEdgeIntersectionInformation(pmpBarycentricCoordinates sourceBar
         };
     }
 
-void convertBarycentricCoordinates(triangleMesh &mesh1, triangleMesh &mesh2, std::map<faceIndex,int> &faceMap, smspFaceLocation &locationToConvert)
+void convertBarycentricCoordinates(triangleMesh &mesh1, triangleMesh &mesh2, std::unordered_map<faceIndex,int> &faceMap, smspFaceLocation &locationToConvert)
     {
     std::vector<point3> vertexPositions1;
     std::vector<point3> vertexPositions2;
     getVertexPositionsFromFace(mesh1,locationToConvert.first,vertexPositions1);
     getVertexPositionsFromFace(mesh2,(faceIndex) faceMap[locationToConvert.first],vertexPositions2);
-    std::map<point3,int> sourcePointVertexOrderMap;
+    std::unordered_map<point3,int> sourcePointVertexOrderMap;
     sourcePointVertexOrderMap.insert(std::make_pair(vertexPositions1[0],0));
     sourcePointVertexOrderMap.insert(std::make_pair(vertexPositions1[1],1));
     sourcePointVertexOrderMap.insert(std::make_pair(vertexPositions1[2],2));
