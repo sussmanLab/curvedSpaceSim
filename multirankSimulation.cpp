@@ -189,8 +189,8 @@ vector3 vv;
             getFlatVectorOfPositions(configuration,posToSave);
             vvdat.writeState(posToSave,dt*ii);
             double fNorm,fMax;
-            fNorm = energyMinimizer->squaredTotalForceNorm;
-            fMax = energyMinimizer->maximumForceNorm;
+            fNorm = energyMinimizer->getForceNorm();
+            fMax = energyMinimizer->getMaxForce();
             printf("step %i fN %f fM %f\n",ii,fNorm,fMax);
             }
         };

@@ -5,6 +5,7 @@ triangleMesh submesher::constructSubmeshFromFaceSet(triangleMesh &mesh, std::uno
     {
     triangleMesh submesh;
     std::unordered_set<vertexIndex> vertexIndicesToAdd;
+    vertexIndicesToAdd.reserve(2*faces.size());
     std::vector<vertexIndex> vidx(3);
     //get the unique set of vertices
     for(faceIndex currentFace : faces)
@@ -60,7 +61,9 @@ triangleMesh submesher::constructSubmeshFromSourceAndTargets(triangleMesh &mesh,
 
     //define some sets to keep track of unique faces that have been visited or should be
     std::unordered_set<faceIndex> goalFaces;
+    goalFaces.reserve(targets.size());
     std::unordered_set<faceIndex> visitedFaces;
+    visitedFaces.reserve(3*targets.size());//non-conservative estimate?
     visitedFaces.insert(sourceFace);
 
     //first, add to the list of goal faces all faces which contain a target point (and aren't the sourceFace). return early if all of the targets are  in the source face or

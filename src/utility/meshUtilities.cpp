@@ -165,7 +165,7 @@ void convertBarycentricCoordinates(triangleMesh &mesh1, triangleMesh &mesh2, std
     locationToConvert.first = (faceIndex)faceMap[locationToConvert.first];
     }
 
-void computePathDistanceAndTangents(std::shared_ptr<surfaceMeshShortestPath> &smsp, smspFaceLocation &targetPoint, double &distance, vector3 &startPathTangent, vector3 &endPathTangent)
+void computePathDistanceAndTangents(surfaceMeshShortestPath *smsp, smspFaceLocation &targetPoint, double &distance, vector3 &startPathTangent, vector3 &endPathTangent)
     {
     std::vector<point3> pathPoints;
     shortestPathResult geodesic = smsp->shortest_path_points_to_source_points(targetPoint.first, targetPoint.second,  std::back_inserter(pathPoints));

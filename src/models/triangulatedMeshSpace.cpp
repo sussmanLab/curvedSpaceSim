@@ -123,14 +123,14 @@ void triangulatedMeshSpace::distanceWithSubmeshing(meshPosition &p1, std::vector
         convertBarycentricCoordinates(surface,submesh,faceMap,faceTargetsForSubmesh[ii]);
         }
     //now that indexing is all re-aligned, create local surfaceMeshShortestPath
-    shared_ptr<surfaceMeshShortestPath> localSMSP = make_shared<surfaceMeshShortestPath>(submesh);
+    surfaceMeshShortestPath localSMSP(submesh);
     AABB_tree localTree;
-    localSMSP->build_aabb_tree(localTree);
-    localSMSP->add_source_point(sourcePoint.first,sourcePoint.second);
-    localSMSP->build_sequence_tree();
+    localSMSP.build_aabb_tree(localTree);
+    localSMSP.add_source_point(sourcePoint.first,sourcePoint.second);
+    localSMSP.build_sequence_tree();
     for(int ii = 0; ii < nTargets; ++ii)
         {
-        computePathDistanceAndTangents(localSMSP, faceTargetsForSubmesh[ii], distances[ii],startPathTangent[ii], endPathTangent[ii]);
+        computePathDistanceAndTangents(&localSMSP, faceTargetsForSubmesh[ii], distances[ii],startPathTangent[ii], endPathTangent[ii]);
         //if the submesh has multiple connected components, the distance will be returned as negative
         if(distances[ii] <0)
             {
@@ -139,7 +139,6 @@ void triangulatedMeshSpace::distanceWithSubmeshing(meshPosition &p1, std::vector
             endPathTangent[ii] = {0,0,1};
             }
         };
-    localSMSP->remove_all_source_points();
     };
 
 /*
@@ -167,7 +166,7 @@ void triangulatedMeshSpace::distance(meshPosition &p1, std::vector<meshPosition>
     for(int ii = 0; ii < nTargets; ++ii)
         {
         smspFaceLocation targetPoint = meshPositionToFaceLocation(p2[ii]);
-        computePathDistanceAndTangents(globalSMSP, targetPoint, distances[ii],startPathTangent[ii], endPathTangent[ii]);
+        computePathDistanceAndTangents(globalSMSP.get(), targetPoint, distances[ii],startPathTangent[ii], endPathTangent[ii]);
         };
     globalSMSP->remove_all_source_points();
     };

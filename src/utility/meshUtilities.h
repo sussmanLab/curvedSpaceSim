@@ -66,7 +66,7 @@ bool findTriangleEdgeIntersectionInformation(pmpBarycentricCoordinates sourceBar
 
 void convertBarycentricCoordinates(triangleMesh &mesh1, triangleMesh &mesh2, std::unordered_map<faceIndex,int> &faceMap, smspFaceLocation &locationToConvert);
 
-void computePathDistanceAndTangents(std::shared_ptr<surfaceMeshShortestPath> &smsp, smspFaceLocation &targetPoint, double &distance, vector3 &startPathTangent, vector3 &endPathTangent);
+void computePathDistanceAndTangents(surfaceMeshShortestPath *smsp, smspFaceLocation &targetPoint, double &distance, vector3 &startPathTangent, vector3 &endPathTangent);
 
 void printPoint(point3 a);
 void printBary(smspBarycentricCoordinates a);

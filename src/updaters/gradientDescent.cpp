@@ -10,8 +10,6 @@ void gradientDescent::performUpdate()
         displacements[ii] = deltaT*model->forces[ii];
         //printf("p %i d (%f %f %f)  %f\n",ii,displacements[ii][0],displacements[ii][1],displacements[ii][2], displacements[ii].squared_length());
         }
-    squaredTotalForceNorm = getForceNorm();
-    maximumForceNorm = getMaxForce();
     sim->moveParticles(displacements);
     };
 
@@ -29,7 +27,8 @@ double gradientDescent::getForceNorm()
                                         {
                                         return x+y;
                                         });
-    return forceNorm[0];
+    squaredTotalForceNorm = forceNorm[0];
+    return squaredTotalForceNorm;
     };
 double gradientDescent::getMaxForce()
     {
@@ -48,5 +47,6 @@ double gradientDescent::getMaxForce()
                                         {
                                         return std::max(x,y);
                                         });
-    return sqrt(maxNorm[0]);
+    maximumForceNorm = sqrt(maxNorm[0]);
+    return maximumForceNorm;
     };
