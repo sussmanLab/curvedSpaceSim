@@ -54,7 +54,6 @@ void triangulatedMeshSpace::loadMeshFromFile(std::string filename, bool verbose)
         printf("mesh spans (%f,%f,%f) to (%f,%f,%f)\n", minVertexPosition.x,minVertexPosition.y,minVertexPosition.z, maxVertexPosition.x,maxVertexPosition.y,maxVertexPosition.z);
 
     globalSMSP = make_shared<surfaceMeshShortestPath>(surface);
-    AABB_tree globalTree;
     globalSMSP->build_aabb_tree(globalTree);
     };
 
@@ -178,7 +177,6 @@ coordinates of that point in the corresponding faceIndex (i.e., p1.faceIndex)
 */
 void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displacementVector)
     {
-    double distanceToTravel = vectorMagnitude(displacementVector);
     pmpFaceLocation sourceLocation = meshPositionToFaceLocation(pos);
     point3 sourcePoint = PMP::construct_point(sourceLocation,surface);
     faceIndex currentSourceFace = sourceLocation.first;

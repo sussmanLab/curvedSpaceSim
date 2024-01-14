@@ -4,12 +4,13 @@
 /*!
  * Set the size of basic data structures...
 */
-mpiModel::mpiModel(int nTotal, int _localRank, int _totalRanks, bool verbose)
+mpiModel::mpiModel(int nTotal, int _localRank, int _totalRanks, bool _verbose)
     {
     NTotal = nTotal;
     localRank=_localRank;
     totalRanks = _totalRanks;
     determineIndexBounds();
+    verbose = _verbose;
     if(verbose)
         cout << "initializing a model on rank " << _localRank << " of " << _totalRanks <<"  with "<< N << " particles" << endl;
     initializeMPIModel(N,NTotal);

@@ -17,15 +17,15 @@ void hyperRectangularCellList::setGridSize(double _minimumGridSize)
     domainExtent.z = maximumPositions[2] - minimumPositions[2];
 
     cellNumbers.x = floor(domainExtent.x / currentMinimumGridSize);
-    if(cellNumbers.x%2==1) cellNumbers.x -=1;
+    //if(cellNumbers.x%2==1) cellNumbers.x -=1;
     cellSizes.x = domainExtent.x / cellNumbers.x;
 
     cellNumbers.y = floor(domainExtent.y / currentMinimumGridSize);
-    if(cellNumbers.y%2==1) cellNumbers.y -=1;
+    //if(cellNumbers.y%2==1) cellNumbers.y -=1;
     cellSizes.y = domainExtent.y / cellNumbers.y;
 
     cellNumbers.z = floor(domainExtent.z / currentMinimumGridSize);
-    if(cellNumbers.z%2==1) cellNumbers.z -=1;
+    //if(cellNumbers.z%2==1) cellNumbers.z -=1;
     cellSizes.z = domainExtent.z / cellNumbers.z;
 
     totalCells = cellNumbers.x*cellNumbers.y*cellNumbers.z;
@@ -79,7 +79,6 @@ void hyperRectangularCellList::sort(std::vector<meshPosition> &p)
     {
     //will loop through particles and put them in cells...
     //if there are more than Nmax particles in any cell, will need to recompute.
-    int3 bin;
     int binIndex, offset, cellListPos;
     int N = p.size();
     int nmax = nMax;

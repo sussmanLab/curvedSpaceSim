@@ -128,8 +128,8 @@ triangleMesh submesher::constructSubmeshFromSourceAndTargets(triangleMesh &mesh,
      source point intersects part of a triangle but none of its vertices. This 
      can happen for a face at the very boundary, of all visited faces, so to deal with it we can simply add any remaining goal faces
     */
-    for(faceIndex currentFace : goalFaces)
-        visitedFaces.insert(currentFace);
+    for(faceIndex remainingGoalFaces : goalFaces)
+        visitedFaces.insert(remainingGoalFaces);
 
     /*
     TODO: another edge case to handle is when our visited faces no longer form a connected component (i.e. if we have submeshed two

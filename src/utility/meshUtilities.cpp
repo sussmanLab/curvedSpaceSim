@@ -110,7 +110,7 @@ bool intersectionBarycentricLinesV3V1(pmpBarycentricCoordinates line2Start, pmpB
 bool findTriangleEdgeIntersectionInformation(pmpBarycentricCoordinates sourceBarycentricLocation, pmpBarycentricCoordinates targetBarycentricLocation, pmpBarycentricCoordinates &intersectionPoint, std::vector<vertexIndex> vertexList,  halfedgeIndex previousHalfEdge, triangleMesh &surface, std::vector<vertexIndex> &involvedVertex,std::vector<int> &uninvolvedVertex)
     {
     pmpBarycentricCoordinates iCheck;
-
+    bool answer = false;
     if(!(previousHalfEdge == surface.halfedge(vertexList[0],vertexList[1]) || previousHalfEdge == surface.halfedge(vertexList[1],vertexList[0])))
         {
         bool v1v2Intersection = intersectionBarycentricLinesV1V2(sourceBarycentricLocation,targetBarycentricLocation,iCheck);
@@ -120,6 +120,7 @@ bool findTriangleEdgeIntersectionInformation(pmpBarycentricCoordinates sourceBar
             uninvolvedVertex.push_back(2);
             involvedVertex.push_back(vertexList[0]);
             involvedVertex.push_back(vertexList[1]);
+            answer=true;
             }
         };
     if(!(previousHalfEdge == surface.halfedge(vertexList[1],vertexList[2]) || previousHalfEdge == surface.halfedge(vertexList[2],vertexList[1])))
@@ -131,6 +132,7 @@ bool findTriangleEdgeIntersectionInformation(pmpBarycentricCoordinates sourceBar
             uninvolvedVertex.push_back(0);
             involvedVertex.push_back(vertexList[1]);
             involvedVertex.push_back(vertexList[2]);
+            answer=true;
             }
         };
     if(!(previousHalfEdge == surface.halfedge(vertexList[2],vertexList[0]) || previousHalfEdge == surface.halfedge(vertexList[0],vertexList[2])))
@@ -142,8 +144,10 @@ bool findTriangleEdgeIntersectionInformation(pmpBarycentricCoordinates sourceBar
             uninvolvedVertex.push_back(1);
             involvedVertex.push_back(vertexList[2]);
             involvedVertex.push_back(vertexList[0]);
+            answer=true;
             }
         };
+    return answer;
     }
 
 void convertBarycentricCoordinates(triangleMesh &mesh1, triangleMesh &mesh2, std::unordered_map<faceIndex,int> &faceMap, smspFaceLocation &locationToConvert)
