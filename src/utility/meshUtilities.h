@@ -48,8 +48,10 @@ typedef CGAL::AABB_tree<AABB_face_graph_traits>                         AABB_tre
 typedef CGAL::Face_filtered_graph<triangleMesh>                         filteredGraph;
 
 smspFaceLocation meshPositionToFaceLocation(const meshPosition &p);
+//!REQUIRE result has size 3
 void getVertexPositionsFromFace(triangleMesh &mesh, faceIndex i, std::vector<point3> &result);
-void getVertexIndicesFromFace(triangleMesh &mesh, faceIndex i, std::vector<vertexIndex> &result);
+//!REQUIRE result has size 3
+void getVertexIndicesFromFace(triangleMesh &mesh, const faceIndex &i, std::vector<vertexIndex> &result);
 
 //!return true if the two lines which pass through the given endpoints intersect between the specified points on both lines. fill in the barycentric location of the intersection point
 bool intersectionOfLinesInBarycentricCoordinates(pmpBarycentricCoordinates line1Start, pmpBarycentricCoordinates line1End, pmpBarycentricCoordinates line2Start, pmpBarycentricCoordinates line2End, pmpBarycentricCoordinates &intersectionPoint);

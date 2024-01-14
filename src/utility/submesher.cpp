@@ -5,7 +5,7 @@ triangleMesh submesher::constructSubmeshFromFaceSet(triangleMesh &mesh, std::uno
     {
     triangleMesh submesh;
     std::unordered_set<vertexIndex> vertexIndicesToAdd;
-    std::vector<vertexIndex> vidx;
+    std::vector<vertexIndex> vidx(3);
     //get the unique set of vertices
     for(faceIndex currentFace : faces)
         {
@@ -31,7 +31,7 @@ triangleMesh submesher::constructSubmeshFromFaceSet(triangleMesh &mesh, std::uno
         submesh.add_vertex(vertexPosition);
         }
     ii = 0;
-    for(faceIndex currentFace : faces) 
+    for(faceIndex currentFace : faces)
         {
         getVertexIndicesFromFace(mesh,currentFace,vidx);
         submesh.add_face((vertexIndex) vertexMap[vidx[0]],
@@ -72,7 +72,6 @@ triangleMesh submesher::constructSubmeshFromSourceAndTargets(triangleMesh &mesh,
         return constructSubmeshFromFaceSet(mesh,visitedFaces,vertexMap,faceMap);
 
     std::stack<faceIndex> explorationStack;
-    std::vector<vertexIndex> faceVertices;
     faceIndex neighboringFace;
 
     halfedgeIndex hf = mesh.halfedge(sourceFace);
@@ -92,6 +91,7 @@ triangleMesh submesher::constructSubmeshFromSourceAndTargets(triangleMesh &mesh,
     TODO: switch to breadth-first and add an early-stopping condition?
     */
     faceIndex currentFace;
+    std::vector<vertexIndex> faceVertices(3);
     while(!explorationStack.empty())
         {
         currentFace = explorationStack.top();

@@ -184,8 +184,8 @@ void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displac
     point3 sourcePoint = PMP::construct_point(sourceLocation,surface);
     faceIndex currentSourceFace = sourceLocation.first;
 
-    std::vector<vertexIndex> vertexList;
-    std::vector<point3> vertexPositions;
+    std::vector<vertexIndex> vertexList(3);
+    std::vector<point3> vertexPositions(3);
 
     getVertexPositionsFromFace(surface,currentSourceFace, vertexPositions);
     pmpBarycentricCoordinates sourceBarycentricLocation = sourceLocation.second;

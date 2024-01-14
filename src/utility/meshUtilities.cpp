@@ -5,11 +5,11 @@ smspFaceLocation meshPositionToFaceLocation(const meshPosition &p)
     smspBarycentricCoordinates target = {p.x[0],p.x[1],p.x[2]};
     return smspFaceLocation(faceDescriptor(p.faceIndex),target);
     };
-
-void getVertexIndicesFromFace(triangleMesh &mesh, faceIndex i, std::vector<vertexIndex> &result)
+/*!
+Note that both getVertex... functions assume the results vector is already the correct size)
+ */
+void getVertexIndicesFromFace(triangleMesh &mesh, const faceIndex &i, std::vector<vertexIndex> &result)
     {
-    if(result.size()!=3)
-        result.resize(3);
     halfedgeIndex hf = mesh.halfedge(i);
     int elements=0;
     for(halfedgeIndex hi : halfedges_around_face(hf, mesh))
@@ -21,8 +21,6 @@ void getVertexIndicesFromFace(triangleMesh &mesh, faceIndex i, std::vector<verte
     };
 void getVertexPositionsFromFace(triangleMesh &mesh, faceIndex i, std::vector<point3> &result)
     {
-    if(result.size()!=3)
-        result.resize(3);
     halfedgeIndex hf = mesh.halfedge(i);
     int elements=0;
     for(halfedgeIndex hi : halfedges_around_face(hf, mesh))
@@ -150,8 +148,8 @@ bool findTriangleEdgeIntersectionInformation(pmpBarycentricCoordinates sourceBar
 
 void convertBarycentricCoordinates(triangleMesh &mesh1, triangleMesh &mesh2, std::unordered_map<faceIndex,int> &faceMap, smspFaceLocation &locationToConvert)
     {
-    std::vector<point3> vertexPositions1;
-    std::vector<point3> vertexPositions2;
+    std::vector<point3> vertexPositions1(3);
+    std::vector<point3> vertexPositions2(3);
     getVertexPositionsFromFace(mesh1,locationToConvert.first,vertexPositions1);
     getVertexPositionsFromFace(mesh2,(faceIndex) faceMap[locationToConvert.first],vertexPositions2);
     std::unordered_map<point3,int> sourcePointVertexOrderMap;
