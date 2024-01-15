@@ -1,4 +1,5 @@
 #include "baseNeighborStructure.h"
+#include "std_include.h"
 
 void baseNeighborStructure::initialize(std::vector<meshPosition> &_particles)
     {
@@ -9,8 +10,10 @@ void baseNeighborStructure::initialize(std::vector<meshPosition> &_particles)
         indices[ii]=ii;
         }
     }
-
-void baseNeighborStructure::constructCandidateNeighborList(meshPosition &p, int particleIndex, std::vector<int> &candidateNeighborIndices, std::vector<meshPosition> &candidateParticles, int offset)
+/*!
+ This all-to-all neighbor structure returns VERYLARGEDOUBLE, which should never be used for anything 
+ */
+double baseNeighborStructure::constructCandidateNeighborList(meshPosition &p, int particleIndex, std::vector<int> &candidateNeighborIndices, std::vector<meshPosition> &candidateParticles, int offset)
     {
     int N = particles.size();
     candidateNeighborIndices.resize(N-1);
@@ -25,4 +28,5 @@ void baseNeighborStructure::constructCandidateNeighborList(meshPosition &p, int 
             elements +=1;
             };
         };
+    return VERYLARGEDOUBLE;
     };

@@ -25,7 +25,7 @@ void cellListNeighborStructure::initialize(std::vector<meshPosition> &_particles
     cellList.sort(particles);
     };
 
-void cellListNeighborStructure::constructCandidateNeighborList(meshPosition &p, int particleIndex, std::vector<int> &candidateNeighborIndices, std::vector<meshPosition> &candidateParticles, int offset)
+double  cellListNeighborStructure::constructCandidateNeighborList(meshPosition &p, int particleIndex, std::vector<int> &candidateNeighborIndices, std::vector<meshPosition> &candidateParticles, int offset)
     {
     int neighborNumberGuess = cellList.nMax*2;
     candidateNeighborIndices.clear();
@@ -38,6 +38,7 @@ void cellListNeighborStructure::constructCandidateNeighborList(meshPosition &p, 
     std::vector<int> cellsToSearch;
     cellList.getCellNeighbors(primaryCellIndex, cellsToSearch);
 
+    double maximumDistance = 0;
     int cellNumber = cellsToSearch.size();
     for (int cc = 0; cc < cellNumber; ++cc)
         {
@@ -54,8 +55,11 @@ void cellListNeighborStructure::constructCandidateNeighborList(meshPosition &p, 
                     {
                     candidateParticles.push_back(particles[idx]);
                     candidateNeighborIndices.push_back(indices[idx]);
+                    if(dist2 > maximumDistance)
+                        maximumDistance = dist2;
                     }
                 }
             };
         };
+    return maximumDistance;
     };

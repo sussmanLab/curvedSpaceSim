@@ -7,6 +7,8 @@ set(CMAKE_CXX_STANDARD 17)
 
 #Release by default
 set(CMAKE_BUILD_TYPE "Release")
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+#set(CMAKE_VERBOSE_MAKEFILE on)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_MATH_DISABLE_FLOAT128 -fopenmp -frounding-math -Wall -Wshadow -Wno-unused-function -Wno-sign-compare")
 

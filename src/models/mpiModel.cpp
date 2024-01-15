@@ -65,12 +65,13 @@ void mpiModel::findNeighbors(double maximumInteractionRange)
     for (int ii =0; ii < N; ++ii)
         {
         //use the neighborStructure to find candidate neighbors. This function will fill the indices of the neighbors[ii] data structure and populate the positions of the corresponding targetParticles. minIdx provides the necessary offset for indexing between positions and globalPositions
+        double largestNeighborDistance;
         vector<meshPosition> targetParticles;
         //if needed, target a euclidean position
         if(euclideanNeighborsMeshPositions)
-            neighborStructure->constructCandidateNeighborList(euclideanMeshPosition[ii+minIdx], ii, neighbors[ii], targetParticles);
+            largestNeighborDistance = neighborStructure->constructCandidateNeighborList(euclideanMeshPosition[ii+minIdx], ii, neighbors[ii], targetParticles);
         else
-            neighborStructure->constructCandidateNeighborList(positions[ii], ii, neighbors[ii], targetParticles);
+            largestNeighborDistance = neighborStructure->constructCandidateNeighborList(positions[ii], ii, neighbors[ii], targetParticles);
 
         //if needed, re-fill targetParticles with space-appropriate data
         if(euclideanNeighborsMeshPositions)
@@ -83,12 +84,7 @@ void mpiModel::findNeighbors(double maximumInteractionRange)
         vector<vector3> placeholderVector;
         vector<vector3> tangentVector;
         vector<double> distances;
-        if(neighborStructure->requireEuclideanPositions && !(space->positionsAreEuclidean))
-            {
-            space->distance(positions[ii],targetParticles,distances,tangentVector,placeholderVector);
-            }
-        else
-            space->distance(positions[ii],targetParticles,distances,tangentVector,placeholderVector);
+        space->distance(positions[ii],targetParticles,distances,tangentVector,placeholderVector);
         neighborDistances[ii] = distances;
         neighborVectors[ii] = tangentVector;
         };

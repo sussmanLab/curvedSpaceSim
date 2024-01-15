@@ -15,7 +15,7 @@ class cellListNeighborStructure : public baseNeighborStructure
         virtual void setInteractionRange(double range);
         virtual void initialize(std::vector<meshPosition> &_particles);
 
-        virtual void constructCandidateNeighborList(meshPosition &p, int particleIndex, std::vector<int> &candidateNeighborIndices, std::vector<meshPosition> &candidateParticles, int offset = 0);
+        virtual double constructCandidateNeighborList(meshPosition &p, int particleIndex, std::vector<int> &candidateNeighborIndices, std::vector<meshPosition> &candidateParticles, int offset = 0);
 
     protected:
         hyperRectangularCellList cellList;

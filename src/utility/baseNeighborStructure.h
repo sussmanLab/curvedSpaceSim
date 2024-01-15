@@ -19,8 +19,8 @@ class baseNeighborStructure
         //!initialize any helper structure with a set of points (e.g., populating a cell list with a vector of points to sort)
         virtual void initialize(std::vector<meshPosition> &_particles);
 
-        //!populate the candidate lists. Include an offset (minIdx) for mpi runs
-        virtual void constructCandidateNeighborList(meshPosition &p, int particleIndex, std::vector<int> &candidateNeighborIndices, std::vector<meshPosition> &candidateParticles, int offset = 0);
+        //!populate the candidate lists. Possibly return the largest distance from the source to any target in the candidate list. Include an offset (minIdx) for mpi runs
+        virtual double constructCandidateNeighborList(meshPosition &p, int particleIndex, std::vector<int> &candidateNeighborIndices, std::vector<meshPosition> &candidateParticles, int offset = 0);
 
         std::vector<int> indices;
         std::vector<meshPosition> particles;
