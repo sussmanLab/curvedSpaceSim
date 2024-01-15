@@ -84,7 +84,7 @@ void mpiModel::findNeighbors(double maximumInteractionRange)
         vector<vector3> placeholderVector;
         vector<vector3> tangentVector;
         vector<double> distances;
-        space->distance(positions[ii],targetParticles,distances,tangentVector,placeholderVector);
+        space->distance(positions[ii],targetParticles,distances,tangentVector,placeholderVector,largestNeighborDistance);
         neighborDistances[ii] = distances;
         neighborVectors[ii] = tangentVector;
         };

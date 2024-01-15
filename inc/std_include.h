@@ -25,7 +25,7 @@
 #include "dataTypes.h" //defines simple, non-CGAL data types that will be used
 
 #define THRESHOLD 1e-14
-#define VERYLARGEDOUBLE 1e20;
+#define VERYLARGEDOUBLE 1e20
 
 using namespace std; // bad form
 //!A utility function for checking if a file exists

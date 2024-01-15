@@ -22,7 +22,7 @@ void euclideanSpace::meshPositionToEuclideanLocation(std::vector<meshPosition> &
         };
     };
 
-void euclideanSpace::distance(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent)
+void euclideanSpace::distance(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent, double distanceThreshold)
     {
     int nTargets = p2.size();
     distances.resize(nTargets);

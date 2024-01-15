@@ -5,6 +5,8 @@
 #include "meshUtilities.h"
 #include "baseSpace.h"
 #include "submesher.h"
+#include <CGAL/Polygon_mesh_processing/IO/polygon_mesh_io.h>
+#include <CGAL/Polygon_mesh_processing/connected_components.h>
 
 /*! \file triangulatedMeshSpace.h"
 * \brief defines an interface to CGAL mesh-based functionality
@@ -33,13 +35,13 @@ class triangulatedMeshSpace : public baseSpace
         virtual void displaceParticle(meshPosition &pos, vector3 &displacementVector);
 
         //!Given a source particle and a vector of target points, determine the geodesic distance and store the start and end path tangents along the paths
-        virtual void distance(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent);
+        virtual void distance(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent, double distanceThreshold= VERYLARGEDOUBLE);
 
         virtual void meshPositionToEuclideanLocation(std::vector<meshPosition> &p1, std::vector<double3> &result);
 
         virtual void meshPositionToEuclideanLocation(std::vector<meshPosition> &p1, std::vector<meshPosition> &result);
 
-        void distanceWithSubmeshing(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent);
+        void distanceWithSubmeshing(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent,double distanceThreshold);
 
         void useSubmeshingRoutines(bool _useSubMesh, double maxDist = 1.0, bool _danger = false)
             {submeshingActivated = _useSubMesh;

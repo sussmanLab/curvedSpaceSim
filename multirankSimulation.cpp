@@ -39,9 +39,9 @@ int main(int argc, char*argv[])
     {
     //First, we handle some MPI initialization:
     int myRank,worldSize;
-    int tag=99;
-    char message[20];
-    MPI_Status status;
+    //int tag=99;
+    //char message[20];
+    //MPI_Status status;
 
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
@@ -90,7 +90,7 @@ int main(int argc, char*argv[])
     bool dangerous = false; //not used right now
 
 
-    if(verbose)
+    if(verbose && !dangerous)
         printf("processes rank %i, world size %i\n",myRank, worldSize);
         //printf("processes rank %i, local rank %i, world size %i\n",myRank,myLocalRank, worldSize);
 

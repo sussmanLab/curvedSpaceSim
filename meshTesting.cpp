@@ -44,6 +44,8 @@ int main(int argc, char*argv[])
     bool reproducible = reproducibleSwitch.getValue();
     bool dangerous = dangerousSwitch.getValue();
 
+    if(dangerous && programBranch >= 0)
+        printf("%i %f %i\n",N,dt,maximumIterations);
     noiseSource noise(reproducible);
 
 
@@ -61,7 +63,6 @@ int main(int argc, char*argv[])
     pmpFaceLocation randomLocationOnRandomFace(randomFace,baryTest);
 
 
-    smspFaceLocation smspRL = randomLocationOnRandomFace;
 profiler p1("geodesic");
 profiler p2("shift");
 
@@ -181,6 +182,7 @@ printf("}\n");
 }
 */
 /*
+    smspFaceLocation smspRL = randomLocationOnRandomFace;
 //spot testing of simple timing
 point3 targetPoint = pathFinder.point(smspRL.first,smspRL.second);
 profiler p2("smsp initialize");
