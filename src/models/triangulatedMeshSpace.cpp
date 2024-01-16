@@ -121,7 +121,7 @@ void triangulatedMeshSpace::distanceWithSubmeshing(meshPosition &p1, std::vector
     std::unordered_map<vertexIndex,int> vertexMap;
     double currentDistanceThreshold  = maximumDistance;
     //In principle, we should be able to switch this to 1 (and, hence, simplify to just currentDistanceThreshold = distanceThreshold), but test cases are missing interacting pairs...for now, we safely leave this at 0
-    double weight = 0;
+    double weight = 0.;
     if(distanceThreshold<maximumDistance)
         currentDistanceThreshold = (1-weight)*maximumDistance+weight*distanceThreshold;
     triangleMesh submesh = submeshAssistant.constructSubmeshFromSourceAndTargets(surface, sourcePoint,faceTargetsForSubmesh,currentDistanceThreshold,vertexMap,faceMap);
@@ -151,7 +151,7 @@ void triangulatedMeshSpace::distanceWithSubmeshing(meshPosition &p1, std::vector
         //if the submesh has multiple connected components, the distance will be returned as negative
         if(distances[ii] <0)
             {
-            printf("disconnected submesh %f %f \n",maximumDistance,distanceThreshold);
+//            printf("disconnected submesh %f %f \n",maximumDistance,distanceThreshold);//for debugging more aggresive submeshing
             distances[ii] = 2.0*maximumDistance;
             startPathTangent[ii] = {0,0,1};
             endPathTangent[ii] = {0,0,1};

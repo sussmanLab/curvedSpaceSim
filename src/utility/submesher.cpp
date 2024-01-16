@@ -97,6 +97,9 @@ triangleMesh submesher::constructSubmeshFromSourceAndTargets(triangleMesh &mesh,
     faceIndex currentFace;
     std::vector<vertexIndex> faceVertices(3);
     triangle3 faceTriangle;
+//    triangle3 sourceTriangle,faceTriangle;
+//    getVertexIndicesFromFace(mesh,sourceFace,faceVertices);
+//    sourceTriangle= triangle3(mesh.point(faceVertices[0]),mesh.point(faceVertices[1]),mesh.point(faceVertices[2]));
     while(!explorationStack.empty())
         {
         currentFace = explorationStack.top();
@@ -111,13 +114,13 @@ triangleMesh submesher::constructSubmeshFromSourceAndTargets(triangleMesh &mesh,
             //ignore faces that are completely beyond the cutoff distance
             getVertexIndicesFromFace(mesh,neighboringFace,faceVertices);
             //testing if replacing the pointwise with the full squared_distance check helps... not yet
-            /*
             if (CGAL::squared_distance(sourcePoint,mesh.point(faceVertices[0])) > squaredDistanceThreshold &&
                 CGAL::squared_distance(sourcePoint,mesh.point(faceVertices[1])) > squaredDistanceThreshold &&
                 CGAL::squared_distance(sourcePoint,mesh.point(faceVertices[2])) > squaredDistanceThreshold)
-            */
+            /*
             faceTriangle= triangle3(mesh.point(faceVertices[0]),mesh.point(faceVertices[1]),mesh.point(faceVertices[2]));
-            if (CGAL::squared_distance(sourcePoint,faceTriangle) > squaredDistanceThreshold)
+            if (CGAL::squared_distance(sourceTriangle,faceTriangle) > squaredDistanceThreshold)
+            */
                 {
                 continue;
                 };
