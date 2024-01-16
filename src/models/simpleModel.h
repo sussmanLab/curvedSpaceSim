@@ -33,6 +33,7 @@ class simpleModel
         simpleModel(int n);
         //!a blank default constructor
         simpleModel(){};
+        virtual ~simpleModel() = default;
         //!initialize the size of the basic data structure arrays
         void initializeSimpleModel(int n);
 

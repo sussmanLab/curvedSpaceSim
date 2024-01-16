@@ -6,6 +6,10 @@ Lorum ipsum, to the max
 
 submesh: switch to breadth-first search with early stopping (optional, not obviously better)
 
+# Compilation tests
+
+tested with gcc 7.5 and clang-10. Code cleaned slightly to avoid some default clang warnings; gcc is marginally faster on test machine
+(at the few-percent level)
 
 # Requirements
 

@@ -14,6 +14,7 @@ class baseNeighborStructure
     {
     public:
         baseNeighborStructure(){};
+        virtual ~baseNeighborStructure() = default;
 
         virtual void setInteractionRange(double range){maximumInteractionRange = range;};
         //!initialize any helper structure with a set of points (e.g., populating a cell list with a vector of points to sort)

@@ -14,6 +14,7 @@ class baseDatabase
     public:
         //! Base constructure takes a bland filename in readonly mode
         baseDatabase(string fn="temp.txt", int mode=-1):filename(fn), Mode(mode),Records(0){};
+        virtual ~baseDatabase() = default;
         //!The name of the file
         string filename;
         //!The desired mode (integer representation of replace, new, write, readonly, etc)

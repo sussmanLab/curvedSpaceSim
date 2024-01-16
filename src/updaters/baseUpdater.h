@@ -21,6 +21,7 @@ class updater
         //! by default, updaters are called every timestep with no offset
         updater(){Period = -1;Phase = 0;reproducible = true;};
         updater(int _p){Period = _p; Phase = 0;};
+        virtual ~updater() = default;
         //! The fundamental function that a controlling Simulation can call
         virtual void Update(int timestep)
             {

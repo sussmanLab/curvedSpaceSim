@@ -14,6 +14,7 @@ class force
     {
     public:
         force();
+        virtual ~force() = default;
 
         virtual string reportSelfName(){string ans = "base force"; return ans;};
 

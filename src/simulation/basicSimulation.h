@@ -11,6 +11,7 @@ class basicSimulation
     public:
         //!Initialize all the shared pointers, etc.
         basicSimulation();
+        virtual ~basicSimulation() = default;
 
         //!Call the force computer to compute the forces
         virtual void computeForces()=0;

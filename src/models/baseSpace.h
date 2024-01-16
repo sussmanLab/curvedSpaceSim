@@ -17,6 +17,7 @@ Because of the eventual target of simulations on curved surfaces, we use the CGA
 class baseSpace
     {
     public:
+        virtual ~baseSpace() = default;
         //!Given a particle somewhere on the mesh, displace it in the direction of the vector, wrapping around faces to make it a geodesic displacement
         virtual void displaceParticle(meshPosition &pos, vector3 &displacementVector) = 0;
 

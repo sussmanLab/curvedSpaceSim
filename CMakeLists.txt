@@ -17,7 +17,7 @@ if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g")
 else()
     #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -pg") #for gprof profiling
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -ffast-math -march=native")
     add_definitions(-DNDEBUG)
 endif()
 find_package(CGAL REQUIRED)
