@@ -135,7 +135,7 @@ int main(int argc, char*argv[])
 
 
     profiler timer("various parts of the code");
-vector3 vv;
+    vector3 vv;
 
     vector<double> posToSave;
     getFlatVectorOfPositions(configuration,posToSave);

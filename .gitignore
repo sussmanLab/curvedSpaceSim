@@ -36,3 +36,5 @@
 build/*
 debug/*
 
+#local cgal installation
+CGAL-5.6/
