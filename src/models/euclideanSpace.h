@@ -12,6 +12,8 @@ class euclideanSpace : public baseSpace
     {
     public:
         virtual void displaceParticle(meshPosition &pos, vector3 &displacementVector);
+        //in euclideanSpace,  velocity vectors are unchanged by particle shifts...this just calls displace particle
+        virtual void transportParticleAndVelocity(meshPosition &pos, vector3 &v, vector3 &displacementVector);
 
         virtual void distance(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent, double distanceThreshold = VERYLARGEDOUBLE);
 

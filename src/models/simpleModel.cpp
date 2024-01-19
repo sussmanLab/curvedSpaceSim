@@ -42,10 +42,14 @@ void simpleModel::fillEuclideanLocations()
 
 void simpleModel::moveParticles(vector<vector3> &disp)
     {
-    for(int ii = 0; ii < N; ++ii)
+    if(!particleShiftsRequireVelocityTransport)
         {
-        space->displaceParticle(positions[ii],disp[ii]);
-        };
+        for(int ii = 0; ii < N; ++ii)
+            space->displaceParticle(positions[ii],disp[ii]);
+        }
+    else
+        for(int ii = 0; ii < N; ++ii)
+            space->transportParticleAndVelocity(positions[ii],velocities[ii],disp[ii]);
     };
 
 void simpleModel::findNeighbors(double maximumInteractionRange)

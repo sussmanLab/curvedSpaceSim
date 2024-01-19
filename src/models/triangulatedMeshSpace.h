@@ -33,6 +33,8 @@ class triangulatedMeshSpace : public baseSpace
 
         //!Given a particle somewhere on the mesh, displace it in the direction of the vector, wrapping around faces to make it a geodesic displacement
         virtual void displaceParticle(meshPosition &pos, vector3 &displacementVector);
+        //!On a mesh, if a particle goes across an edge the velocity vector gets rotated along with it
+        virtual void transportParticleAndVelocity(meshPosition &pos, vector3 &v, vector3 &displacementVector);
 
         //!Given a source particle and a vector of target points, determine the geodesic distance and store the start and end path tangents along the paths
         virtual void distance(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent, double distanceThreshold= VERYLARGEDOUBLE);
@@ -66,5 +68,7 @@ class triangulatedMeshSpace : public baseSpace
         double maximumDistance = 0;
         //data structures associated with the potential for "dangerous" submeshes -- these can occur when submeshing routine is capable of returning a submesh with multiple connected components (e.g., when dealing with a surface that looks like an elephant's ear)
         bool dangerousSubmeshing = false;
+
+        int maximumShiftEdgeCrossings = 1000000;
     };
 #endif

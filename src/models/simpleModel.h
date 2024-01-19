@@ -86,6 +86,7 @@ class simpleModel
         virtual void fillEuclideanLocations();
 
         void setVerbose(bool v){verbose = v;};
+        bool particleShiftsRequireVelocityTransport = false;
     protected:
         shared_ptr<baseSpace> space;
         shared_ptr<baseNeighborStructure> neighborStructure;

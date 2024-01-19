@@ -5,6 +5,11 @@ void euclideanSpace::displaceParticle(meshPosition &pos, vector3 &displacementVe
     pos.x += displacementVector;
     };
 
+void euclideanSpace::transportParticleAndVelocity(meshPosition &pos, vector3 &v, vector3 &displacementVector)
+    {
+    displaceParticle(pos,displacementVector);
+    }
+ 
 void euclideanSpace::meshPositionToEuclideanLocation(std::vector<meshPosition> &p1, std::vector<meshPosition> &result)
     {
     result=p1;
