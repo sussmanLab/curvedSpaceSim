@@ -71,15 +71,6 @@ int main(int argc, char*argv[])
     double minMaxDim = pow((double)N,(1./3.));
     std::vector<double> minPos(3,-minMaxDim);
     std::vector<double> maxPos(3,minMaxDim);
-    if(programBranch >= 0)
-        {
-        minPos[0] = -minMaxDim;
-        minPos[1] = -minMaxDim;
-        minPos[2] = -minMaxDim;
-        maxPos[0] = minMaxDim;
-        maxPos[1] = minMaxDim;
-        maxPos[2] = minMaxDim;
-        };
     shared_ptr<cellListNeighborStructure> cellList = make_shared<cellListNeighborStructure>(minPos,maxPos,maximumInteractionRange);
     configuration->setNeighborStructure(cellList);
 

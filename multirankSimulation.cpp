@@ -195,11 +195,12 @@ int main(int argc, char*argv[])
             }
         };
 
+    MPI_Barrier(MPI_COMM_WORLD);
+    double fNorm,fMax;
+    fNorm = energyMinimizer->getForceNorm();
+    fMax = energyMinimizer->getMaxForce();
     if(myRank ==0)
         {
-        double fNorm,fMax;
-        fNorm = energyMinimizer->getForceNorm();
-        fMax = energyMinimizer->getMaxForce();
         printf("final configuration fN %f fM %f\n",fNorm,fMax);
         printf("Profiler information from rank 0:\n");
         timer.print();
