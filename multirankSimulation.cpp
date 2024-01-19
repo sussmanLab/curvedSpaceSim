@@ -168,7 +168,6 @@ int main(int argc, char*argv[])
 
 
     profiler timer("various parts of the code");
-vector3 vv;
 
     vector<double> posToSave;
     getFlatVectorOfPositions(configuration,posToSave);
@@ -176,7 +175,8 @@ vector3 vv;
     sprintf(dataname,"parallelTestTrajectory%i.nc",worldSize);
     vectorValueDatabase vvdat(posToSave.size(),dataname,NcFile::Replace);
     vvdat.writeState(posToSave,0);
-
+    if(verbose)
+        printf("preparing to run for %i steps\n",maximumIterations);
     for (int ii = 0; ii < maximumIterations; ++ii)
         {
         timer.start();
@@ -197,6 +197,10 @@ vector3 vv;
 
     if(myRank ==0)
         {
+        double fNorm,fMax;
+        fNorm = energyMinimizer->getForceNorm();
+        fMax = energyMinimizer->getMaxForce();
+        printf("final configuration fN %f fM %f\n",fNorm,fMax);
         printf("Profiler information from rank 0:\n");
         timer.print();
         }
