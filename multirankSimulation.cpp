@@ -5,7 +5,6 @@
 #include "profiler.h"
 #include "noiseSource.h"
 #include "triangulatedMeshSpace.h"
-#include "euclideanSpace.h"
 #include "mpiSimulation.h"
 #include "gradientDescent.h"
 #include "mpiModel.h"
@@ -94,7 +93,6 @@ int main(int argc, char*argv[])
         printf("processes rank %i, world size %i\n",myRank, worldSize);
         //printf("processes rank %i, local rank %i, world size %i\n",myRank,myLocalRank, worldSize);
 
-    shared_ptr<euclideanSpace> R3Space=make_shared<euclideanSpace>();
     shared_ptr<triangulatedMeshSpace> meshSpace=make_shared<triangulatedMeshSpace>();
     meshSpace->loadMeshFromFile(meshName,verbose);
     meshSpace->useSubmeshingRoutines(false);
@@ -102,12 +100,8 @@ int main(int argc, char*argv[])
         meshSpace->useSubmeshingRoutines(true,maximumInteractionRange);
 
     shared_ptr<mpiModel> configuration=make_shared<mpiModel>(N,myRank,worldSize,verbose);
-    if(verbose)
-        configuration->setVerbose(true);
-    if(programBranch >= 0)
-        configuration->setSpace(meshSpace);
-    else
-        configuration->setSpace(R3Space);
+    configuration->setVerbose(verbose);
+    configuration->setSpace(meshSpace);
 
     //testing cellListNeighborStructure in euclidean, non-periodic spaces...make a cell list with the following minimum and maximum dimensions, and unit grid size
     double minMaxDim = pow((double)N,(1./3.));
@@ -123,32 +117,23 @@ int main(int argc, char*argv[])
         maxPos[2] = meshSpace->maxVertexPosition.z;
         };
     shared_ptr<cellListNeighborStructure> cellList = make_shared<cellListNeighborStructure>(minPos,maxPos,maximumInteractionRange);
-    configuration->setNeighborStructure(cellList);
+    if(programBranch >= 1)
+        configuration->setNeighborStructure(cellList);
 
-    //for testing, just initialize particles randomly in a small space
+    //for testing, just initialize particles randomly on the mesh faces
     noiseSource noise(reproducible);
     vector<meshPosition> pos(N);
     //this block (through "broadcastParticlePositions(pos)") will take the data  on rank 0 and distribute it to all ranks
     for(int ii = 0; ii < N; ++ii)
         {
-        if(programBranch<0)
-            {
-            point3 p(noise.getRealUniform(-.5,.5),noise.getRealUniform(-.5,.5),noise.getRealUniform(-.5,.5));
-            pos[ii].x=p;
-            pos[ii].faceIndex=ii;
-            if(verbose)
-                cout << p[0] <<"  " << p[1] << "  " << p[2] << endl;
-            }
-        else
-            {//barycentric coords
-            double3 baryPoint;
-            baryPoint.x=noise.getRealUniform();
-            baryPoint.y=noise.getRealUniform(0,1-baryPoint.x);
-            baryPoint.z=1-baryPoint.x-baryPoint.y;
-            point3 p(baryPoint.x,baryPoint.y,baryPoint.z);
-            pos[ii].x=p;
-            pos[ii].faceIndex= noise.getInt(0,meshSpace->surface.number_of_faces()-1);
-            }
+        //barycentric coords
+         double3 baryPoint;
+         baryPoint.x=noise.getRealUniform();
+         baryPoint.y=noise.getRealUniform(0,1-baryPoint.x);
+         baryPoint.z=1-baryPoint.x-baryPoint.y;
+         point3 p(baryPoint.x,baryPoint.y,baryPoint.z);
+         pos[ii].x=p;
+         pos[ii].faceIndex= noise.getInt(0,meshSpace->surface.number_of_faces()-1);
         }
     configuration->broadcastParticlePositions(pos);
 
@@ -177,26 +162,24 @@ int main(int argc, char*argv[])
     vvdat.writeState(posToSave,0);
     if(verbose)
         printf("preparing to run for %i steps\n",maximumIterations);
+    double fNorm,fMax;
     for (int ii = 0; ii < maximumIterations; ++ii)
         {
         timer.start();
        // printf("timestep %i on rank %i\n",ii,myRank);
-        MPI_Barrier(MPI_COMM_WORLD);
         simulator->performTimestep();
         timer.end();
-        if(ii%saveFrequency == saveFrequency-1 && myRank ==0)
+        if(ii%saveFrequency == saveFrequency-1)
             {
             getFlatVectorOfPositions(configuration,posToSave);
             vvdat.writeState(posToSave,dt*ii);
-            double fNorm,fMax;
             fNorm = energyMinimizer->getForceNorm();
             fMax = energyMinimizer->getMaxForce();
-            printf("step %i fN %f fM %f\n",ii,fNorm,fMax);
+            if(myRank ==0)
+                printf("step %i fN %f fM %f\n",ii,fNorm,fMax);
             }
         };
 
-    MPI_Barrier(MPI_COMM_WORLD);
-    double fNorm,fMax;
     fNorm = energyMinimizer->getForceNorm();
     fMax = energyMinimizer->getMaxForce();
     if(myRank ==0)

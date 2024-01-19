@@ -69,9 +69,9 @@ void mpiModel::findNeighbors(double maximumInteractionRange)
         vector<meshPosition> targetParticles;
         //if needed, target a euclidean position
         if(euclideanNeighborsMeshPositions)
-            largestNeighborDistance = neighborStructure->constructCandidateNeighborList(euclideanMeshPosition[ii+minIdx], ii, neighbors[ii], targetParticles);
+            largestNeighborDistance = neighborStructure->constructCandidateNeighborList(euclideanMeshPosition[ii+minIdx], ii, neighbors[ii], targetParticles,minIdx);
         else
-            largestNeighborDistance = neighborStructure->constructCandidateNeighborList(positions[ii], ii, neighbors[ii], targetParticles);
+            largestNeighborDistance = neighborStructure->constructCandidateNeighborList(positions[ii], ii, neighbors[ii], targetParticles,minIdx);
 
         //if needed, re-fill targetParticles with space-appropriate data
         if(euclideanNeighborsMeshPositions)
@@ -85,6 +85,7 @@ void mpiModel::findNeighbors(double maximumInteractionRange)
         vector<vector3> tangentVector;
         vector<double> distances;
         space->distance(positions[ii],targetParticles,distances,tangentVector,placeholderVector,largestNeighborDistance);
+
         neighborDistances[ii] = distances;
         neighborVectors[ii] = tangentVector;
         };

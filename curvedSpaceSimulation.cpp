@@ -68,8 +68,7 @@ int main(int argc, char*argv[])
         meshSpace->useSubmeshingRoutines(true,maximumInteractionRange,dangerous);
 
     shared_ptr<simpleModel> configuration=make_shared<simpleModel>(N);
-    if(verbose)
-        configuration->setVerbose(true);
+    configuration->setVerbose(verbose);
     configuration->setSpace(meshSpace);
 
     //set up the cellListNeighborStructure, which needs to know how large the mesh is
@@ -86,7 +85,8 @@ int main(int argc, char*argv[])
         maxPos[2] = meshSpace->maxVertexPosition.z;
         };
     shared_ptr<cellListNeighborStructure> cellList = make_shared<cellListNeighborStructure>(minPos,maxPos,maximumInteractionRange);
-    configuration->setNeighborStructure(cellList);
+    if(programBranch >= 1)
+        configuration->setNeighborStructure(cellList);
 
     //for testing, just initialize particles randomly in a small space
     noiseSource noise(reproducible);
