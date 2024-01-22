@@ -20,6 +20,8 @@ else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -ffast-math -march=native")
     add_definitions(-DNDEBUG)
 endif()
+message("cxx flags = " "${CMAKE_CXX_FLAGS}")
+
 find_package(CGAL REQUIRED)
 find_package(Boost REQUIRED)
 find_package(MPI REQUIRED)

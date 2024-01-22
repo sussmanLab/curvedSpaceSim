@@ -3,9 +3,9 @@
 /*! \file triangulatedMeshSpace.cpp */
 #include <stdexcept>
 
-
-void triangulatedMeshSpace::loadMeshFromFile(std::string filename, bool verbose)
+void triangulatedMeshSpace::loadMeshFromFile(std::string filename, bool _verbose)
     {
+    verbose = _verbose;
     positionsAreEuclidean = false;
     if(verbose)
         {

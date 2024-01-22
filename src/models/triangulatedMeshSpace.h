@@ -60,6 +60,7 @@ class triangulatedMeshSpace : public baseSpace
         double3 minVertexPosition;
         double3 maxVertexPosition;
     protected:
+        bool verbose = false;
         shared_ptr<surfaceMeshShortestPath> globalSMSP;
         AABB_tree globalTree;
         //data structures associated with submeshing routines
