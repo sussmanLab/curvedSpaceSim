@@ -7,13 +7,11 @@
 #include "baseNeighborStructure.h"
 
 /*! \file simpleModel.h
- * \brief defines an interface for models that compute forces
  */
 
 //! A base interfacing class that defines common operations
 /*!
 This provides an interface, guaranteeing that SimpleModel S will provide access to
-S.setGPU();
 S.getNumberOfParticles();
 S.computeForces();
 S.moveParticles();
@@ -23,7 +21,6 @@ S.returnVelocities();
 S.returnRadii();
 S.returnMasses();
 S.returnTypes();
-S.spatialSorting();
 S.returnAdditionalData();
 */
 class simpleModel

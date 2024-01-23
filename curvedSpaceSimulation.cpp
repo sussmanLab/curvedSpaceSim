@@ -32,7 +32,7 @@ int main(int argc, char*argv[])
     {
 
     //First, we set up a basic command line parser with some message and version
-    CmdLine cmd("simulations in curved space!",' ',"V0.0");
+    CmdLine cmd("simulations in curved space!",' ',"V0.9");
 
     //define the various command line strings that can be passed in...
     //ValueArg<T> variableName("shortflag","longFlag","description",required or not, default value,"value type",CmdLine object to add to
