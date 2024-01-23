@@ -5,6 +5,7 @@
 #include <vector>
 #include "pointDataType.h"
 #include "cgalIncludesAndTypedefs.h"
+#include "noiseSource.h"
 
 /*! \file baseSpace.h"
  Degrees of freedom live in a space (e.g.: Euclidean space, a curved manifold, a cube with periodic boundary conditions, etc.)
@@ -12,6 +13,7 @@ This base class promises an implementation of
 "displaceParticle", which takes a point and and a displacement vector, and updates the position of the point
 "distance", which takes a source point, a vector of target points, and fills vectors of distances and tangent vectors at the start and end of the paths.
 Because of the eventual target of simulations on curved surfaces, we use the CGAL data types here.
+For convenience, baseSpaces also implement the ability to choose a random location (not necessarily uniformly sampled) and a random tangent vector to a point
 */
 
 class baseSpace
@@ -34,5 +36,8 @@ class baseSpace
 
         //!Some spaces know that the associated model's default meshPosition structure is already euclidean, but others (e.g., meshes) are not
         bool positionsAreEuclidean = true;
+
+        virtual void randomPosition(meshPosition &p, noiseSource &noise)=0;
+        virtual void randomVectorAtPosition(meshPosition &p, vector3 &v, noiseSource &noise)=0;
     };
 #endif

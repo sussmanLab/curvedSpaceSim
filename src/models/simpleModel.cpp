@@ -107,6 +107,23 @@ void simpleModel::setParticlePositions(vector<meshPosition> &newPositions)
         };
     };
 
+void simpleModel::setRandomParticlePositions(noiseSource &noise)
+    {
+    for(int pp = 0; pp < N; ++pp)
+        space->randomPosition(positions[pp], noise);
+    }
+
+/*!
+Assumes all particles have unit mass (for now)
+*/
+void simpleModel::setMaxwellBoltzmannVelocities(noiseSource &noise, double T)
+    {
+    for (int pp = 0; pp < N; ++pp)
+        {
+        space->randomVectorAtPosition(positions[pp], velocities[pp],noise);
+        velocities[pp] *= sqrt(T);
+        }
+    };
 
 void simpleModel::computeForces(bool zeroOutForces)
     {

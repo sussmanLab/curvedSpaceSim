@@ -27,6 +27,19 @@ void euclideanSpace::meshPositionToEuclideanLocation(std::vector<meshPosition> &
         };
     };
 
+void euclideanSpace::randomPosition(meshPosition &p, noiseSource &noise)
+    {
+    point3 location(noise.getRealUniform(-.5,.5),noise.getRealUniform(-.5,.5),noise.getRealUniform(-.5,.5));
+    p.x=location;
+    p.faceIndex=0;
+    }
+
+//!fills v with a random vector (zero mean unit gaussian in each direction)
+void euclideanSpace::randomVectorAtPosition(meshPosition &p, vector3 &v, noiseSource &noise)
+    {
+    v= vector3(noise.getRealNormal(), noise.getRealNormal(), noise.getRealNormal());
+    }
+
 void euclideanSpace::distance(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent, double distanceThreshold)
     {
     int nTargets = p2.size();

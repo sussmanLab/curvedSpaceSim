@@ -96,6 +96,38 @@ void triangulatedMeshSpace::meshPositionToEuclideanLocation(std::vector<meshPosi
         };
     }
 
+void triangulatedMeshSpace::randomPosition(meshPosition &p, noiseSource &noise)
+    {
+    double3 baryPoint;
+    baryPoint.x=noise.getRealUniform();
+    baryPoint.y=noise.getRealUniform(0,1-baryPoint.x);
+    baryPoint.z=1-baryPoint.x-baryPoint.y;
+    p.x = point3(baryPoint.x,baryPoint.y,baryPoint.z);
+    p.faceIndex = noise.getInt(0,surface.number_of_faces()-1);
+    }
+
+void triangulatedMeshSpace::randomVectorAtPosition(meshPosition &p, vector3 &v, noiseSource &noise)
+    {
+    //compute the normal to the face containing point p
+    pmpFaceLocation sourceLocation = meshPositionToFaceLocation(p);
+    faceIndex sourceFace = sourceLocation.first;
+    vector3 sourceNormal = PMP::compute_face_normal(sourceFace,surface);
+
+    //construct an orthogonal vector by hand
+    vector3 orthogonalizer;
+    if(sourceNormal[0] ==0 && sourceNormal[1] ==0 )
+        orthogonalizer = vector3(sourceNormal[1]-sourceNormal[2], sourceNormal[2]-sourceNormal[0], sourceNormal[0]-sourceNormal[1]);
+    else
+        orthogonalizer = vector3(sourceNormal[1],-sourceNormal[0],0);
+    //make this orthogonal vector a unit vector
+    orthogonalizer /= sqrt(orthogonalizer.squared_length());
+    //grab the second tangent vector (which should already be a unit vector)
+    vector3 tangent2 =CGAL::cross_product(sourceNormal,orthogonalizer);
+
+    //finally, choose a gaussian weight of each of the two orthogonal vectors in the face's tangent
+    v = noise.getRealNormal()*orthogonalizer+noise.getRealNormal()*tangent2;
+    }
+
 void triangulatedMeshSpace::convertToEuclideanPositions(std::vector<meshPosition> &a, std::vector<meshPosition> &b)
     {
     int N = a.size();

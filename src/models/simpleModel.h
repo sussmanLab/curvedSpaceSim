@@ -5,6 +5,7 @@
 #include "pointDataType.h"
 #include "baseSpace.h"
 #include "baseNeighborStructure.h"
+#include "noiseSource.h"
 
 /*! \file simpleModel.h
  */
@@ -53,6 +54,10 @@ class simpleModel
 
         virtual void findNeighbors(double maximumInteractionRange);
         virtual void setParticlePositions(vector<meshPosition> &newPositions);
+
+        //!uses the space to randomly set particle positions...hense, requires that a space is already set
+        virtual void setRandomParticlePositions(noiseSource &noise);
+        virtual void setMaxwellBoltzmannVelocities(noiseSource &noise, double T);
 
         //!The number of particles
         int N;

@@ -43,6 +43,10 @@ class triangulatedMeshSpace : public baseSpace
 
         virtual void meshPositionToEuclideanLocation(std::vector<meshPosition> &p1, std::vector<meshPosition> &result);
 
+        virtual void randomPosition(meshPosition &p, noiseSource &noise);
+
+        virtual void randomVectorAtPosition(meshPosition &p, vector3 &v, noiseSource &noise);
+
         void distanceWithSubmeshing(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent,double distanceThreshold);
 
         void useSubmeshingRoutines(bool _useSubMesh, double maxDist = 1.0, bool _danger = false)

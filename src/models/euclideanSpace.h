@@ -20,5 +20,7 @@ class euclideanSpace : public baseSpace
         virtual void meshPositionToEuclideanLocation(std::vector<meshPosition> &p1, std::vector<double3> &result);
         virtual void meshPositionToEuclideanLocation(std::vector<meshPosition> &p1, std::vector<meshPosition> &result);
         
+        virtual void randomPosition(meshPosition &p, noiseSource &noise);
+        virtual void randomVectorAtPosition(meshPosition &p, vector3 &v, noiseSource &noise);
     };
 #endif

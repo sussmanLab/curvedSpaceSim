@@ -76,17 +76,7 @@ int main(int argc, char*argv[])
 
     //for testing, just initialize particles randomly in a small space
     noiseSource noise(reproducible);
-    vector<meshPosition> pos(N);
-    for(int ii = 0; ii < N; ++ii)
-        {
-        point3 p(noise.getRealUniform(-.5,.5),noise.getRealUniform(-.5,.5),noise.getRealUniform(-.5,.5));
-        pos[ii].x=p;
-        pos[ii].faceIndex=ii;
-        if(verbose)
-                cout << p[0] <<"  " << p[1] << "  " << p[2] << endl;
-        }
-    configuration->setParticlePositions(pos);
-
+    configuration->setRandomParticlePositions(noise);
 
     //shared_ptr<gaussianRepulsion> pairwiseForce = make_shared<gaussianRepulsion>(1.0,.5);
     shared_ptr<harmonicRepulsion> pairwiseForce = make_shared<harmonicRepulsion>(1.0,maximumInteractionRange);//stiffness and sigma. this is a monodisperse setting
@@ -108,7 +98,7 @@ vector3 vv;
     vector<double> posToSave;
     getFlatVectorOfPositions(configuration,posToSave);
 
-    vectorValueDatabase vvdat(posToSave.size(),"./testTrajectory.nc",NcFile::Replace);
+    vectorValueDatabase vvdat(posToSave.size(),"./flatSpaceTestTrajectory.nc",NcFile::Replace);
     vvdat.writeState(posToSave,0);
 
     for (int ii = 0; ii < maximumIterations; ++ii)
