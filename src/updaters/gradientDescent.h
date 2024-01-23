@@ -3,7 +3,6 @@
 
 #include "baseUpdater.h"
 
-
 class gradientDescent : public updater
     {
     public:

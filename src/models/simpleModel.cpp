@@ -21,8 +21,8 @@ void simpleModel::initializeSimpleModel(int n)
 
     positions.resize(n);
     euclideanLocations.resize(n);
-    velocities.resize(n);
-    forces.resize(n);
+    velocities.resize(n,vector3(0.,0.,0.));
+    forces.resize(n,vector3(0.,0.,0.));
     neighbors.resize(n);
     neighborVectors.resize(n);
     neighborDistances.resize(n);

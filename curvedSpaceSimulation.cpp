@@ -7,6 +7,7 @@
 #include "triangulatedMeshSpace.h"
 #include "simulation.h"
 #include "gradientDescent.h"
+#include "velocityVerletNVE.h"
 #include "simpleModel.h"
 #include "gaussianRepulsion.h"
 #include "harmonicRepulsion.h"
@@ -104,11 +105,17 @@ int main(int argc, char*argv[])
     simulator->addForce(pairwiseForce);
 
     shared_ptr<gradientDescent> energyMinimizer=make_shared<gradientDescent>(dt);
-    energyMinimizer->setModel(configuration);
-
-    simulator->addUpdater(energyMinimizer,configuration);
-
-
+    shared_ptr<velocityVerletNVE> nve=make_shared<velocityVerletNVE>(dt);
+    if(programBranch >=2)
+        {
+        nve->setModel(configuration);
+        simulator->addUpdater(nve,configuration);
+        }
+    else
+        {
+        energyMinimizer->setModel(configuration);
+        simulator->addUpdater(energyMinimizer,configuration);
+        }
     profiler timer("various parts of the code");
 
     vector<double> posToSave;
@@ -126,10 +133,15 @@ int main(int argc, char*argv[])
             {
             getFlatVectorOfPositions(configuration,posToSave);
             vvdat.writeState(posToSave,dt*ii);
-            double fNorm,fMax;
-            fNorm = energyMinimizer->getForceNorm();
-            fMax = energyMinimizer->getMaxForce();
-            printf("step %i fN %f fM %f\n",ii,fNorm,fMax);
+            if(programBranch <2)
+                {
+                double fNorm,fMax;
+                fNorm = energyMinimizer->getForceNorm();
+                fMax = energyMinimizer->getMaxForce();
+                printf("step %i fN %f fM %f\n",ii,fNorm,fMax);
+                }
+            else
+                printf("step %i \n",ii);
             }
         }
 
