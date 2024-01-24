@@ -69,7 +69,6 @@ void mpiModel::setMaxwellBoltzmannVelocities(noiseSource &noise, double T)
         globalVelocities[pp] *= sqrt(T);
         }
     broadcastParticleVelocities(globalVelocities);
-DEBUGCODEHELPER;
     };
 
 void mpiModel::findNeighbors(double maximumInteractionRange)
