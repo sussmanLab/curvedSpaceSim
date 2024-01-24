@@ -28,6 +28,11 @@ class mpiModel : public simpleModel
             determineIndexBounds();
             };
 
+        //!On mpiModels, this uses rank 0 to *globally* set all particle positions
+        virtual void setRandomParticlePositions(noiseSource &noise);
+        //!On mpiModels, this uses rank 0 to *globally* set all particle velocities
+        virtual void setMaxwellBoltzmannVelocities(noiseSource &noise, double T);
+
         //!have (by default) rank 0 fill and then broadcast the globalPositions vector
         void broadcastParticlePositions(vector<meshPosition> &p, int broadcastRoot = 0);
         //!have (by default) rank 0 fill and then broadcast the globalVelocities vector... mostly useful for setting initial conditions

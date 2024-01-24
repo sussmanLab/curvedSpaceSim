@@ -47,6 +47,31 @@ void mpiModel::initializeMPIModel(int n, int nTotal)
     doubleTransferBufferReceive.resize(3*largestNumberOfParticlesPerRank*totalRanks);
     };
 
+void mpiModel::setRandomParticlePositions(noiseSource &noise)
+    {
+    if(globalPositions.size() != NTotal)
+        globalPositions.resize(NTotal);
+    for(int pp = 0; pp < NTotal; ++pp)
+        space->randomPosition(globalPositions[pp], noise);
+    broadcastParticlePositions(globalPositions);
+    }
+
+/*!
+Assumes all particles have unit mass (for now)
+*/
+void mpiModel::setMaxwellBoltzmannVelocities(noiseSource &noise, double T)
+    {
+    if(globalVelocities.size() != NTotal)
+        globalVelocities.resize(NTotal);
+    for (int pp = 0; pp < NTotal; ++pp)
+        {
+        space->randomVectorAtPosition(globalPositions[pp], globalVelocities[pp],noise);
+        globalVelocities[pp] *= sqrt(T);
+        }
+    broadcastParticleVelocities(globalVelocities);
+DEBUGCODEHELPER;
+    };
+
 void mpiModel::findNeighbors(double maximumInteractionRange)
     {
     //first, determine any needed neighbor structure initialization
@@ -145,17 +170,15 @@ void mpiModel::broadcastParticlePositions(vector<meshPosition> &p, int broadcast
 
 void mpiModel::broadcastParticleVelocities(vector<vector3> &v, int broadcastRoot)
     {
-    if(v.size != NTotal)
+    if(v.size() != NTotal)
        ERRORERROR("attempting to broadcast a global velocity vector of the wrong size!"); 
-    if(globalVelocities.size() != NTotal)
-        globalVelocities.resize(NTotal);
     if(localRank == broadcastRoot)
         {
         for (int ii = 0; ii < NTotal; ++ii)
             {
-            doubleTransferBufferReceive[3*ii+0]=v[0];
-            doubleTransferBufferReceive[3*ii+1]=v[1];
-            doubleTransferBufferReceive[3*ii+2]=v[2];
+            doubleTransferBufferReceive[3*ii+0]=v[ii][0];
+            doubleTransferBufferReceive[3*ii+1]=v[ii][1];
+            doubleTransferBufferReceive[3*ii+2]=v[ii][2];
             };
         };
     //broadcast from root so all buffers are filled with v data

@@ -7,6 +7,7 @@
 #include "triangulatedMeshSpace.h"
 #include "mpiSimulation.h"
 #include "gradientDescent.h"
+#include "velocityVerletNVE.h"
 #include "mpiModel.h"
 #include "gaussianRepulsion.h"
 #include "harmonicRepulsion.h"
@@ -68,7 +69,8 @@ int main(int argc, char*argv[])
     ValueArg<int> saveFrequencyArg("s","saveFrequency","how often a file gets updated",false,100,"int",cmd);
     ValueArg<string> meshSwitchArg("m","meshSwitch","filename of the mesh you want to load",false,"../exampleMeshes/torus_isotropic_remesh.off","string",cmd);
     ValueArg<double> interactionRangeArg("a","interactionRange","range ofthe interaction to set for both potential and cell list",false,1.,"double",cmd);
-    ValueArg<double> deltaTArg("t","dt","timestep size",false,.01,"double",cmd);
+    ValueArg<double> deltaTArg("e","dt","timestep size",false,.01,"double",cmd);
+    ValueArg<double> temperatureArg("t","T","temperature to set",false,.2,"double",cmd);
 
     SwitchArg reproducibleSwitch("r","reproducible","reproducible random number generation", cmd, true);
     SwitchArg dangerousSwitch("d","dangerousMeshes","meshes where submeshes are dangerous", cmd, false);
@@ -84,6 +86,7 @@ int main(int argc, char*argv[])
     string meshName = meshSwitchArg.getValue();
     double dt = deltaTArg.getValue();
     double maximumInteractionRange= interactionRangeArg.getValue();
+    double temperature = temperatureArg.getValue();
     bool verbose= verboseSwitch.getValue();
     bool reproducible = reproducibleSwitch.getValue();
     bool dangerous = false; //not used right now
@@ -122,21 +125,8 @@ int main(int argc, char*argv[])
 
     //for testing, just initialize particles randomly on the mesh faces
     noiseSource noise(reproducible);
-    vector<meshPosition> pos(N);
-    //this block (through "broadcastParticlePositions(pos)") will take the data  on rank 0 and distribute it to all ranks
-    for(int ii = 0; ii < N; ++ii)
-        {
-        //barycentric coords
-         double3 baryPoint;
-         baryPoint.x=noise.getRealUniform();
-         baryPoint.y=noise.getRealUniform(0,1-baryPoint.x);
-         baryPoint.z=1-baryPoint.x-baryPoint.y;
-         point3 p(baryPoint.x,baryPoint.y,baryPoint.z);
-         pos[ii].x=p;
-         pos[ii].faceIndex= noise.getInt(0,meshSpace->surface.number_of_faces()-1);
-        }
-    configuration->broadcastParticlePositions(pos);
-
+    configuration->setRandomParticlePositions(noise);
+    configuration->setMaxwellBoltzmannVelocities(noise,temperature);
 
     //shared_ptr<gaussianRepulsion> pairwiseForce = make_shared<gaussianRepulsion>(1.0,.5);
     shared_ptr<harmonicRepulsion> pairwiseForce = make_shared<harmonicRepulsion>(1.0,maximumInteractionRange);//stiffness and sigma. this is a monodisperse setting
@@ -147,10 +137,17 @@ int main(int argc, char*argv[])
     simulator->addForce(pairwiseForce);
 
     shared_ptr<gradientDescent> energyMinimizer=make_shared<gradientDescent>(dt);
-    energyMinimizer->setModel(configuration);
-
-    simulator->addUpdater(energyMinimizer,configuration);
-
+    shared_ptr<velocityVerletNVE> nve=make_shared<velocityVerletNVE>(dt);
+    if(programBranch >=2)
+        {
+        nve->setModel(configuration);
+        simulator->addUpdater(nve,configuration);
+        }
+    else
+        {
+        energyMinimizer->setModel(configuration);
+        simulator->addUpdater(energyMinimizer,configuration);
+        }
 
     profiler timer("various parts of the code");
 
@@ -173,19 +170,20 @@ int main(int argc, char*argv[])
             {
             getFlatVectorOfPositions(configuration,posToSave);
             vvdat.writeState(posToSave,dt*ii);
-            fNorm = energyMinimizer->getForceNorm();
-            fMax = energyMinimizer->getMaxForce();
-            if(myRank ==0)
+            if(programBranch <2)
+                {
+                double fNorm,fMax;
+                fNorm = energyMinimizer->getForceNorm();
+                fMax = energyMinimizer->getMaxForce();
                 printf("step %i fN %f fM %f\n",ii,fNorm,fMax);
+                }
+            else
+                printf("step %i \n",ii);
             }
         };
 
-    fNorm = energyMinimizer->getForceNorm();
-    fMax = energyMinimizer->getMaxForce();
     if(myRank ==0)
         {
-        printf("final configuration fN %f fM %f\n",fNorm,fMax);
-        printf("Profiler information from rank 0:\n");
         timer.print();
         }
 

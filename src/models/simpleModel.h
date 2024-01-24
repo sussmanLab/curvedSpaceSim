@@ -55,7 +55,7 @@ class simpleModel
         virtual void findNeighbors(double maximumInteractionRange);
         virtual void setParticlePositions(vector<meshPosition> &newPositions);
 
-        //!uses the space to randomly set particle positions...hense, requires that a space is already set
+        //!uses the space to randomly set particle positions...hence, requires that a space is already set
         virtual void setRandomParticlePositions(noiseSource &noise);
         virtual void setMaxwellBoltzmannVelocities(noiseSource &noise, double T);
 
