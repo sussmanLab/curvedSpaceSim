@@ -155,19 +155,20 @@ printf("total difference in computed distances between full and submesh routines
 }
 if(programBranch ==1)
 {
+    //meshSpace might use dangerous submeshing, meshSpace2 won't
     shared_ptr<triangulatedMeshSpace> meshSpace=make_shared<triangulatedMeshSpace>();
     meshSpace->loadMeshFromFile(meshName,verbose);
     meshSpace->useSubmeshingRoutines(true,maxDist,dangerous);
     shared_ptr<triangulatedMeshSpace> meshSpace2=make_shared<triangulatedMeshSpace>();
     meshSpace2->loadMeshFromFile(meshName,verbose);
-    meshSpace2->useSubmeshingRoutines(false);
+    meshSpace2->useSubmeshingRoutines(true,maxDist,false);
 
     shared_ptr<simpleModel> configuration1=make_shared<simpleModel>(N);
     shared_ptr<simpleModel> configuration2=make_shared<simpleModel>(N);
     configuration1->setVerbose(verbose);
     configuration1->setSpace(meshSpace);
     configuration2->setVerbose(verbose);
-    configuration2->setSpace(meshSpace);
+    configuration2->setSpace(meshSpace2);
 
     //set up the cellListNeighborStructure, which needs to know how large the mesh is
     shared_ptr<cellListNeighborStructure> cellList = make_shared<cellListNeighborStructure>(meshSpace->minVertexPosition,meshSpace->maxVertexPosition,maxDist);

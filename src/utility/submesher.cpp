@@ -139,17 +139,7 @@ triangleMesh submesher::constructSubmeshFromSourceAndTargets(triangleMesh &mesh,
      can happen for a face at the very boundary, of all visited faces, so to deal with it we can simply add any remaining goal faces
     */
     for(faceIndex remainingGoalFaces : goalFaces)
-        {
         visitedFaces.insert(remainingGoalFaces);
-        /*//tentative solution
-        halfedgeIndex goalH = mesh.halfedge(remainingGoalFaces);
-        for (halfedgeIndex hi: halfedges_around_face(goalH, mesh))
-            {
-            neighboringFace = mesh.face(mesh.opposite(hi));
-            visitedFaces.insert(neighboringFace);
-            };
-        */
-        }
 
     /*
     TODO: another edge case to handle is when our visited faces no longer form a connected component (i.e. if we have submeshed two
