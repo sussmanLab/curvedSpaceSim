@@ -154,6 +154,8 @@ void triangulatedMeshSpace::distanceWithSubmeshing(meshPosition &p1, std::vector
     double currentDistanceThreshold  = maximumDistance;
     //In principle, we should be able to switch this to 1 (and, hence, simplify to just currentDistanceThreshold = distanceThreshold), but test cases are missing interacting pairs...for now, we safely leave this at 0
     double weight = 0.;
+    if(dangerousSubmeshing)
+        weight = 1.;
     if(distanceThreshold<maximumDistance)
         currentDistanceThreshold = (1-weight)*maximumDistance+weight*distanceThreshold;
     triangleMesh submesh = submeshAssistant.constructSubmeshFromSourceAndTargets(surface, sourcePoint,faceTargetsForSubmesh,currentDistanceThreshold,vertexMap,faceMap);

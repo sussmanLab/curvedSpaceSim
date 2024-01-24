@@ -31,6 +31,7 @@ int main(int argc, char*argv[])
     SwitchArg reproducibleSwitch("r","reproducible","reproducible random number generation", cmd, true);
     SwitchArg dangerousSwitch("d","dangerousMeshes","meshes where submeshes are dangerous", cmd, false);
     SwitchArg verboseSwitch("v","verbose","output more things to screen ", cmd, false);
+    ValueArg<double> interactionRangeArg("a","interactionRange","range ofthe interaction to set for both potential and cell list",false,1.,"double",cmd);
 
     //parse the arguments
     cmd.parse( argc, argv );
@@ -43,6 +44,7 @@ int main(int argc, char*argv[])
     bool verbose= verboseSwitch.getValue();
     bool reproducible = reproducibleSwitch.getValue();
     bool dangerous = dangerousSwitch.getValue();
+    double maxDist = interactionRangeArg.getValue();
 
     if(dangerous && programBranch >= 0)
         printf("%i %f %i\n",N,dt,maximumIterations);
@@ -50,12 +52,13 @@ int main(int argc, char*argv[])
 
 
 
+if(programBranch ==0)
+{
     shared_ptr<triangulatedMeshSpace> meshSpace=make_shared<triangulatedMeshSpace>();
     meshSpace->loadMeshFromFile(meshName,verbose);
 
     int nFaces = meshSpace->surface.number_of_faces();
     printf("%i\n",meshSpace->surface.number_of_vertices());
-
     int randomFace = noise.getInt(0,nFaces-1);
     faceDescriptor fdTest(randomFace);
     double3 bary= noise.getRandomBarycentricSet();
@@ -68,11 +71,11 @@ profiler p2("shift");
 
 vector<meshPosition> pos2;
 vector<pmpFaceLocation> faceTargets;
-for(int ii = 0; ii < 50; ++ii)
+for(int ii = 0; ii < N; ++ii)
     {
     smspBarycentricCoordinates  target;
-    target[0]=noise.getRealUniform(-2.5,2.5);
-    target[1]=noise.getRealUniform(-2.5,2.5);
+    target[0]=noise.getRealUniform(-4,4);
+    target[1]=noise.getRealUniform(-4,4);
     target[2]=1-target[0]-target[1];
     pmpFaceLocation targetFL(fdTest, target);
 
@@ -108,7 +111,6 @@ p1.print();
 p2.print();
 cout <<endl;
 vector<faceLocation> faceTargetsForSubmesh;
-double maxDist = .8;//just a random scale for testing the submesher
 vector<meshPosition> mpTargetsForSubmesh;
 for(int ii = 0; ii < distances.size();++ii)
     {
@@ -150,6 +152,52 @@ double jj = 0;
 for (int ii = 0; ii < distances.size(); ++ii)
     jj += distances[ii] - distancesSubmesh[ii];
 printf("total difference in computed distances between full and submesh routines: %f\n", jj);
+}
+if(programBranch ==1)
+{
+    shared_ptr<triangulatedMeshSpace> meshSpace=make_shared<triangulatedMeshSpace>();
+    meshSpace->loadMeshFromFile(meshName,verbose);
+    meshSpace->useSubmeshingRoutines(true,maxDist,dangerous);
+    shared_ptr<triangulatedMeshSpace> meshSpace2=make_shared<triangulatedMeshSpace>();
+    meshSpace2->loadMeshFromFile(meshName,verbose);
+    meshSpace2->useSubmeshingRoutines(false);
+
+    shared_ptr<simpleModel> configuration1=make_shared<simpleModel>(N);
+    shared_ptr<simpleModel> configuration2=make_shared<simpleModel>(N);
+    configuration1->setVerbose(verbose);
+    configuration1->setSpace(meshSpace);
+    configuration2->setVerbose(verbose);
+    configuration2->setSpace(meshSpace);
+
+    //set up the cellListNeighborStructure, which needs to know how large the mesh is
+    shared_ptr<cellListNeighborStructure> cellList = make_shared<cellListNeighborStructure>(meshSpace->minVertexPosition,meshSpace->maxVertexPosition,maxDist);
+    configuration1->setNeighborStructure(cellList);
+    noiseSource noise1(reproducible);
+    noiseSource noise2(reproducible);
+    configuration1->setRandomParticlePositions(noise1);
+    configuration2->setRandomParticlePositions(noise2);
+    shared_ptr<harmonicRepulsion> pairwiseForce1 = make_shared<harmonicRepulsion>(1.0,maxDist);//stiffness and sigma. this is a monodisperse setting
+    shared_ptr<harmonicRepulsion> pairwiseForce2 = make_shared<harmonicRepulsion>(1.0,maxDist);//stiffness and sigma. this is a monodisperse setting
+    pairwiseForce1->setModel(configuration1);
+    pairwiseForce2->setModel(configuration2);
+
+    pairwiseForce1->computeForces(configuration1->forces);
+    pairwiseForce2->computeForces(configuration2->forces);
+
+    for(int ii = 0; ii < N; ++ii)
+        {
+        int n1 = 0;
+        int n2 = 0;
+        for(int jj = 0; jj < configuration1->neighborDistances[ii].size(); ++jj)
+            if(configuration1->neighborDistances[ii][jj] < maxDist) n1 +=1;
+        for(int jj = 0; jj < configuration2->neighborDistances[ii].size(); ++jj)
+            if(configuration2->neighborDistances[ii][jj] < maxDist) n2 +=1;
+        if(n1!=n2)
+            {
+            printf("i %i\t n1 %i n2 %i\n",ii,n1,n2);
+            }
+        }
+}
 /*
 //spot test of edge intersection detection
 for(int ii = 0; ii < 10; ++ii)
