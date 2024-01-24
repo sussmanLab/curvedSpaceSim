@@ -106,20 +106,8 @@ int main(int argc, char*argv[])
     configuration->setVerbose(verbose);
     configuration->setSpace(meshSpace);
 
-    //testing cellListNeighborStructure in euclidean, non-periodic spaces...make a cell list with the following minimum and maximum dimensions, and unit grid size
-    double minMaxDim = pow((double)N,(1./3.));
-    std::vector<double> minPos(3,-minMaxDim);
-    std::vector<double> maxPos(3,minMaxDim);
-    if(programBranch >= 0)
-        {
-        minPos[0] = meshSpace->minVertexPosition.x;
-        minPos[1] = meshSpace->minVertexPosition.y;
-        minPos[2] = meshSpace->minVertexPosition.z;
-        maxPos[0] = meshSpace->maxVertexPosition.x;
-        maxPos[1] = meshSpace->maxVertexPosition.y;
-        maxPos[2] = meshSpace->maxVertexPosition.z;
-        };
-    shared_ptr<cellListNeighborStructure> cellList = make_shared<cellListNeighborStructure>(minPos,maxPos,maximumInteractionRange);
+    //set up the cellListNeighborStructure, which needs to know how large the mesh is
+    shared_ptr<cellListNeighborStructure> cellList = make_shared<cellListNeighborStructure>(meshSpace->minVertexPosition,meshSpace->maxVertexPosition,maximumInteractionRange);
     if(programBranch >= 1)
         configuration->setNeighborStructure(cellList);
 
@@ -169,16 +157,20 @@ int main(int argc, char*argv[])
         if(ii%saveFrequency == saveFrequency-1)
             {
             getFlatVectorOfPositions(configuration,posToSave);
-            vvdat.writeState(posToSave,dt*ii);
+            if(myRank ==0)
+                vvdat.writeState(posToSave,dt*ii);
             if(programBranch <2)
                 {
-                double fNorm,fMax;
                 fNorm = energyMinimizer->getForceNorm();
                 fMax = energyMinimizer->getMaxForce();
-                printf("step %i fN %f fM %f\n",ii,fNorm,fMax);
+                if(myRank ==0)
+                    printf("step %i fN %f fM %f\n",ii,fNorm,fMax);
                 }
             else
-                printf("step %i \n",ii);
+                {
+                if(myRank ==0)
+                    printf("step %i \n",ii);
+                }
             }
         };
 

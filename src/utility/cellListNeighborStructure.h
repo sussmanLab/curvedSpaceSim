@@ -10,6 +10,8 @@ class cellListNeighborStructure : public baseNeighborStructure
     {
     public:
         cellListNeighborStructure(){};
+        //for convenience, construct via vectors or double3s to set the domain size
+        cellListNeighborStructure(double3 minPos, double3 maxPos, double gridSize);
         cellListNeighborStructure(std::vector<double> &minPos, std::vector<double> &maxPos, double gridSize);
 
         virtual void setInteractionRange(double range);

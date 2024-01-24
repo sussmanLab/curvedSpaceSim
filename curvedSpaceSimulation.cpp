@@ -75,19 +75,7 @@ int main(int argc, char*argv[])
     configuration->setSpace(meshSpace);
 
     //set up the cellListNeighborStructure, which needs to know how large the mesh is
-    double minMaxDim = pow((double)N,(1./3.));
-    std::vector<double> minPos(3,-minMaxDim);
-    std::vector<double> maxPos(3,minMaxDim);
-    if(programBranch >= 0)
-        {
-        minPos[0] = meshSpace->minVertexPosition.x;
-        minPos[1] = meshSpace->minVertexPosition.y;
-        minPos[2] = meshSpace->minVertexPosition.z;
-        maxPos[0] = meshSpace->maxVertexPosition.x;
-        maxPos[1] = meshSpace->maxVertexPosition.y;
-        maxPos[2] = meshSpace->maxVertexPosition.z;
-        };
-    shared_ptr<cellListNeighborStructure> cellList = make_shared<cellListNeighborStructure>(minPos,maxPos,maximumInteractionRange);
+    shared_ptr<cellListNeighborStructure> cellList = make_shared<cellListNeighborStructure>(meshSpace->minVertexPosition,meshSpace->maxVertexPosition,maximumInteractionRange);
     if(programBranch >= 1)
         configuration->setNeighborStructure(cellList);
 

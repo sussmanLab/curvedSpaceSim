@@ -1,5 +1,18 @@
 #include "cellListNeighborStructure.h"
 #include "std_include.h"
+cellListNeighborStructure::cellListNeighborStructure(double3 minPos, double3 maxPos, double gridSize)
+    {
+    std::vector<double> minimumPos(3);
+    std::vector<double> maximumPos(3);
+    minimumPos[0] = minPos.x;
+    minimumPos[1] = minPos.y;
+    minimumPos[2] = minPos.z;
+    maximumPos[0] = maxPos.x;
+    maximumPos[1] = maxPos.y;
+    maximumPos[2] = maxPos.z;
+    cellList.setDomainAndGridSize(minimumPos,maximumPos,gridSize);
+    };
+
 cellListNeighborStructure::cellListNeighborStructure(std::vector<double> &minPos, std::vector<double> &maxPos, double gridSize)
     {
     cellList.setDomainAndGridSize(minPos,maxPos,gridSize);
