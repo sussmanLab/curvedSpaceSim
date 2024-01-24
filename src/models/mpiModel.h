@@ -28,8 +28,10 @@ class mpiModel : public simpleModel
             determineIndexBounds();
             };
 
-        //!have rank 0 fill and then broadcast the globalPositions vector
+        //!have (by default) rank 0 fill and then broadcast the globalPositions vector
         void broadcastParticlePositions(vector<meshPosition> &p, int broadcastRoot = 0);
+        //!have (by default) rank 0 fill and then broadcast the globalVelocities vector... mostly useful for setting initial conditions
+        void broadcastParticleVelocities(vector<vector3> &v, int broadcastRoot = 0);
 
         virtual void processSendingBuffer(int directionType = -1); 
         virtual void processReceivingBuffer(int directionType = -1);  
@@ -62,6 +64,7 @@ class mpiModel : public simpleModel
         //!Use nTotal, localRank, and totalRanks to set min/maxIdx
         virtual void determineIndexBounds();
 
+        vector<vector3> globalVelocities;
     };
 typedef shared_ptr<mpiModel> MPIConfigPtr;
 typedef weak_ptr<mpiModel> MPIWeakConfigPtr;

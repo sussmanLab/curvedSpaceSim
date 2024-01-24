@@ -141,7 +141,34 @@ void mpiModel::broadcastParticlePositions(vector<meshPosition> &p, int broadcast
     MPI_Bcast(&intTransferBufferReceive[0],NTotal,MPI_INT,broadcastRoot,MPI_COMM_WORLD);
     MPI_Bcast(&doubleTransferBufferReceive[0],3*NTotal,MPI_DOUBLE,broadcastRoot,MPI_COMM_WORLD);
     processReceivingBuffer();
+    };
 
+void mpiModel::broadcastParticleVelocities(vector<vector3> &v, int broadcastRoot)
+    {
+    if(v.size != NTotal)
+       ERRORERROR("attempting to broadcast a global velocity vector of the wrong size!"); 
+    if(globalVelocities.size() != NTotal)
+        globalVelocities.resize(NTotal);
+    if(localRank == broadcastRoot)
+        {
+        for (int ii = 0; ii < NTotal; ++ii)
+            {
+            doubleTransferBufferReceive[3*ii+0]=v[0];
+            doubleTransferBufferReceive[3*ii+1]=v[1];
+            doubleTransferBufferReceive[3*ii+2]=v[2];
+            };
+        };
+    //broadcast from root so all buffers are filled with v data
+    MPI_Bcast(&doubleTransferBufferReceive[0],3*NTotal,MPI_DOUBLE,broadcastRoot,MPI_COMM_WORLD);
+    //...and read in the appropriate part. This could be simplified (as right now all ranks get the full vector of velocities in the buffers)
+    for (int ii = 0; ii < N; ++ii)
+        {
+        double vx, vy, vz;
+        vx = doubleTransferBufferReceive[3*(ii+minIdx)+0];
+        vy = doubleTransferBufferReceive[3*(ii+minIdx)+1];
+        vz = doubleTransferBufferReceive[3*(ii+minIdx)+2];
+        velocities[ii] = vector3(vx,vy,vz);
+        }
     };
 
 void mpiModel::fillEuclideanLocations()
