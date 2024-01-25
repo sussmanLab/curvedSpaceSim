@@ -97,9 +97,6 @@ triangleMesh submesher::constructSubmeshFromSourceAndTargets(triangleMesh &mesh,
     faceIndex currentFace;
     std::vector<vertexIndex> faceVertices(3);
     triangle3 faceTriangle;
-//    triangle3 sourceTriangle,faceTriangle;
-//    getVertexIndicesFromFace(mesh,sourceFace,faceVertices);
-//    sourceTriangle= triangle3(mesh.point(faceVertices[0]),mesh.point(faceVertices[1]),mesh.point(faceVertices[2]));
     while(!explorationStack.empty())
         {
         currentFace = explorationStack.top();
@@ -117,10 +114,6 @@ triangleMesh submesher::constructSubmeshFromSourceAndTargets(triangleMesh &mesh,
             if (CGAL::squared_distance(sourcePoint,mesh.point(faceVertices[0])) > squaredDistanceThreshold &&
                 CGAL::squared_distance(sourcePoint,mesh.point(faceVertices[1])) > squaredDistanceThreshold &&
                 CGAL::squared_distance(sourcePoint,mesh.point(faceVertices[2])) > squaredDistanceThreshold)
-            /*
-            faceTriangle= triangle3(mesh.point(faceVertices[0]),mesh.point(faceVertices[1]),mesh.point(faceVertices[2]));
-            if (CGAL::squared_distance(sourceTriangle,faceTriangle) > squaredDistanceThreshold)
-            */
                 {
                 continue;
                 };
@@ -140,38 +133,6 @@ triangleMesh submesher::constructSubmeshFromSourceAndTargets(triangleMesh &mesh,
     */
     for(faceIndex remainingGoalFaces : goalFaces)
         visitedFaces.insert(remainingGoalFaces);
-
-    /*
-    TODO: another edge case to handle is when our visited faces no longer form a connected component (i.e. if we have submeshed two
-    disconnected sides of a flat pancake). In this case the large connected component with the source face containts all of the
-    targets within the right geodesic distance, and the other connected components(s) are unreachable. Handle that with some restructuring
-    */
-
-    /*//debugging
-    if(!goalFaces.empty())
-        {
-        printf("number of goal faces left: %i\n",goalFaces.size());
-        triangleMesh submesh = constructSubmeshFromFaceSet(mesh,visitedFaces,vertexMap,faceMap);
-        printf("vertices={");
-        for(vertexIndex v : submesh.vertices())
-            {
-                printPoint(submesh.point(v));printf(",");
-            }
-        printf("};\n");
-        printf("targets={");
-        for(int ii = 0; ii < targets.size(); ++ii)
-            {
-                printPoint(PMP::construct_point(targets[ii],mesh));printf(",");
-            }
-        printf("};\n");
-
-        printf("goal faces:\n");
-        for (faceLocation target: targets)
-            printf("%i\t",target.first);
-        printf("\n sourceface: %i \n",sourceFace);
-        ERRORERROR("exploration stack finished traversal without finding all goal faces. Error");
-        }
-        */
 
     return constructSubmeshFromFaceSet(mesh,visitedFaces,vertexMap,faceMap);
     };

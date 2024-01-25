@@ -51,7 +51,7 @@ double  cellListNeighborStructure::constructCandidateNeighborList(meshPosition &
     std::vector<int> cellsToSearch;
     cellList.getCellNeighbors(primaryCellIndex, cellsToSearch);
 
-    double maximumDistance = 0;
+    double maximumSquaredDistance = 0;
     int cellNumber = cellsToSearch.size();
     for (int cc = 0; cc < cellNumber; ++cc)
         {
@@ -68,11 +68,11 @@ double  cellListNeighborStructure::constructCandidateNeighborList(meshPosition &
                     {
                     candidateParticles.push_back(particles[idx]);
                     candidateNeighborIndices.push_back(indices[idx]);
-                    if(dist2 > maximumDistance)
-                        maximumDistance = dist2;
+                    if(dist2 > maximumSquaredDistance)
+                        maximumSquaredDistance = dist2;
                     }
                 }
             };
         };
-    return maximumDistance;
+    return sqrt(maximumSquaredDistance);
     };

@@ -47,6 +47,7 @@ int main(int argc, char*argv[])
     ValueArg<double> temperatureArg("t","T","temperature to set",false,.2,"double",cmd);
 
     SwitchArg reproducibleSwitch("r","reproducible","reproducible random number generation", cmd, true);
+    SwitchArg dangerousSwitch("d","dangerousMeshes","meshes where submeshes are dangerous", cmd, false);
     SwitchArg verboseSwitch("v","verbose","output more things to screen ", cmd, false);
 
     //parse the arguments
@@ -62,7 +63,7 @@ int main(int argc, char*argv[])
     double temperature = temperatureArg.getValue();
     bool verbose= verboseSwitch.getValue();
     bool reproducible = reproducibleSwitch.getValue();
-    bool dangerous = false; //not used right now
+    bool dangerous = dangerousSwitch.getValue(); //not used right now
 
     shared_ptr<triangulatedMeshSpace> meshSpace=make_shared<triangulatedMeshSpace>();
     meshSpace->loadMeshFromFile(meshName,verbose);

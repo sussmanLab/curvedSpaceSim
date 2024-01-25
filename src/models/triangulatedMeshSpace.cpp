@@ -30,20 +30,6 @@ void triangulatedMeshSpace::loadMeshFromFile(std::string filename, bool _verbose
         {
         printf("input mesh has %i faces and %i vertices\n",nFaces,nVertices);
         };
-    /*
-    double maxD = 0;
-    for(halfedgeIndex hi : surface.halfedges())
-        {
-        triangleMesh::Edge_index e(hi);
-        vertexIndex v0 = surface.vertex(e,0);
-        vertexIndex v1 = surface.vertex(e,1);
-        point3 p0 = surface.point(v0);
-        point3 p1 = surface.point(v1);
-        double dist = CGAL::squared_distance(p0,p1);
-        if(dist>maxD) maxD = dist;
-        };
-    printf("longest edge in mesh = %f\n",sqrt(maxD));
-    */
     //set domain in which surface lives
     minVertexPosition.x = 0;minVertexPosition.y = 0;minVertexPosition.z = 0;
     maxVertexPosition.x = 0;maxVertexPosition.y = 0;maxVertexPosition.z = 0;
@@ -152,12 +138,9 @@ void triangulatedMeshSpace::distanceWithSubmeshing(meshPosition &p1, std::vector
     std::unordered_map<faceIndex,int> faceMap;
     std::unordered_map<vertexIndex,int> vertexMap;
     double currentDistanceThreshold  = maximumDistance;
-    //In principle, we should be able to switch this to 1 (and, hence, simplify to just currentDistanceThreshold = distanceThreshold), but test cases are missing interacting pairs...for now, we safely leave this at 0
-    double weight = 0.;
-    if(dangerousSubmeshing)
-        weight = 1.;
     if(distanceThreshold<maximumDistance)
-        currentDistanceThreshold = (1-weight)*maximumDistance+weight*distanceThreshold;
+        currentDistanceThreshold = distanceThreshold;
+
     triangleMesh submesh = submeshAssistant.constructSubmeshFromSourceAndTargets(surface, sourcePoint,faceTargetsForSubmesh,currentDistanceThreshold,vertexMap,faceMap);
 
     int nTargets = p2.size();
@@ -185,10 +168,21 @@ void triangulatedMeshSpace::distanceWithSubmeshing(meshPosition &p1, std::vector
         //if the submesh has multiple connected components, the distance will be returned as negative
         if(distances[ii] <0)
             {
-//            printf("disconnected submesh %f %f \n",maximumDistance,distanceThreshold);//for debugging more aggresive submeshing
             distances[ii] = 2.0*maximumDistance;
             startPathTangent[ii] = {0,0,1};
             endPathTangent[ii] = {0,0,1};
+            /*
+            printf("disconnected submesh %f %f \n",maximumDistance,distanceThreshold);//for debugging more aggresive submeshing
+            printf("vertices={");
+            for(vertexIndex v : submesh.vertices())
+                {
+                    printPoint(submesh.point(v));printf(",");
+                }
+            printf("};\n");
+            printf("target={");
+            printPoint(PMP::construct_point(faceTargetsForSubmesh[ii],submesh)); printf("};\n");
+            printf("source={"); printPoint(PMP::construct_point(sourcePoint,submesh)); printf("};\n");
+            */
             }
         };
     };

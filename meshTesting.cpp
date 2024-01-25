@@ -51,6 +51,54 @@ int main(int argc, char*argv[])
     noiseSource noise(reproducible);
 
 
+if(programBranch ==1)
+{
+    //meshSpace might use dangerous submeshing, meshSpace2 won't
+    shared_ptr<triangulatedMeshSpace> meshSpace=make_shared<triangulatedMeshSpace>();
+    meshSpace->loadMeshFromFile(meshName,verbose);
+    meshSpace->useSubmeshingRoutines(true,maxDist,dangerous);
+    shared_ptr<triangulatedMeshSpace> meshSpace2=make_shared<triangulatedMeshSpace>();
+    meshSpace2->loadMeshFromFile(meshName,verbose);
+    meshSpace2->useSubmeshingRoutines(true,maxDist,false);
+
+    shared_ptr<simpleModel> configuration1=make_shared<simpleModel>(N);
+    shared_ptr<simpleModel> configuration2=make_shared<simpleModel>(N);
+    configuration1->setVerbose(verbose);
+    configuration1->setSpace(meshSpace);
+    configuration2->setVerbose(verbose);
+    configuration2->setSpace(meshSpace2);
+
+    //set up the cellListNeighborStructure, which needs to know how large the mesh is
+    shared_ptr<cellListNeighborStructure> cellList = make_shared<cellListNeighborStructure>(meshSpace->minVertexPosition,meshSpace->maxVertexPosition,maxDist);
+    shared_ptr<cellListNeighborStructure> cellList2 = make_shared<cellListNeighborStructure>(meshSpace2->minVertexPosition,meshSpace2->maxVertexPosition,maxDist);
+    configuration1->setNeighborStructure(cellList);
+    configuration2->setNeighborStructure(cellList2);
+    noiseSource noise1(reproducible);
+    noiseSource noise2(reproducible);
+    configuration1->setRandomParticlePositions(noise1);
+    configuration2->setRandomParticlePositions(noise2);
+    shared_ptr<harmonicRepulsion> pairwiseForce1 = make_shared<harmonicRepulsion>(1.0,maxDist);//stiffness and sigma. this is a monodisperse setting
+    shared_ptr<harmonicRepulsion> pairwiseForce2 = make_shared<harmonicRepulsion>(1.0,maxDist);//stiffness and sigma. this is a monodisperse setting
+    pairwiseForce1->setModel(configuration1);
+    pairwiseForce2->setModel(configuration2);
+
+    pairwiseForce1->computeForces(configuration1->forces);
+    pairwiseForce2->computeForces(configuration2->forces);
+
+    for(int ii = 0; ii < N; ++ii)
+        {
+        int n1 = 0;
+        int n2 = 0;
+        for(int jj = 0; jj < configuration1->neighborDistances[ii].size(); ++jj)
+            if(configuration1->neighborDistances[ii][jj] < maxDist) n1 +=1;
+        for(int jj = 0; jj < configuration2->neighborDistances[ii].size(); ++jj)
+            if(configuration2->neighborDistances[ii][jj] < maxDist) n2 +=1;
+        if(n1!=n2)
+            {
+            printf("i %i\t n1 %i n2 %i\n",ii,n1,n2);
+            }
+        }
+}
 
 if(programBranch ==0)
 {
@@ -152,52 +200,6 @@ double jj = 0;
 for (int ii = 0; ii < distances.size(); ++ii)
     jj += distances[ii] - distancesSubmesh[ii];
 printf("total difference in computed distances between full and submesh routines: %f\n", jj);
-}
-if(programBranch ==1)
-{
-    //meshSpace might use dangerous submeshing, meshSpace2 won't
-    shared_ptr<triangulatedMeshSpace> meshSpace=make_shared<triangulatedMeshSpace>();
-    meshSpace->loadMeshFromFile(meshName,verbose);
-    meshSpace->useSubmeshingRoutines(true,maxDist,dangerous);
-    shared_ptr<triangulatedMeshSpace> meshSpace2=make_shared<triangulatedMeshSpace>();
-    meshSpace2->loadMeshFromFile(meshName,verbose);
-    meshSpace2->useSubmeshingRoutines(true,maxDist,false);
-
-    shared_ptr<simpleModel> configuration1=make_shared<simpleModel>(N);
-    shared_ptr<simpleModel> configuration2=make_shared<simpleModel>(N);
-    configuration1->setVerbose(verbose);
-    configuration1->setSpace(meshSpace);
-    configuration2->setVerbose(verbose);
-    configuration2->setSpace(meshSpace2);
-
-    //set up the cellListNeighborStructure, which needs to know how large the mesh is
-    shared_ptr<cellListNeighborStructure> cellList = make_shared<cellListNeighborStructure>(meshSpace->minVertexPosition,meshSpace->maxVertexPosition,maxDist);
-    configuration1->setNeighborStructure(cellList);
-    noiseSource noise1(reproducible);
-    noiseSource noise2(reproducible);
-    configuration1->setRandomParticlePositions(noise1);
-    configuration2->setRandomParticlePositions(noise2);
-    shared_ptr<harmonicRepulsion> pairwiseForce1 = make_shared<harmonicRepulsion>(1.0,maxDist);//stiffness and sigma. this is a monodisperse setting
-    shared_ptr<harmonicRepulsion> pairwiseForce2 = make_shared<harmonicRepulsion>(1.0,maxDist);//stiffness and sigma. this is a monodisperse setting
-    pairwiseForce1->setModel(configuration1);
-    pairwiseForce2->setModel(configuration2);
-
-    pairwiseForce1->computeForces(configuration1->forces);
-    pairwiseForce2->computeForces(configuration2->forces);
-
-    for(int ii = 0; ii < N; ++ii)
-        {
-        int n1 = 0;
-        int n2 = 0;
-        for(int jj = 0; jj < configuration1->neighborDistances[ii].size(); ++jj)
-            if(configuration1->neighborDistances[ii][jj] < maxDist) n1 +=1;
-        for(int jj = 0; jj < configuration2->neighborDistances[ii].size(); ++jj)
-            if(configuration2->neighborDistances[ii][jj] < maxDist) n2 +=1;
-        if(n1!=n2)
-            {
-            printf("i %i\t n1 %i n2 %i\n",ii,n1,n2);
-            }
-        }
 }
 /*
 //spot test of edge intersection detection
