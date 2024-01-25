@@ -4,8 +4,6 @@
 
 * submesher: switch to breadth-first search with early stopping (optional, not obviously better)
 
-* submesher: check aggresive submeshing routines for potential improvements
-
 ### version 0.9
 
 * basic interface between MD-like framework and CGAL's Xin and Wang single-source-all-points geodesic algorithm implemented
