@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.11.0)
+cmake_minimum_required(VERSION 3.14.0)
 
 project(curvedSpaceSimulation LANGUAGES CXX)
 
@@ -6,18 +6,23 @@ project(curvedSpaceSimulation LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 
 #Release by default
-set(CMAKE_BUILD_TYPE "Release")
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug Release" FORCE)
+endif()
+message(STATUS "cmake build type: ${CMAKE_BUILD_TYPE}")
 #set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 #set(CMAKE_VERBOSE_MAKEFILE on)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_MATH_DISABLE_FLOAT128 -fopenmp -frounding-math -Wall -Wshadow -Wno-unused-function -Wno-sign-compare")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_MATH_DISABLE_FLOAT128 -fopenmp -frounding-math -Wall -Wno-unused-function -Wno-sign-compare") #-Wno-shadow
 
 if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
     add_definitions(-DDEBUGFLAGUP)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g")
 else()
     #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -pg") #for gprof profiling
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -ffast-math -march=native")
+    SET(DISABLED_WARNINGS " -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-deprecated-declarations -Wno-missing-braces")
+    SET(DISABLED_WARNINGS "${DISABLED_WARNINGS} -Wno-maybe-uninitialized -Wno-format-zero-length -Wno-unused-but-set-parameter -Wno-unused-but-set-variable")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -ffast-math -march=native ${DISABLED_WARNINGS}")
     add_definitions(-DNDEBUG)
 endif()
 message("cxx flags = " "${CMAKE_CXX_FLAGS}")
@@ -36,7 +41,13 @@ include_directories(
             ${CMAKE_SOURCE_DIR}/src/analysis
             ${CMAKE_SOURCE_DIR}/src/databases
             ${MPI_INCLUDE_PATH}
+            ${CMAKE_SOURCE_DIR}/deps/geometry-central/include/geometrycentral
+            ${CMAKE_SOURCE_DIR}/deps/polyscope/include/polyscope
    )
+
+# == Deps
+add_subdirectory(deps/geometry-central)
+add_subdirectory(deps/polyscope)
 
 add_subdirectory(src)
 
@@ -64,6 +75,8 @@ foreach(ARG
         multirankSimulation
         )
 add_executable("${ARG}.out" "${ARG}.cpp" )
+target_include_directories("${ARG}.out" PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/deps/polyscope/deps/args")
+
 target_link_libraries("${ARG}.out"
     ${myLibs}
     netcdf
@@ -71,5 +84,7 @@ target_link_libraries("${ARG}.out"
     #OpenMP::OpenMP_CXX
     CGAL::CGAL
     ${MPI_LIBRARIES}
+    geometry-central
+    polyscope
     )
 endforeach()

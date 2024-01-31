@@ -1,0 +1,32 @@
+---
+BasedOnStyle: WebKit
+AccessModifierOffset: 0
+AlignAfterOpenBracket: Align
+AlignOperands: 'true'
+AllowAllArgumentsOnNextLine: 'false'
+AllowAllParametersOfDeclarationOnNextLine: 'false'
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: 'false'
+AllowShortLoopsOnASingleLine: 'false'
+BinPackArguments: 'true'
+BinPackParameters: 'true'
+BreakBeforeBraces: Whitesmiths
+BreakConstructorInitializers: BeforeColon
+ColumnLimit: '120'
+Cpp11BracedListStyle: 'true'
+FixNamespaceComments: 'true'
+IndentWidth: '4'
+KeepEmptyLinesAtTheStartOfBlocks: false
+Language: Cpp
+NamespaceIndentation: None
+PointerAlignment: Right
+SpaceAfterCStyleCast: 'false'
+SpaceAfterTemplateKeyword: 'false'
+SpaceBeforeParens: ControlStatements
+SpaceInEmptyParentheses: false
+SpacesInAngles: 'false'
+Standard: Latest
+TabWidth: '4'
+UseTab: Never
+
+...

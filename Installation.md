@@ -2,7 +2,7 @@ This project uses a standard cmake build pattern to compile and run. Once the re
 
 # Requirements
 
-## CMAKE 3.11 minimum
+## CMAKE 3.14 minimum
 
 ## BOOST 1.66 minimum
 
