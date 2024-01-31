@@ -30,6 +30,7 @@ message("cxx flags = " "${CMAKE_CXX_FLAGS}")
 find_package(CGAL REQUIRED)
 find_package(Boost REQUIRED)
 find_package(MPI REQUIRED)
+find_package(Eigen3)
 include_directories(
             ${CMAKE_SOURCE_DIR}/inc
             ${CMAKE_SOURCE_DIR}/src
@@ -41,8 +42,9 @@ include_directories(
             ${CMAKE_SOURCE_DIR}/src/analysis
             ${CMAKE_SOURCE_DIR}/src/databases
             ${MPI_INCLUDE_PATH}
-            ${CMAKE_SOURCE_DIR}/deps/geometry-central/include/geometrycentral
-            ${CMAKE_SOURCE_DIR}/deps/polyscope/include/polyscope
+            ${CMAKE_SOURCE_DIR}/deps/geometry-central/include
+            ${CMAKE_SOURCE_DIR}/deps/polyscope/include
+            /usr/local/include/eigen3
    )
 
 # == Deps

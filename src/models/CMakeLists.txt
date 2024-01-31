@@ -9,4 +9,5 @@ add_library(model
     mpiModel.cpp
     euclideanSpace.cpp
     triangulatedMeshSpace.cpp
+    geometryCentralMeshSpace.cpp
     )
