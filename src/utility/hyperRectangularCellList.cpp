@@ -16,20 +16,22 @@ void hyperRectangularCellList::setGridSize(double _minimumGridSize)
     domainExtent.y = maximumPositions[1] - minimumPositions[1];
     domainExtent.z = maximumPositions[2] - minimumPositions[2];
 
-    cellNumbers.x = floor(domainExtent.x / currentMinimumGridSize);
+    cellNumbers.x = max(1,(int)floor(domainExtent.x / currentMinimumGridSize));
     //if(cellNumbers.x%2==1) cellNumbers.x -=1;
     cellSizes.x = domainExtent.x / cellNumbers.x;
 
-    cellNumbers.y = floor(domainExtent.y / currentMinimumGridSize);
+    cellNumbers.y = max(1,(int)floor(domainExtent.y / currentMinimumGridSize));
     //if(cellNumbers.y%2==1) cellNumbers.y -=1;
     cellSizes.y = domainExtent.y / cellNumbers.y;
 
-    cellNumbers.z = floor(domainExtent.z / currentMinimumGridSize);
+    cellNumbers.z = max(1,(int)floor(domainExtent.z / currentMinimumGridSize));
     //if(cellNumbers.z%2==1) cellNumbers.z -=1;
     cellSizes.z = domainExtent.z / cellNumbers.z;
 
     totalCells = cellNumbers.x*cellNumbers.y*cellNumbers.z;
 
+    if(totalCells ==1)
+        printf("You have chosen a grid size that results in a cell list with only one cell. This will be functional, but slower than not using a grid at all.\n");
     cellListIndexer = Index2D(nMax,totalCells);
     cellIndexer = Index3D(cellNumbers.x,cellNumbers.y,cellNumbers.z);
 
