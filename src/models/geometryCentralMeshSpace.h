@@ -11,6 +11,7 @@
 #include "geometrycentral/surface/halfedge_mesh.h"
 #include "geometrycentral/surface/heat_method_distance.h"
 #include "geometrycentral/surface/surface_centers.h"
+#include "geometrycentral/surface/surface_point.h"
 #include "geometrycentral/surface/vector_heat_method.h"
 
 /*! \file geometryCentralMeshSpace.h"
@@ -37,6 +38,9 @@ class geometryCentralMeshSpace : public baseSpace
         //!Given a source particle and a vector of target points, determine the geodesic distance and store the start and end path tangents along the paths
         virtual void distance(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent, double distanceThreshold= VERYLARGEDOUBLE);
 
+        void surfacePointToEuclideanLocation(geometrycentral::surface::SurfacePoint &p, meshPosition &p1);
+        void surfacePointToEuclideanLocation(geometrycentral::surface::SurfacePoint &p, double3 &p1);
+
         virtual void meshPositionToEuclideanLocation(std::vector<meshPosition> &p1, std::vector<double3> &result);
 
         virtual void meshPositionToEuclideanLocation(std::vector<meshPosition> &p1, std::vector<meshPosition> &result);
@@ -46,6 +50,7 @@ class geometryCentralMeshSpace : public baseSpace
         virtual void randomVectorAtPosition(meshPosition &p, vector3 &v, noiseSource &noise);
 
 
+        void meshPositionToSurfacePoint(meshPosition &p, geometrycentral::surface::SurfacePoint &sp);
         //!given a vector of meshPositions that represent barycentric coordinates, fill a second vector of meshPositions that represent the corresponding R3 positions
         void convertToEuclideanPositions(std::vector<meshPosition> &a, std::vector<meshPosition> &b);
 

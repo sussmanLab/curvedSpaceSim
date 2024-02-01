@@ -4,6 +4,7 @@
 #include "profiler.h"
 #include "noiseSource.h"
 #include "triangulatedMeshSpace.h"
+#include "geometryCentralMeshSpace.h"
 #include "euclideanSpace.h"
 #include "simulation.h"
 #include "gradientDescent.h"
@@ -49,8 +50,10 @@ int main(int argc, char*argv[])
     if(dangerous && programBranch >= 0)
         printf("%i %f %i\n",N,dt,maximumIterations);
     noiseSource noise(reproducible);
+    shared_ptr<geometryCentralMeshSpace> meshSpace=make_shared<geometryCentralMeshSpace>();
+    meshSpace->loadMeshFromFile(meshName,verbose);
 
-
+/*
 if(programBranch ==1)
 {
     //meshSpace might use dangerous submeshing, meshSpace2 won't
@@ -201,6 +204,7 @@ for (int ii = 0; ii < distances.size(); ++ii)
     jj += distances[ii] - distancesSubmesh[ii];
 printf("total difference in computed distances between full and submesh routines: %f\n", jj);
 }
+*/
 /*
 //spot test of edge intersection detection
 for(int ii = 0; ii < 10; ++ii)

@@ -2,6 +2,9 @@
 #include "geometryCentralMeshSpace.h"
 #include <stdexcept>
 
+using namespace geometrycentral;
+using namespace geometrycentral::surface;
+
 void geometryCentralMeshSpace::loadMeshFromFile(std::string filename, bool _verbose)
     {
     verbose = _verbose;
@@ -11,23 +14,15 @@ void geometryCentralMeshSpace::loadMeshFromFile(std::string filename, bool _verb
         {
         printf("loading from file %s\n",filename.c_str());
         }
-    std::tie(mesh, geometry) = geometrycentral::surface::readManifoldSurfaceMesh(filename);
-    /*
-    if(!CGAL::IO::read_polygon_mesh(filename, surface))
-        {
-        if(!CGAL::Polygon_mesh_processing::IO::read_polygon_mesh(filename, surface))
-            {
-            std::cerr << "Invalid input file." << std::endl;
-            throw std::exception();
-            }
-        };
-    if(!CGAL::is_triangle_mesh(surface))
-        {
-        std::cerr << "Non-triangular mesh" << std::endl;
-        throw std::exception();
-        };
-    int nFaces = surface.number_of_faces();
-    int nVertices = surface.number_of_vertices();
+    std::tie(mesh, geometry) = readManifoldSurfaceMesh(filename);
+
+    geometry->requireVertexPositions();
+    geometry->requireVertexIndices();
+    geometry->requireFaceNormals();
+    geometry->requireFaceIndices();
+
+    int nFaces = mesh->nFaces();
+    int nVertices = mesh->nVertices();
     if(verbose)
         {
         printf("input mesh has %i faces and %i vertices\n",nFaces,nVertices);
@@ -35,9 +30,10 @@ void geometryCentralMeshSpace::loadMeshFromFile(std::string filename, bool _verb
     //set domain in which surface lives
     minVertexPosition.x = 0;minVertexPosition.y = 0;minVertexPosition.z = 0;
     maxVertexPosition.x = 0;maxVertexPosition.y = 0;maxVertexPosition.z = 0;
-    for (vertexIndex v : surface.vertices())
+    //for (Vertex v : geometry->vertices())
+    for (int ii = 0; ii < nVertices; ++ii)
         {
-        point3 p = surface.point(v);
+        Vector3 p = geometry->vertexPositions[ii];
         if(p[0] < minVertexPosition.x)
             minVertexPosition.x = p[0];
         if(p[1] < minVertexPosition.y)
@@ -52,33 +48,115 @@ void geometryCentralMeshSpace::loadMeshFromFile(std::string filename, bool _verb
             maxVertexPosition.z = p[2];
         };
     if(verbose)
-        printf("mesh spans (%f,%f,%f) to (%f,%f,%f)\n", minVertexPosition.x,minVertexPosition.y,minVertexPosition.z, maxVertexPosition.x,maxVertexPosition.y,maxVertexPosition.z);
-
-    globalSMSP = make_shared<surfaceMeshShortestPath>(surface);
-    globalSMSP->build_aabb_tree(globalTree);
-    */
+        printf("mesh spans (%f,%f,%f) to (%f,%f,%f)\n", minVertexPosition.x,
+                        minVertexPosition.y,minVertexPosition.z, maxVertexPosition.x,
+                        maxVertexPosition.y,maxVertexPosition.z);
     };
+
+void geometryCentralMeshSpace::surfacePointToEuclideanLocation(SurfacePoint &p, meshPosition &p1)
+    {
+    Face f = p.face;
+    Vector3 baryCoords = p.faceCoords;
+    Vector3 ans{0.,0.,0.};
+    int ii = 0;
+    Halfedge he = f.halfedge();
+    Vector3 pA = geometry->vertexPositions[he.vertex()];
+    he = he.next();
+    Vector3 pB = geometry->vertexPositions[he.vertex()];
+    he = he.next();
+    Vector3 pC = geometry->vertexPositions[he.vertex()];
+    ans = baryCoords[0]*pA+baryCoords[1]*pB+baryCoords[2]*pC;
+    p1.x = point3(ans[0], ans[1], ans[2]);
+    p1.faceIndex = f.getIndex();
+    };
+
+void geometryCentralMeshSpace::surfacePointToEuclideanLocation(SurfacePoint &p, double3 &p1)
+    {
+    Face f = p.face;
+    Vector3 baryCoords = p.faceCoords;
+    Vector3 ans{0.,0.,0.};
+    int ii = 0;
+    Halfedge he = f.halfedge();
+    Vector3 pA = geometry->vertexPositions[he.vertex()];
+    he = he.next();
+    Vector3 pB = geometry->vertexPositions[he.vertex()];
+    he = he.next();
+    Vector3 pC = geometry->vertexPositions[he.vertex()];
+    ans = baryCoords[0]*pA+baryCoords[1]*pB+baryCoords[2]*pC;
+    p1.x = ans[0];
+    p1.y = ans[1];
+    p1.z = ans[2];
+    };
+
+void geometryCentralMeshSpace::meshPositionToSurfacePoint(meshPosition &p, geometrycentral::surface::SurfacePoint &sp)
+    {
+    Vector3 baryCoords{p.x[0],p.x[1],p.x[2] };
+    Face f = mesh->face(p.faceIndex);
+    sp = SurfacePoint(f,baryCoords);
+    };
+
 
 void geometryCentralMeshSpace::meshPositionToEuclideanLocation(std::vector<meshPosition> &p1, std::vector<meshPosition> &result)
     {
-    }
+    if(result.size()!=p1.size())
+        result.resize(p1.size());
+    SurfacePoint sp;
+    for(int ii = 0; ii < p1.size();++ii)
+        {
+        meshPositionToSurfacePoint(p1[ii],sp);
+        surfacePointToEuclideanLocation(sp,result[ii]);
+        };
+    };
 
 void geometryCentralMeshSpace::meshPositionToEuclideanLocation(std::vector<meshPosition> &p1, std::vector<double3> &result)
     {
-    }
+    if(result.size()!=p1.size())
+        result.resize(p1.size());
+    SurfacePoint sp;
+    for(int ii = 0; ii < p1.size();++ii)
+        {
+        meshPositionToSurfacePoint(p1[ii],sp);
+        surfacePointToEuclideanLocation(sp,result[ii]);
+        };
+    };
+
+void geometryCentralMeshSpace::convertToEuclideanPositions(std::vector<meshPosition> &a, std::vector<meshPosition> &b)
+    {
+    meshPositionToEuclideanLocation(a,b);
+    };
 
 void geometryCentralMeshSpace::randomPosition(meshPosition &p, noiseSource &noise)
     {
+    double3 baryPoint;
+    baryPoint.x=noise.getRealUniform();
+    baryPoint.y=noise.getRealUniform(0,1-baryPoint.x);
+    baryPoint.z=1-baryPoint.x-baryPoint.y;
+    p.x = point3(baryPoint.x,baryPoint.y,baryPoint.z);
+    p.faceIndex = noise.getInt(0,mesh->nFaces()-1);
     }
 
 void geometryCentralMeshSpace::randomVectorAtPosition(meshPosition &p, vector3 &v, noiseSource &noise)
     {
-    }
+    //compute the normal to the face containing point p
+    SurfacePoint sourceLocation;
+    meshPositionToSurfacePoint(p,sourceLocation);
+    Vector3 sourceNormal = geometry->faceNormals[sourceLocation.face];
+    //construct an orthogonal vector by hand
+    Vector3 orthogonalizer;
+    if(sourceNormal[0] ==0 && sourceNormal[1] ==0 )
+        orthogonalizer = Vector3{sourceNormal[1]-sourceNormal[2], sourceNormal[2]-sourceNormal[0], sourceNormal[0]-sourceNormal[1]};
+    else
+        orthogonalizer = Vector3{sourceNormal[1],-sourceNormal[0],0};
+    //make this orthogonal vector a unit vector
+    orthogonalizer = orthogonalizer.normalize();
+    //grab the second tangent vector (which should already be a unit vector)
+    Vector3 tangent2 = cross(sourceNormal,orthogonalizer);
 
-void geometryCentralMeshSpace::convertToEuclideanPositions(std::vector<meshPosition> &a, std::vector<meshPosition> &b)
-    {
-    }
+    Vector3 result = noise.getRealNormal()*orthogonalizer+noise.getRealNormal()*tangent2;
 
+    //finally, choose a gaussian weight of each of the two orthogonal vectors in the face's tangent
+    v = vector3(result[0],result[1],result[2]);
+    }
 
 /*
 As a reminder: in the routine below, we assume that the point3 member of all of the meshPositions
