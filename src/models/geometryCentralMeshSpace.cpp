@@ -1,6 +1,7 @@
 /*! \file geometryCentralMeshSpace.cpp */
 #include "geometryCentralMeshSpace.h"
 #include "geometrycentral/surface/trace_geodesic.h"
+#include "geometrycentral/surface/vector_heat_method.h"
 #include <stdexcept>
 
 using namespace geometrycentral;
@@ -21,6 +22,8 @@ void geometryCentralMeshSpace::loadMeshFromFile(std::string filename, bool _verb
     geometry->requireVertexIndices();
     geometry->requireFaceNormals();
     geometry->requireFaceIndices();
+
+    vectorHeatSolver = std::make_unique<VectorHeatMethodSolver>(*geometry,1.0); 
 
     int nFaces = mesh->nFaces();
     int nVertices = mesh->nVertices();
@@ -175,6 +178,55 @@ void geometryCentralMeshSpace::distance(meshPosition &p1, std::vector<meshPositi
     distances.resize(nTargets);
     startPathTangent.resize(nTargets);
     endPathTangent.resize(nTargets);
+
+    SurfacePoint sourcePoint;
+    meshPositionToSurfacePoint(p1,sourcePoint);
+    VertexData<Vector2> logMap = vectorHeatSolver->computeLogMap(sourcePoint);
+
+double3 test;
+surfacePointToEuclideanLocation(sourcePoint, test);
+printf("source = {%f,%f,%f};\n",test.x,test.y,test.z);
+
+    Vector2 logMapV;
+    for (int ii =0; ii < nTargets; ++ii)
+        {
+        Vector2 logMapResult{0.,0.};
+        SurfacePoint targetPoint;
+        meshPositionToSurfacePoint(p2[ii],targetPoint);
+surfacePointToEuclideanLocation(targetPoint, test);
+printf("target = {%f,%f,%f};\n",test.x,test.y,test.z);
+        //identify the vertices associated with the target face
+        int internalCoordinate = 0;
+        for (Halfedge he : targetPoint.face.adjacentHalfedges())
+            {
+            //compute value of logmap
+            logMapV = logMap[he.vertex()];
+            //compute the change of basis to bring it back to the face (?)
+            Vector2 rotation = (geometry->halfedgeVectorsInFace[he] / geometry->halfedgeVectorsInVertex[he]).normalize();
+            //accumulate the result
+            logMapResult += targetPoint.faceCoords[internalCoordinate] * rotation * logMapV;
+            internalCoordinate +=1;
+            };
+        distances[ii] = norm(logMapResult);
+        Vector3 basisX = geometry->faceTangentBasis[sourcePoint.face][0];
+        Vector3 basisY = geometry->faceTangentBasis[sourcePoint.face][1];
+        logMapResult = logMapResult/distances[ii];
+        Vector3 tangentAns = logMapResult[0]*basisX+logMapResult[1]*basisY;
+        startPathTangent[ii] = vector3(tangentAns[0],tangentAns[1],tangentAns[2]);
+        //empty data!!!!!
+        endPathTangent[ii] = vector3(0,0,0);
+            /*
+        Halfedge he = targetPoint.face.halfedge();
+        logMapV1 = logMap[he.vertex()];
+        he = he.next();
+        logMapV2 = logMap[he.vertex()];
+        he = he.next();
+        logMapV3 = logMap[he.vertex()];
+            */
+
+printf("distance = %f;\ntangent={%f,%f,%f};\n",distances[ii], tangentAns[0],tangentAns[1],tangentAns[2]);
+
+        }
 
     //https://geometry-central.net/surface/algorithms/vector_heat_method/
     };

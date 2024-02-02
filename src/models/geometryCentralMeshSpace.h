@@ -12,7 +12,6 @@
 #include "geometrycentral/surface/heat_method_distance.h"
 #include "geometrycentral/surface/surface_centers.h"
 #include "geometrycentral/surface/surface_point.h"
-#include "geometrycentral/surface/vector_heat_method.h"
 
 /*! \file geometryCentralMeshSpace.h"
 * \brief defines an interface to geometry-central mesh-based functionality
@@ -62,6 +61,7 @@ class geometryCentralMeshSpace : public baseSpace
         //!GeometryCentral manifold and vertex position data structures
         std::unique_ptr<geometrycentral::surface::ManifoldSurfaceMesh> mesh;
         std::unique_ptr<geometrycentral::surface::VertexPositionGeometry> geometry;
+        std::unique_ptr<geometrycentral::surface::VectorHeatMethodSolver> vectorHeatSolver;
     protected:
         bool verbose = false;
         //data structures associated with submeshing routines
