@@ -1,5 +1,6 @@
 /*! \file geometryCentralMeshSpace.cpp */
 #include "geometryCentralMeshSpace.h"
+#include "geometrycentral/surface/trace_geodesic.h"
 #include <stdexcept>
 
 using namespace geometrycentral;
@@ -95,6 +96,11 @@ void geometryCentralMeshSpace::meshPositionToSurfacePoint(meshPosition &p, geome
     sp = SurfacePoint(f,baryCoords);
     };
 
+void geometryCentralMeshSpace::surfacePointToMeshPosition(geometrycentral::surface::SurfacePoint &sp,meshPosition &p)
+    {
+    p.x = point3(sp.faceCoords[0],sp.faceCoords[1],sp.faceCoords[2]);
+    p.faceIndex = sp.face.getIndex();
+    };
 
 void geometryCentralMeshSpace::meshPositionToEuclideanLocation(std::vector<meshPosition> &p1, std::vector<meshPosition> &result)
     {
@@ -170,6 +176,7 @@ void geometryCentralMeshSpace::distance(meshPosition &p1, std::vector<meshPositi
     startPathTangent.resize(nTargets);
     endPathTangent.resize(nTargets);
 
+    //https://geometry-central.net/surface/algorithms/vector_heat_method/
     };
 
 /*
@@ -179,10 +186,20 @@ coordinates of that point in the corresponding faceIndex (i.e., p1.faceIndex)
 */
 void geometryCentralMeshSpace::displaceParticle(meshPosition &pos, vector3 &displacementVector)
     {
+    SurfacePoint sp;
+    meshPositionToSurfacePoint(pos,sp);
+    Vector3 displacement{displacementVector[0],displacementVector[1],displacementVector[2]};
+    Vector3 basisX = geometry->faceTangentBasis[sp.face][0];
+    Vector3 basisY = geometry->faceTangentBasis[sp.face][1];
+    Vector2 tangentVectorDisplacement{dot(displacement,basisX),dot(displacement,basisY)};
+    SurfacePoint pathEndpoint = traceGeodesic(*geometry, sp, tangentVectorDisplacement).endPoint;
+
+    surfacePointToMeshPosition(pathEndpoint,pos);
     };
 
 //Code copy-pastes a lot of the displace particle routine above...eventually refactor more nicely
 void geometryCentralMeshSpace::transportParticleAndVelocity(meshPosition &pos, vector3 &velocityVector, vector3 &displacementVector)
     {
+    UNWRITTENCODE("position and velocity transport not implemented yet for geometryCentralMesh.");
     };
 

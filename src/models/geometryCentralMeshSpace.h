@@ -51,6 +51,7 @@ class geometryCentralMeshSpace : public baseSpace
 
 
         void meshPositionToSurfacePoint(meshPosition &p, geometrycentral::surface::SurfacePoint &sp);
+        void surfacePointToMeshPosition(geometrycentral::surface::SurfacePoint &sp,meshPosition &p);
         //!given a vector of meshPositions that represent barycentric coordinates, fill a second vector of meshPositions that represent the corresponding R3 positions
         void convertToEuclideanPositions(std::vector<meshPosition> &a, std::vector<meshPosition> &b);
 
