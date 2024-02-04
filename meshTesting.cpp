@@ -53,6 +53,21 @@ int main(int argc, char*argv[])
     shared_ptr<geometryCentralMeshSpace> meshSpace=make_shared<geometryCentralMeshSpace>();
     meshSpace->loadMeshFromFile(meshName,verbose);
 
+    meshPosition p1, p2,p3;
+    meshSpace->randomPosition(p1,noise);
+    meshSpace->randomPosition(p2,noise);
+    p3=p2;
+    vector3 disp;
+    meshSpace->randomVectorAtPosition(p1,disp,noise);
+    disp = 2.0*disp;
+    meshSpace->displaceParticle(p3,disp);
+
+    std::vector<meshPosition> targets; targets.push_back(p2);targets.push_back(p3);
+    std::vector<double> dists;
+    std::vector<vector3> tangents1;
+    std::vector<vector3> tangents2;
+    meshSpace->distance(p1,targets,dists,tangents1,tangents2);
+
 /*
 if(programBranch ==1)
 {

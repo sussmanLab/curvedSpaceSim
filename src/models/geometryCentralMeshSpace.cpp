@@ -22,6 +22,9 @@ void geometryCentralMeshSpace::loadMeshFromFile(std::string filename, bool _verb
     geometry->requireVertexIndices();
     geometry->requireFaceNormals();
     geometry->requireFaceIndices();
+    geometry->requireFaceTangentBasis();
+    geometry->requireHalfedgeVectorsInVertex();
+    geometry->requireHalfedgeVectorsInFace();
 
     vectorHeatSolver = std::make_unique<VectorHeatMethodSolver>(*geometry,1.0); 
 
@@ -197,16 +200,23 @@ surfacePointToEuclideanLocation(targetPoint, test);
 printf("target = {%f,%f,%f};\n",test.x,test.y,test.z);
         //identify the vertices associated with the target face
         int internalCoordinate = 0;
+        double dist = 0;
         for (Halfedge he : targetPoint.face.adjacentHalfedges())
             {
             //compute value of logmap
             logMapV = logMap[he.vertex()];
             //compute the change of basis to bring it back to the face (?)
             Vector2 rotation = (geometry->halfedgeVectorsInFace[he] / geometry->halfedgeVectorsInVertex[he]).normalize();
+printf("rotationVector = {%f,%f};\n",rotation[0],rotation[1]);
             //accumulate the result
             logMapResult += targetPoint.faceCoords[internalCoordinate] * rotation * logMapV;
+            //logMapResult += targetPoint.faceCoords[internalCoordinate] *  logMapV;
+printf("currentLogMap = {%f,%f};\npartialResult  = {%f,%f};\n",
+                    logMapV[0],logMapV[1],(rotation * logMapV)[0],(rotation * logMapV)[1]);
+            dist+= norm((targetPoint.faceCoords[internalCoordinate] * logMapV));
             internalCoordinate +=1;
             };
+printf("weightedNorm=%f;\n",dist);
         distances[ii] = norm(logMapResult);
         Vector3 basisX = geometry->faceTangentBasis[sourcePoint.face][0];
         Vector3 basisY = geometry->faceTangentBasis[sourcePoint.face][1];
