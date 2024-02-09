@@ -85,20 +85,19 @@ void setParticlesAndVelocities()
 
 void runTimesteps()
     {
-    nve->setDeltaT(deltaT);
-//    polyscope::unshow();
+//    nve->setDeltaT(deltaT);
+    polyscope::unshow();
     for (int ii = 1; ii <= timesteps; ++ii)
         {
-printf("%i\n",ii);
         simulator->performTimestep();
         if(ii % stepsPerFrame ==0)
             {
             getPointCloud(configuration,pointCloud);
             psCloud->updatePointPositions(pointCloud);
-//            polyscope::frameTick();
+            polyscope::frameTick();
             }
         }
-//    polyscope::show();
+    polyscope::show();
     };
 
 // A user-defined callback, for creating control panels (etc)
@@ -116,7 +115,6 @@ void myCallback()
         }
     ImGui::InputInt("time steps", &timesteps);         
     ImGui::InputInt("frameUpdate", &stepsPerFrame);         
-    ImGui::InputFloat("delta t", &deltaT);
     if (ImGui::Button("perform timesteps"))
         {
         runTimesteps();
@@ -196,7 +194,9 @@ int main(int argc, char*argv[])
     nve->setModel(configuration);
     simulator->addUpdater(nve,configuration);
 
-    
+    for (int ii = 0; ii < 1; ++ii)
+        simulator->performTimestep();
+
     
     // Initialize polyscope
     polyscope::init();
@@ -214,6 +214,9 @@ int main(int argc, char*argv[])
     polyscope::options::programName = "curvedSpaceSimulations";
     polyscope::options::maxFPS = 30;
     polyscope::view::resetCameraToHomeView();
+
+    getPointCloud(configuration,pointCloud);
+    psCloud = polyscope::registerPointCloud("particle positions", pointCloud);
     polyscope::show();
     return 0;
     };
