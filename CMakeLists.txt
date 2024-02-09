@@ -72,9 +72,9 @@ set(HEADERS
 # list the names of cpp files corresponding to linked executables you'd like...
 foreach(ARG
         meshTesting
-        flatSpaceSimulation
         curvedSpaceSimulation
         multirankSimulation
+        visualization
         )
 add_executable("${ARG}.out" "${ARG}.cpp" )
 target_include_directories("${ARG}.out" PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/deps/polyscope/deps/args")
