@@ -31,12 +31,15 @@ polyscope::SurfaceMesh *psMesh;
 polyscope::PointCloud *psCloud;
 std::vector<glm::vec3> pointCloud;
 
+char buf[256];
 float sliderParameter1 = 1.;
 int particleNumber = 50;
 float deltaT = 0.01;
 float interactionRange;
 int timesteps = 100;
 int stepsPerFrame = 10;
+std::string loadMeshName;
+
 std::unique_ptr<ManifoldSurfaceMesh> mesh;
 std::unique_ptr<VertexPositionGeometry> geometry;
 
@@ -85,7 +88,6 @@ void setParticlesAndVelocities()
 
 void runTimesteps()
     {
-//    nve->setDeltaT(deltaT);
     polyscope::unshow();
     for (int ii = 1; ii <= timesteps; ++ii)
         {
@@ -100,11 +102,35 @@ void runTimesteps()
     polyscope::show();
     };
 
+void loadNewMesh()
+    {
+    loadMeshName=buf;
+    meshSpace=make_shared<triangulatedMeshSpace>();
+    meshSpace->loadMeshFromFile(loadMeshName,true);
+    meshSpace->useSubmeshingRoutines(true,interactionRange,true);
+
+    mesh.reset();
+    geometry.reset();
+    std::tie(mesh, geometry) = readManifoldSurfaceMesh(loadMeshName);
+
+    psMesh = polyscope::registerSurfaceMesh(
+                    "Surface",
+                    geometry->inputVertexPositions, mesh->getFaceVertexList(),
+                    polyscopePermutations(*mesh));
+    polyscope::view::resetCameraToHomeView();
+    setParticlesAndVelocities();
+    };
+
 // A user-defined callback, for creating control panels (etc)
 // Use ImGUI commands to build whatever you want here, see
 // https://github.com/ocornut/imgui/blob/master/imgui.h
 void myCallback()
     {
+    ImGui::InputText("mesh filename", buf, sizeof(buf));         
+    if (ImGui::Button("load new mesh"))
+        {
+        loadNewMesh();
+        }
 
 
     ImGui::InputInt("num points", &particleNumber);         
@@ -152,6 +178,8 @@ int main(int argc, char*argv[])
     int maximumIterations = iterationsArg.getValue();
     int saveFrequency = saveFrequencyArg.getValue();
     string meshName = meshSwitchArg.getValue();
+    loadMeshName=meshName;
+    std::strncpy(buf,loadMeshName.c_str(), sizeof(buf)-1);
     double dt = deltaTArg.getValue();
     double maximumInteractionRange= interactionRangeArg.getValue();
     interactionRange = maximumInteractionRange;
@@ -174,8 +202,7 @@ int main(int argc, char*argv[])
 
     //set up the cellListNeighborStructure, which needs to know how large the mesh is
     cellList = make_shared<cellListNeighborStructure>(meshSpace->minVertexPosition,meshSpace->maxVertexPosition,maximumInteractionRange);
-    if(programBranch >= 1)
-        configuration->setNeighborStructure(cellList);
+    configuration->setNeighborStructure(cellList);
 
     //for testing, just initialize particles randomly in a small space. Similarly, set random velocities in the tangent plane
     noiseSource noise(reproducible);
@@ -206,7 +233,7 @@ int main(int argc, char*argv[])
     std::tie(mesh, geometry) = readManifoldSurfaceMesh(meshName);
 
     psMesh = polyscope::registerSurfaceMesh(
-                    polyscope::guessNiceNameFromPath(meshName),
+                    "Surface",
                     geometry->inputVertexPositions, mesh->getFaceVertexList(),
                     polyscopePermutations(*mesh));
 
