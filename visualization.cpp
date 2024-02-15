@@ -17,6 +17,7 @@
 #include "polyscope/polyscope.h"
 #include "polyscope/surface_mesh.h"
 #include "polyscope/point_cloud.h"
+#include "polyscope/curve_network.h"
 #include "geometrycentral/surface/manifold_surface_mesh.h"
 #include "geometrycentral/surface/meshio.h"
 #include "geometrycentral/surface/vertex_position_geometry.h"
@@ -30,6 +31,7 @@ using namespace geometrycentral::surface;
 polyscope::SurfaceMesh *psMesh;
 polyscope::PointCloud *psCloud;
 std::vector<glm::vec3> pointCloud;
+polyscope::CurveNetwork *psCurve;
 
 char buf[256];
 float sliderParameter1 = 1.;
@@ -38,6 +40,8 @@ float deltaT = 0.01;
 float interactionRange;
 int timesteps = 100;
 int stepsPerFrame = 10;
+int index1 = 1;
+int index2 = 2;
 std::string loadMeshName;
 
 std::unique_ptr<ManifoldSurfaceMesh> mesh;
@@ -84,6 +88,7 @@ void setParticlesAndVelocities()
     getPointCloud(configuration,pointCloud);
     psCloud = polyscope::registerPointCloud("particle positions", pointCloud);
     psCloud->setPointRadius(0.008);
+    psCloud->addVectorQuantity("particle velocities",configuration->velocities);
     };
 
 void runTimesteps()
@@ -96,6 +101,7 @@ void runTimesteps()
             {
             getPointCloud(configuration,pointCloud);
             psCloud->updatePointPositions(pointCloud);
+            psCloud->addVectorQuantity("particle velocities",configuration->velocities);
             polyscope::frameTick();
             }
         }
@@ -120,12 +126,28 @@ void loadNewMesh()
     polyscope::view::resetCameraToHomeView();
     setParticlesAndVelocities();
     };
+void drawGeodesic()
+    {
+    shared_ptr<surfaceMeshShortestPath> smsp = make_shared<surfaceMeshShortestPath>(meshSpace->surface);
+    meshPosition p1 = configuration->positions[index1];
+    smspFaceLocation sourcePoint = meshPositionToFaceLocation(p1);
+    AABB_tree localTree;
+    smsp->build_aabb_tree(localTree);
+    smsp->add_source_point(sourcePoint.first,sourcePoint.second);
+    smsp->build_sequence_tree();
+    meshPosition p2 = configuration->positions[index2];
+    smspFaceLocation targetPoint = meshPositionToFaceLocation(p2);
+    std::vector<point3> pathPoints;
+    shortestPathResult geodesic = smsp->shortest_path_points_to_source_points(targetPoint.first, targetPoint.second,  std::back_inserter(pathPoints));
+    psCurve = polyscope::registerCurveNetworkLine("geodesicPath", pathPoints);
+    };
 
 // A user-defined callback, for creating control panels (etc)
 // Use ImGUI commands to build whatever you want here, see
 // https://github.com/ocornut/imgui/blob/master/imgui.h
 void myCallback()
     {
+    ImGui::PushItemWidth(100);
     ImGui::InputText("mesh filename", buf, sizeof(buf));         
     if (ImGui::Button("load new mesh"))
         {
@@ -134,17 +156,34 @@ void myCallback()
 
 
     ImGui::InputInt("num points", &particleNumber);         
+    ImGui::SameLine();
     ImGui::InputFloat("Temperature", &sliderParameter1);
     if (ImGui::Button("set particle positions and velocities"))
         {
         setParticlesAndVelocities();
         }
+    ImGui::InputInt("particle a", &index1);
+    ImGui::SameLine();
+    ImGui::InputInt("particle b", &index2);
+    if (ImGui::Button("draw geodesic"))
+        {
+        drawGeodesic();
+        }
+    ImGui::SameLine();
+    if (ImGui::Button("hide geodesic"))
+        {
+        polyscope::removeStructure("geodesicPath");
+        }
+
+
     ImGui::InputInt("time steps", &timesteps);         
+    ImGui::SameLine();
     ImGui::InputInt("frameUpdate", &stepsPerFrame);         
     if (ImGui::Button("perform timesteps"))
         {
         runTimesteps();
         }
+    ImGui::PopItemWidth();
     }
 
 using namespace TCLAP;
@@ -193,7 +232,7 @@ int main(int argc, char*argv[])
     meshSpace=make_shared<triangulatedMeshSpace>();
     meshSpace->loadMeshFromFile(meshName,verbose);
     meshSpace->useSubmeshingRoutines(false);
-    if(programBranch >0)
+    if(programBranch >=0)
         meshSpace->useSubmeshingRoutines(true,maximumInteractionRange,dangerous);
 
     configuration=make_shared<simpleModel>(N);
@@ -239,11 +278,11 @@ int main(int argc, char*argv[])
 
     // Give control to the polyscope gui
     polyscope::options::programName = "curvedSpaceSimulations";
-    polyscope::options::maxFPS = 30;
     polyscope::view::resetCameraToHomeView();
 
     getPointCloud(configuration,pointCloud);
     psCloud = polyscope::registerPointCloud("particle positions", pointCloud);
+    psCloud->addVectorQuantity("particle velocities",configuration->velocities);
     polyscope::show();
     return 0;
     };
