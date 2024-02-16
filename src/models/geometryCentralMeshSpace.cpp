@@ -205,13 +205,16 @@ printf("target = {%f,%f,%f};\n",test.x,test.y,test.z);
             {
             //compute value of logmap
             logMapV = logMap[he.vertex()];
+Vector3 pA = geometry->vertexPositions[he.vertex()];
+printf("ic%i = %f;\n",internalCoordinate+1, targetPoint.faceCoords[internalCoordinate]);
+printf("vertexP%i = {%f,%f,%f};\n",internalCoordinate+1,pA[0],pA[1],pA[2]);
             //compute the change of basis to bring it back to the face (?)
             Vector2 rotation = (geometry->halfedgeVectorsInFace[he] / geometry->halfedgeVectorsInVertex[he]).normalize();
-printf("rotationVector = {%f,%f};\n",rotation[0],rotation[1]);
+printf("rotationVector%i = {%f,%f};\n",internalCoordinate+1,rotation[0],rotation[1]);
             //accumulate the result
             logMapResult += targetPoint.faceCoords[internalCoordinate] * rotation * logMapV;
             //logMapResult += targetPoint.faceCoords[internalCoordinate] *  logMapV;
-printf("currentLogMap = {%f,%f};\npartialResult  = {%f,%f};\n",
+printf("currentLogMap%i = {%f,%f};\npartialResult  = {%f,%f};\n",internalCoordinate+1,
                     logMapV[0],logMapV[1],(rotation * logMapV)[0],(rotation * logMapV)[1]);
             dist+= norm((targetPoint.faceCoords[internalCoordinate] * logMapV));
             internalCoordinate +=1;
