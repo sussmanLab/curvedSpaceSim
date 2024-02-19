@@ -43,6 +43,9 @@ int stepsPerFrame = 10;
 int index1 = 1;
 int index2 = 2;
 std::string loadMeshName;
+bool configPopup = false;
+bool dynPopup = false;
+bool visPopup = false;
 
 std::unique_ptr<ManifoldSurfaceMesh> mesh;
 std::unique_ptr<VertexPositionGeometry> geometry;
@@ -51,6 +54,7 @@ shared_ptr<simpleModel> configuration;
 shared_ptr<cellListNeighborStructure> cellList;
 shared_ptr<simulation> simulator;
 shared_ptr<velocityVerletNVE> nve;
+shared_ptr<gradientDescent> energyMinimizer;
 shared_ptr<harmonicRepulsion> pairwiseForce; 
 shared_ptr<triangulatedMeshSpace> meshSpace;
 
@@ -108,6 +112,22 @@ void runTimesteps()
     polyscope::show();
     };
 
+void setNVEUpdater()
+    {
+    simulator->updaters.clear();
+    nve=make_shared<velocityVerletNVE>(deltaT);
+    nve->setModel(configuration);
+    simulator->addUpdater(nve,configuration);
+    };
+
+void setGradientDescent()
+    {
+    simulator->updaters.clear();
+    energyMinimizer=make_shared<gradientDescent>(deltaT);
+    energyMinimizer->setModel(configuration);
+    simulator->addUpdater(energyMinimizer,configuration);
+    };
+
 void loadNewMesh()
     {
     loadMeshName=buf;
@@ -147,43 +167,102 @@ void drawGeodesic()
 // https://github.com/ocornut/imgui/blob/master/imgui.h
 void myCallback()
     {
-    ImGui::PushItemWidth(100);
-    ImGui::InputText("mesh filename", buf, sizeof(buf));         
-    if (ImGui::Button("load new mesh"))
+    if (ImGui::Button("set configuration"))
+        configPopup = true;
+    if(configPopup)
         {
-        loadNewMesh();
+        if (ImGui::Begin("set configuration"))
+            {
+            ImGui::InputText("mesh filename", buf, sizeof(buf));         
+            if (ImGui::Button("load new mesh"))
+                {
+                loadNewMesh();
+                }
+            ImGui::PushItemWidth(100);
+            ImGui::InputInt("num points", &particleNumber);         
+            ImGui::PopItemWidth();
+            ImGui::SameLine();
+            ImGui::PushItemWidth(100);
+            ImGui::InputFloat("Temperature", &sliderParameter1);
+            ImGui::PopItemWidth();
+            if (ImGui::Button("set particle positions and velocities"))
+                {
+                setParticlesAndVelocities();
+                }
+
+            if(ImGui::Button("finished configuring",ImVec2(200, 0)))
+                {
+                configPopup= false;
+                }
+            ImGui::End();
+            }
         }
-
-
-    ImGui::InputInt("num points", &particleNumber);         
     ImGui::SameLine();
-    ImGui::InputFloat("Temperature", &sliderParameter1);
-    if (ImGui::Button("set particle positions and velocities"))
+    if (ImGui::Button("set dynamics"))
+        dynPopup = true;
+    if(dynPopup)
         {
-        setParticlesAndVelocities();
-        }
-    ImGui::InputInt("particle a", &index1);
-    ImGui::SameLine();
-    ImGui::InputInt("particle b", &index2);
-    if (ImGui::Button("draw geodesic"))
-        {
-        drawGeodesic();
-        }
-    ImGui::SameLine();
-    if (ImGui::Button("hide geodesic"))
-        {
-        polyscope::removeStructure("geodesicPath");
-        }
+        if (ImGui::Begin("choose dynamics"))
+            {
+            ImGui::InputFloat("delta t", &deltaT);
+            if (ImGui::Button("set nve particle dynamics"))
+                {
+                setParticlesAndVelocities();
+                setNVEUpdater();
+                }
+            if (ImGui::Button("set gradient descent"))
+                {
+                setGradientDescent();
+                }
 
+            if(ImGui::Button("finished setting dynamics",ImVec2(200, 0)))
+                {
+                dynPopup= false;
+                }
+            ImGui::End();
+            }
+        }
+    ImGui::SameLine();
+    if (ImGui::Button("visualize paths"))
+        visPopup = true;
+    if(visPopup)
+        {
+        if (ImGui::Begin("visualization"))
+            {
+            ImGui::PushItemWidth(100);
+            ImGui::InputInt("particle a", &index1);
+            ImGui::SameLine();
+            ImGui::InputInt("particle b", &index2);
+            ImGui::PopItemWidth();
+            if (ImGui::Button("draw geodesic"))
+                {
+                drawGeodesic();
+                }
+            ImGui::SameLine();
+            if (ImGui::Button("hide geodesic"))
+                {
+                polyscope::removeStructure("geodesicPath");
+                }
 
+            if(ImGui::Button("finished visualization of paths",ImVec2(200, 0)))
+            {
+                visPopup= false;
+                }
+            ImGui::End();
+            }
+        }
+    ImGui::Spacing();    
+
+    ImGui::PushItemWidth(150);
     ImGui::InputInt("time steps", &timesteps);         
     ImGui::SameLine();
     ImGui::InputInt("frameUpdate", &stepsPerFrame);         
+    ImGui::PopItemWidth();
     if (ImGui::Button("perform timesteps"))
         {
         runTimesteps();
         }
-    ImGui::PopItemWidth();
+
     }
 
 using namespace TCLAP;
@@ -197,7 +276,7 @@ int main(int argc, char*argv[])
     //ValueArg<T> variableName("shortflag","longFlag","description",required or not, default value,"value type",CmdLine object to add to
     ValueArg<int> programBranchSwitchArg("z","programBranchSwitch","an integer controlling program branch",false,0,"int",cmd);
     ValueArg<int> particleNumberSwitchArg("n","number","number of particles to simulate",false,20,"int",cmd);
-    ValueArg<int> iterationsArg("i","iterations","number of performTimestep calls to make",false,1000,"int",cmd);
+    ValueArg<int> iterationsArg("i","iterations","number of performTimestep calls to make",false,100,"int",cmd);
     ValueArg<int> saveFrequencyArg("s","saveFrequency","how often a file gets updated",false,100,"int",cmd);
     ValueArg<string> meshSwitchArg("m","meshSwitch","filename of the mesh you want to load",false,"../exampleMeshes/torus_isotropic_remesh.off","string",cmd);
     ValueArg<double> interactionRangeArg("a","interactionRange","range ofthe interaction to set for both potential and cell list",false,1.,"double",cmd);
