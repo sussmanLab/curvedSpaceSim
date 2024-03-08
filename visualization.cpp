@@ -70,6 +70,17 @@ void getPointCloud(shared_ptr<simpleModel> model, vector<glm::vec3> &pos)
         pos[ii] = glm::vec3(p.x,p.y,p.z);
         }
     };
+void setInteractionRange()
+    {
+    pairwiseForce = make_shared<harmonicRepulsion>(1.0,interactionRange);//stiffness and sigma. this is a monodisperse setting
+    pairwiseForce->setModel(configuration);
+
+    cellList = make_shared<cellListNeighborStructure>(meshSpace->minVertexPosition,meshSpace->maxVertexPosition,interactionRange);
+    configuration->setNeighborStructure(cellList);
+    simulator->clearForceComputers();
+    simulator->addForce(pairwiseForce);
+
+    }
 
 void setParticlesAndVelocities()
     {
@@ -144,6 +155,7 @@ void loadNewMesh()
                     geometry->inputVertexPositions, mesh->getFaceVertexList(),
                     polyscopePermutations(*mesh));
     polyscope::view::resetCameraToHomeView();
+    psMesh->setSmoothShade(true);
     setParticlesAndVelocities();
     };
 void drawGeodesic()
@@ -205,6 +217,11 @@ void myCallback()
         if (ImGui::Begin("choose dynamics"))
             {
             ImGui::InputFloat("delta t", &deltaT);
+            ImGui::InputFloat("sigma", &interactionRange);
+            if (ImGui::Button("set potential range"))
+                {
+                setInteractionRange();
+                }
             if (ImGui::Button("set nve particle dynamics"))
                 {
                 setParticlesAndVelocities();
@@ -358,6 +375,7 @@ int main(int argc, char*argv[])
     // Give control to the polyscope gui
     polyscope::options::programName = "curvedSpaceSimulations";
     polyscope::view::resetCameraToHomeView();
+    psMesh->setSmoothShade(true);
 
     getPointCloud(configuration,pointCloud);
     psCloud = polyscope::registerPointCloud("particle positions", pointCloud);
