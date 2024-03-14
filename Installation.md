@@ -10,7 +10,7 @@ tested on 1.84.0:
 wget https://boostorg.jfrog.io/artifactory/main/release/1.84.0/source/boost_1_84_0.tar.gz
 tar xf boost_1_84_0.tar.gz
 cd boost_1_84_0
-sudo ./boostrap.sh
+sudo ./bootstrap.sh
 sudo ./b2 install
 
 ## CGAL at least version 5.6 
