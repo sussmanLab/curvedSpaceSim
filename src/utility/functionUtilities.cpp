@@ -6,6 +6,11 @@ double vectorMagnitude(vector3 v)
     return sqrt(v.squared_length());
     };
 
+vector3 normalize(vector3 v)
+    {
+    return v / vectorMagnitude(v);
+    }
+
 point3 rotateAboutAxis(point3 p, std::vector<point3> axis, double angle)
     {
     vector3 axisVector(axis[0],axis[1]);
@@ -27,6 +32,14 @@ point3 rotateAboutAxis(point3 p, std::vector<point3> axis, double angle)
     //shift back to the real coordinate system
     rotatedPoint += vector3({0.,0.,0.},axis[0]);
     return rotatedPoint;
+    }
+
+double angleBetween(vector3 v1, vector3 v2)
+    {
+    v1 = normalize(v1);
+    v2 = normalize(v2);
+    double oneDotTwo = CGAL::scalar_product(v1,v2);
+    return acos(oneDotTwo);
     }
 
 int wrap(int x,int m)

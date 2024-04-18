@@ -6,6 +6,8 @@
 #include "baseSpace.h"
 #include "baseNeighborStructure.h"
 #include "noiseSource.h"
+#include "pointDataType.h" //for point 3 and related
+#include "meshUtilities.h" //purely for the r3 position conversions
 
 /*! \file simpleModel.h
  */
@@ -55,6 +57,9 @@ class simpleModel
         virtual void findNeighbors(double maximumInteractionRange);
         virtual void setParticlePositions(vector<meshPosition> &newPositions);
 
+	virtual void clampBary(point3 &barycentricWeights);
+        virtual void R3PositionsToMeshPositions(triangleMesh &mesh, vector<point3> r3positions, vector<meshPosition> &simPositions);
+        virtual void setMeshPositionsFromR3File(string filename, triangleMesh &mesh);
         //!uses the space to randomly set particle positions...hence, requires that a space is already set
         virtual void setRandomParticlePositions(noiseSource &noise);
         virtual void setMaxwellBoltzmannVelocities(noiseSource &noise, double T);
