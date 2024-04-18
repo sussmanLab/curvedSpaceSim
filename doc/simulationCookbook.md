@@ -51,3 +51,64 @@ We can break a simulation executable file down into its core parts:
 
 
 ##Walkthrough
+
+This walkthrough essentially explains the structure of curvedSpaceSimulations.cpp,
+and will generally assume the defaults for command line arguments. 
+
+0. The target for our simulation will be gradient descent on a torus. 
+1. First, we need to define our command line arguments. Because we're doing a simple simulation 
+   of particles on a torus, we need to be able to import a toroidal mesh (as a string file name).
+   We also need to define particle number, set ineteraction range, allow for submeshing (or not), establish how frequently we'll
+   save, and figure out how long the simulation will go. That means we need two ```ValueArg<int>``` for particle
+   number and save frequency, a ```ValueArg<string>``` for the mesh name, a ```ValueArg<double>``` for interaction range, 
+   and a ```ValueArg<bool>``` (or int) for turning submeshing on and off. When using bools with TCLAP, you pass to the
+   program as 0 for false and 1 for true. There are other ValueArgs in the curvedSpaceSimulation.cpp file, but if
+   we wanted to use those 4 in our simulation, we might initialize it as: 
+> ```./curvedSpaceSimulation.out -z 1 -n 20 -a 1 -s 100 -i 1000```
+2. We need to fetch all of our command line arguments, so we define variables of types that match the ValueArgs
+   to store them. E.g. **int** saveFrequency = saveFrequencyArg.getValue(). 
+3. Now we need to begin setting up the simulation object. A simulation requires: 
+* A space
+* A configuration
+* One or more forces
+* One or more updaters
+4. First, we define the meshSpace, as the configuration (of particle positions) is dependent on it. To do so, 
+   we must create a shared pointer that points the meshSpace we want to use. The shared pointer will allow other
+   parts of the code to easily reference the meshSpace and what it contains. Then, we can set the associated
+   mesh using ```meshSpace->loadMeshFromFile(filename)```. The arrow operator ```->``` is necessary because it 
+   accesses what the shared pointer points to; so what comes before the arrow is the shared pointer, and what
+   comes after is the value or function of what that pointer points to that we want to access. 
+5. If we want to use restricted interaction ranges, we need to set a cellList. To instantiate a cellListNeighborStructure, 
+   we have to tell the program how big the space is and how coarsely to subdivide it -- we can immediately get meshSpace's
+   min and max vertex positions using the arrow operator, and the subdivision scale is set by the interaction range. 
+6. Next, we'll define a configuration. The core thing the configuration stores is the arrangement of particles. You
+   can set initial particle positions in one of two ways: 
+	1. Creating a noise source and using setRandomParticlePositions, as is done in the sample code
+	2. Feeding in your own positions. This can be done either as a set of meshPositions, if you already have 
+	   barycentric coordinates, or, if you have R3 coordinates and are very confident they're on or nearly on
+	   the mesh, you can use configuration->setMeshPositionsFromR3File. That takes a csv of rows, each with three entries,
+	   that correspond the x, y, and z coordinates of the point in a traditional Cartesian representation.  
+7. Having called setRandomParticlePositions(), we now define a force (of course, we could define
+   the force, configuration, and updater in any order if we wanted). Here, we set a harmonicRepulsion force, 
+   holding the energy scale (or stiffness) to unity and instead modifying it with our interaction range parameter, 
+   which might be roughly thought of as particle size, via another make_shared shared pointer declaration. 
+8. The force needs to be tied to a configuration so the force knows what to act on, so we use its setModel 
+   function to tie the two together. 
+9. We have a configuration and a force. In principle, we might define an updater next. In our example, though, 
+   we instead create another shared pointer, this time to a simulation. 
+10. Now that the simulation is defined, we can tie it together to the existing force function and configuration. 
+   Remember that we could add any number of forces if we wanted, and they would all get evaluated at every 
+   step. 
+11. Finally, we define an updater. curvedSpaceSimulation.cpp allows for either NVE or gradientDescent, depending
+    on the programBranch (just a way of specifying behavior). Let's assume our branch is either 0 (all-to-all 
+    with no velocity) or 1 (cutoff radii and submeshed with no velocity). Then, we define our updater as a 
+    gradientDescent object and tie it to the simulation via simulator->addUpdater(). 
+12. Now, our simulator is tied to a configuration, force, and updater. With all of those defined, we create 
+    our flat position vector (for efficient storage in a netcdf container), write a database object to store
+    the results, and then call simulator->performTimestep() as many times as we want to advance the simulation 
+    forward. This automatically calls the updater, which in turn calls the force and updates the configuration. 
+  
+   
+
+
+
