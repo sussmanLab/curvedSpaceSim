@@ -93,9 +93,6 @@ double meanTriangleArea(triangleMesh mesh)
     return mean/count;
     };
 
-
-
-
 /*
 Let a line in barycentric coordinates be 
 l(t,start,end) = start + t(end-start),
@@ -154,6 +151,7 @@ bool intersectionBarycentricLinesV2V3(pmpBarycentricCoordinates line2Start, pmpB
     return (intersectionScale1 >= 0 && intersectionScale1 <=1 &&
             intersectionScale2 >= 0 && intersectionScale2 <=1 );
     };
+
 bool intersectionBarycentricLinesV3V1(pmpBarycentricCoordinates line2Start, pmpBarycentricCoordinates line2End, pmpBarycentricCoordinates &intersectionPoint)
     {
     double intersectionScale1, intersectionScale2,denominator;
