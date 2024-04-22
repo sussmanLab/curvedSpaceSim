@@ -32,7 +32,6 @@ using namespace TCLAP;
 int main(int argc, char*argv[])
     {
 
-    std::cout << "parsing command line." << std::endl;
     //First, we set up a basic command line parser with some message and version
     CmdLine cmd("Setting up time vs. number of particles test...",' ',"V0.0");
 
@@ -74,12 +73,16 @@ int main(int argc, char*argv[])
     shared_ptr<harmonicRepulsion> pairwiseForce = make_shared<harmonicRepulsion>(1.0,maximumInteractionRange);//stiffness and sigma. this is a monodisperse setting
     simulator->addForce(pairwiseForce);
     shared_ptr<gradientDescent> energyMinimizer=make_shared<gradientDescent>(dt);
-  
+ 
+    //multiplying by 100 guarantees we don't miss numbers after the decimal in the file name  
     int printRange = 100*maximumInteractionRange;
-    string filename = "cost_v_n" + to_string(printRange) + ".cpp";
+    string filename = "cost_v_n" + to_string(printRange) + ".csv";
     ofstream tvn_times(filename);
 
-    /* 
+    //uncomment for all-to-all test
+     
+    //comment from here to prevent all-to-all test
+
     //with all-to-all forces    
     meshSpace->useSubmeshingRoutines(false);    
     shared_ptr<simulation> simulator = make_shared<simulation>();
@@ -119,9 +122,10 @@ int main(int argc, char*argv[])
 	aa_timer.print(); // this will spit out the average time per timestep  
         	
 	}
-    
+    //stop comment here to prevent all to all test
+
     tvn_times << "\nSubmeshed, Fixed Interaction Range";
-    */
+
     //with submeshed forces     
     meshSpace->useSubmeshingRoutines(true,maximumInteractionRange,dangerous);
 
@@ -169,9 +173,7 @@ int main(int argc, char*argv[])
         	}
         tvn_times << "\n" << N << ", " << sm_timer.timing(); 
 	sm_timer.print(); // this will spit out the average time per timestep  	
-	}
-
-    
+	} 
 
     return 0;
     };
