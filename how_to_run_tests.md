@@ -37,6 +37,10 @@ at the designated comment markers. One file will be produced
 with the particle numbers and paired average simulation timestep 
 costs. 
 
+To reproduce the inset, one needs only specify the interaction range as 
+.5, .25, and .125 in successsion and plot those results alongside the 
+innteraction range 1 result.  
+
 ##Cost vs. Complexity
 
 
