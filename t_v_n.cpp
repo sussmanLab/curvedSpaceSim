@@ -33,7 +33,7 @@ int main(int argc, char*argv[])
     {
 
     //First, we set up a basic command line parser with some message and version
-    CmdLine cmd("Setting up time vs. number of particles test...",' ',"V0.0");
+    CmdLine cmd("Setting up time vs. number of particles test...",' ',"V1.0");
 
     //define the various command line strings that can be passed in...
     //ValueArg<T> variableName("shortflag","longFlag","description",required or not, default value,"value type",CmdLine object to add to
@@ -54,7 +54,6 @@ int main(int argc, char*argv[])
     double dt = deltaTArg.getValue();
     double maximumInteractionRange= interactionRangeArg.getValue();
     bool reproducible = reproducibleSwitch.getValue();
-    bool dangerous = false; //not used right now
    
     bool verbose = true; // just always be verbose for tests 
 
@@ -79,9 +78,8 @@ int main(int argc, char*argv[])
     string filename = "cost_v_n" + to_string(printRange) + ".csv";
     ofstream tvn_times(filename);
 
-    //uncomment for all-to-all test
      
-    //comment from here to prevent all-to-all test
+    //comment /* here to prevent all-to-all test
 
     //with all-to-all forces    
     meshSpace->useSubmeshingRoutines(false);    
@@ -134,8 +132,7 @@ int main(int argc, char*argv[])
     for (int i = 1; i <= doublings; i++) 
         {
         int N = pow(2,i); 
-        //at the moment, i have to put everything that depends on N here -- 
-	//that's probably naive, in which case I can move celllist stuff out
+        //because we change particle number every doubling, everything that depends on N goes here 
         shared_ptr<simpleModel> sm_configuration = make_shared<simpleModel>(N);
 	sm_configuration->setSpace(meshSpace);
 	sm_configuration->setRandomParticlePositions(noise);
