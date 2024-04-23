@@ -29,9 +29,10 @@ interactions (especially relevant for submeshed tests,
 as this sets the submesh length scale), the timestep
 size, and whether to use a reproducible RNG.  
 
-The command line input to remake the data in our figure 3 would be: 
+The command line input to remake the trend in our figure 3 
+using a reproducible rng would be: 
 ```
-./t_v_n.out -i 5 -n 15 -m "../exampleMeshes/torus_isotropic_remesh.off" -a 1 -t .01 -r 1
+./t_v_n.out -i 5 -n 15 -m "../exampleMeshes/torus_isotropic_remesh.off" -a 1 -t .01 -r
 ```
 
 This input will run both all-to-all and submeshed tests

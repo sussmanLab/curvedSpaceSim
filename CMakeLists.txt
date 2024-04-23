@@ -62,8 +62,10 @@ foreach(ARG
         flatSpaceSimulation
         curvedSpaceSimulation
         multirankSimulation
-	checkThroughVertex
-        )
+	torusCrystallization
+	t_v_n
+	t_v_complexity
+	)
 add_executable("${ARG}.out" "${ARG}.cpp" )
 target_link_libraries("${ARG}.out"
     ${myLibs}

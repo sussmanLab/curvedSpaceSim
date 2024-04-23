@@ -40,7 +40,7 @@ int main(int argc, char*argv[])
     ValueArg<int> iterationsArg("i","sim_iterations","number of performTimestep calls to make",false,5,"int",cmd); // default to 5 as we'll do this over and over
     ValueArg<int> doublingsArg("n", "particle_doublings", "number of times to double particle number", false, 10, "int", cmd); 
     ValueArg<string> meshSwitchArg("m","meshSwitch","filename of the mesh you want to load",false,"../exampleMeshes/torus_isotropic_remesh.off","string",cmd);
-    ValueArg<double> interactionRangeArg("a","interactionRange","range ofthe interaction to set for both potential and cell list",false,1.,"double",cmd);
+    ValueArg<double> interactionRangeArg("a","interactionRange","range of the interaction to set for both potential and cell list",false,1.,"double",cmd);
     ValueArg<double> deltaTArg("t","dt","timestep size",false,.01,"double",cmd);
 
     SwitchArg reproducibleSwitch("r","reproducible","reproducible random number generation", cmd, true);
@@ -83,11 +83,12 @@ int main(int argc, char*argv[])
 
     //with all-to-all forces    
     meshSpace->useSubmeshingRoutines(false);    
+    /*
     shared_ptr<simulation> simulator = make_shared<simulation>();
     shared_ptr<harmonicRepulsion> pairwiseForce = make_shared<harmonicRepulsion>(1.0,maximumInteractionRange);//stiffness and sigma. this is a monodisperse setting
     simulator->addForce(pairwiseForce);
     shared_ptr<gradientDescent> energyMinimizer=make_shared<gradientDescent>(dt);
-      
+    */  
     
     tvn_times << "All-to-All"; 
     for (int i = 1; i <= doublings; i++) 
@@ -125,7 +126,7 @@ int main(int argc, char*argv[])
     tvn_times << "\nSubmeshed, Fixed Interaction Range";
 
     //with submeshed forces     
-    meshSpace->useSubmeshingRoutines(true,maximumInteractionRange,dangerous);
+    meshSpace->useSubmeshingRoutines(true,maximumInteractionRange,false);
 
     //preliminaries for celllist so we don't recompute them every step 
         

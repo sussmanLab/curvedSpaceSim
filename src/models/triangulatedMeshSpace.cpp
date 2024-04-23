@@ -10,7 +10,8 @@ void triangulatedMeshSpace::updateMeshSpanAndTree()
     maxVertexPosition.x = 0;maxVertexPosition.y = 0;maxVertexPosition.z = 0;
     for (vertexIndex v : surface.vertices())
         {
-        point3 p = surface.point(v);                                                                                              if(p[0] < minVertexPosition.x)
+        point3 p = surface.point(v);                                                                                              
+	if(p[0] < minVertexPosition.x)
             minVertexPosition.x = p[0];
         if(p[1] < minVertexPosition.y)
             minVertexPosition.y = p[1];
@@ -34,6 +35,8 @@ void triangulatedMeshSpace::loadMeshFromFile(std::string filename, bool _verbose
     {
     verbose = _verbose;
     positionsAreEuclidean = false;
+    surface = triangleMesh(); //avoids double-writing if we ever have to load a new mesh 
+
     if(verbose)
         {
         printf("loading from file %s\n",filename.c_str());
@@ -57,30 +60,7 @@ void triangulatedMeshSpace::loadMeshFromFile(std::string filename, bool _verbose
         {
         printf("input mesh has %i faces and %i vertices\n",nFaces,nVertices);
         };
-    //set domain in which surface lives
-    minVertexPosition.x = 0;minVertexPosition.y = 0;minVertexPosition.z = 0;
-    maxVertexPosition.x = 0;maxVertexPosition.y = 0;maxVertexPosition.z = 0;
-    for (vertexIndex v : surface.vertices())
-        {
-        point3 p = surface.point(v);
-        if(p[0] < minVertexPosition.x)
-            minVertexPosition.x = p[0];
-        if(p[1] < minVertexPosition.y)
-            minVertexPosition.y = p[1];
-        if(p[2] < minVertexPosition.z)
-            minVertexPosition.z = p[2];
-        if(p[0] > maxVertexPosition.x)
-            maxVertexPosition.x = p[0];
-        if(p[1] > maxVertexPosition.y)
-            maxVertexPosition.y = p[1];
-        if(p[2] > maxVertexPosition.z)
-            maxVertexPosition.z = p[2];
-        };
-    if(verbose)
-        printf("mesh spans (%f,%f,%f) to (%f,%f,%f)\n", minVertexPosition.x,minVertexPosition.y,minVertexPosition.z, maxVertexPosition.x,maxVertexPosition.y,maxVertexPosition.z);
-
-    globalSMSP = make_shared<surfaceMeshShortestPath>(surface);
-    globalSMSP->build_aabb_tree(globalTree);
+    updateMeshSpanAndTree();
     };
 
 void triangulatedMeshSpace::isotropicallyRemeshSurface(double targetEdgeLength)
