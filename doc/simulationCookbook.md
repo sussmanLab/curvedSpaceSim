@@ -1,4 +1,4 @@
-# How to Write a Simulation
+# Writing a new simulation executable
 
 This file aims to explain how one would write a custom simulation file 
 by highlighting the key parts of the example code. To do so, it will reference
@@ -14,8 +14,8 @@ We can break a simulation executable file down into its core parts:
    we can use the variable normally as if it had been defined within our main function. 
 2. Space. This can be e.g. flat Cartesian space or a space defined by a mesh. If using a mesh
    space, one must specify an input file and load it using loadMeshFromFile. Under the hood, 
-   this is just a call to CGAL::PMP's read polygon mesh, which takes .off, .obj, .stl, .ply, 
-   .ts, and .vtp files. Additionally, the space contains the means by which to measure distance,
+   this might be, e.g., a a call to CGAL::PMP's read polygon mesh (which takes .off, .obj, .stl, .ply, 
+   .ts, and .vtp files). Additionally, the space contains the means by which to measure distance,
    so it is where we decide whether to submesh or not (use a cutoff to avoid large sequence trees)
    when calculating distance. If submeshing, one must also define a cellList neighbor structure for
    the simulation to use; this relies on the extent of the underlying mesh. 
