@@ -57,8 +57,10 @@ class simpleModel
         virtual void findNeighbors(double maximumInteractionRange);
         virtual void setParticlePositions(vector<meshPosition> &newPositions);
 
-	virtual void clampBary(point3 &barycentricWeights);
+    	virtual void clampBarycentricCoordinatesToFace(point3 &barycentricWeights);
+        //!takes a vector of euclidean positions, and appends to "simPositions" a set of (barycentric coordinates, face index) of the closest point on the mesh.
         virtual void R3PositionsToMeshPositions(triangleMesh &mesh, vector<point3> r3positions, vector<meshPosition> &simPositions);
+        //!A function of convenience to load particle positions from a file
         virtual void setMeshPositionsFromR3File(string filename, triangleMesh &mesh);
         //!uses the space to randomly set particle positions...hence, requires that a space is already set
         virtual void setRandomParticlePositions(noiseSource &noise);
@@ -94,6 +96,8 @@ class simpleModel
 
         void setVerbose(bool v){verbose = v;};
         bool particleShiftsRequireVelocityTransport = false;
+
+        double clampTolerance = 0.00000000000001;//10^-14 as a current threshold for numerical tolerance. 
     protected:
         shared_ptr<baseSpace> space;
         shared_ptr<baseNeighborStructure> neighborStructure;
