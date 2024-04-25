@@ -58,7 +58,7 @@ void triangulatedMeshSpace::loadMeshFromFile(std::string filename, bool _verbose
         printf("input mesh has %i faces and %i vertices\n",nFaces,nVertices);
         };
     //set domain in which surface lives
-    updatedMeshSpaceAndTree();
+    updateMeshSpanAndTree();
     };
 
 void triangulatedMeshSpace::isotropicallyRemeshSurface(double targetEdgeLength)
