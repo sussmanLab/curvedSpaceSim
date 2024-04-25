@@ -10,7 +10,7 @@ sudo  apt install  cmake
 wget https://boostorg.jfrog.io/artifactory/main/release/1.84.0/source/boost_1_84_0.tar.gz
 tar xf boost_1_84_0.tar.gz
 cd boost_1_84_0
-sudo ./boostrap.sh
+sudo ./bootstrap.sh
 sudo ./b2 install
 cd ..
 wget https://github.com/CGAL/cgal/releases/download/v5.6/CGAL-5.6.tar.xz

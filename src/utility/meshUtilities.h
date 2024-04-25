@@ -3,6 +3,7 @@
 
 #include "cgalIncludesAndTypedefs.h"
 #include "pointDataType.h"
+#include "functionUtilities.h"
 
 #include <CGAL/Surface_mesh.h>
 #include <CGAL/Surface_mesh_shortest_path.h>
@@ -12,6 +13,9 @@
 #include <CGAL/Polygon_mesh_processing/compute_normal.h>
 #include <CGAL/Polygon_mesh_processing/locate.h>
 #include <CGAL/Polygon_mesh_processing/triangulate_faces.h>
+#include <CGAL/Polygon_mesh_processing/corefinement.h>
+#include <CGAL/Polygon_mesh_processing/IO/polygon_mesh_io.h>
+#include <CGAL/Polygon_mesh_processing/remesh.h>
 #include <CGAL/boost/graph/helpers.h>
 #include <CGAL/Dynamic_property_map.h>
 #include <CGAL/boost/graph/iterator.h>
@@ -22,6 +26,7 @@ typedef CGAL::Surface_mesh<point3>                                      triangle
 typedef triangleMesh::Face_index                                        faceIndex;
 typedef triangleMesh::Halfedge_index                                    halfedgeIndex;
 typedef triangleMesh::Vertex_index                                      vertexIndex;
+typedef triangleMesh::Edge_index                                        edgeIndex;
 
 namespace CP = CGAL::parameters;
 namespace PMP = CGAL::Polygon_mesh_processing;
@@ -30,6 +35,7 @@ typedef PMP::Face_location<triangleMesh, FT>                            pmpFaceL
 typedef CGAL::Face_around_target_circulator<triangleMesh>               faceCirculator;
 typedef typename boost::graph_traits<triangleMesh>::vertex_descriptor   vertexDescriptor;
 typedef typename boost::graph_traits<triangleMesh>::face_descriptor     faceDescriptor;
+typedef CGAL::Vertex_around_target_circulator<triangleMesh>             vertexCirculator;
 
 typedef boost::graph_traits<triangleMesh>                               graphTraits;
 typedef graphTraits::vertex_iterator                                    vertexIterator;
@@ -42,7 +48,7 @@ typedef typename surfaceMeshShortestPath::Face_location                 smspFace
 typedef surfaceMeshShortestPath::Shortest_path_result                   shortestPathResult;
 
 typedef CGAL::AABB_face_graph_triangle_primitive<triangleMesh>          AABB_face_graph_primitive;
-typedef CGAL::AABB_traits<K, AABB_face_graph_primitive>            AABB_face_graph_traits;
+typedef CGAL::AABB_traits<K, AABB_face_graph_primitive>                 AABB_face_graph_traits;
 typedef CGAL::AABB_tree<AABB_face_graph_traits>                         AABB_tree;
 
 typedef CGAL::Face_filtered_graph<triangleMesh>                         filteredGraph;
@@ -53,8 +59,13 @@ void getVertexPositionsFromFace(triangleMesh &mesh, faceIndex i, std::vector<poi
 //!REQUIRE result has size 3
 void getVertexIndicesFromFace(triangleMesh &mesh, const faceIndex &i, std::vector<vertexIndex> &result);
 
+double meanEdgeLength(triangleMesh mesh, bool verbose = false);
+double triangleArea(point3 v1, point3 v2, point3 v3);
+double meanTriangleArea(triangleMesh mesh);
+
 //!return true if the two lines which pass through the given endpoints intersect between the specified points on both lines. fill in the barycentric location of the intersection point
 bool intersectionOfLinesInBarycentricCoordinates(pmpBarycentricCoordinates line1Start, pmpBarycentricCoordinates line1End, pmpBarycentricCoordinates line2Start, pmpBarycentricCoordinates line2End, pmpBarycentricCoordinates &intersectionPoint);
+
 
 //specialize the intersectionOfLinesInBarycentricCoordinates function to the case where you care about the intersection of "line2" with a "line1" which goes from one vertex to another (i.e., has barycentric coordinates which are a permutation of (1,0,0))
 bool intersectionBarycentricLinesV1V2(pmpBarycentricCoordinates line2Start, pmpBarycentricCoordinates line2End, pmpBarycentricCoordinates &intersectionPoint);

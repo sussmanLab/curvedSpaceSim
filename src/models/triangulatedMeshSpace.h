@@ -56,14 +56,24 @@ class triangulatedMeshSpace : public baseSpace
             dangerousSubmeshing = _danger;
             };
 
+    	void setNewSubmeshCutoff(double newCutoff)
+           {
+           useSubmeshingRoutines(true,newCutoff);
+           }
+
         //!given a vector of meshPositions that represent barycentric coordinates, fill a second vector of meshPositions that represent the corresponding R3 positions
         void convertToEuclideanPositions(std::vector<meshPosition> &a, std::vector<meshPosition> &b);
+
+	//!given a goal edge length, remesh the surface isotropically to have that edge length on average and set the new surface
+        void isotropicallyRemeshSurface(double targetEdgeLength);
 
         //data structures
         triangleMesh surface;
         double3 minVertexPosition;
         double3 maxVertexPosition;
     protected:
+        void updateMeshSpanAndTree();
+        std::pair<faceIndex,vector3> throughVertex(vertexIndex &intersectedVertex, vector3 &toIntersection, faceIndex &sourceFace);
         bool verbose = false;
         shared_ptr<surfaceMeshShortestPath> globalSMSP;
         AABB_tree globalTree;

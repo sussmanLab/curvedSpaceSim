@@ -1,5 +1,6 @@
 #include "meshUtilities.h"
 #include "std_include.h"
+
 smspFaceLocation meshPositionToFaceLocation(const meshPosition &p)
     {
     smspBarycentricCoordinates target = {p.x[0],p.x[1],p.x[2]};
@@ -30,6 +31,70 @@ void getVertexPositionsFromFace(triangleMesh &mesh, faceIndex i, std::vector<poi
         elements +=1;
         };
     };
+
+double meanEdgeLength(triangleMesh mesh, bool verbose /*=false*/)
+    {
+    //finds the mean edge length of all the edges in a mesh via an edge iterator
+
+    //initial typedefs for return/printed quantities
+    double mean = 0.0, min, max, length;
+    double count = 0.0; bool init = true;
+
+    //ranges have iterator objects assocated with their begin and end, but don't themselves have edges
+    triangleMesh::Halfedge_range es = mesh.halfedges();
+    for (auto eIter = es.begin(); eIter != es.end(); ++eIter)
+        {
+        //iterator is a pointer, get an index by checking what it points to
+        halfedgeIndex e = *eIter;
+
+        point3 a = mesh.point(mesh.source(e)); //source yields the source vertex of an edge as a vertex_descriptor
+        point3 b = mesh.point(mesh.target(e));
+
+        length = CGAL::sqrt(CGAL::squared_distance(a, b));
+        ++count;
+        if (init){
+            mean = min = max = length;
+            init = false;
+        }
+        else{
+            if (length < min) min = length;
+            if (length > max) max = length;
+        }
+        mean += length;
+        }
+
+   mean /= count;
+
+   if (verbose) std::cout << "edge length min, max, mean: " << min << " " << max << " " << mean << "\n";
+
+   return mean;
+   };
+
+double triangleArea(point3 v1, point3 v2, point3 v3)
+    {
+    vector3 side1 = vector3(v1, v2);
+    vector3 side2 = vector3(v1, v3);
+    return vectorMagnitude(CGAL::cross_product(side1,side2))/2.0;
+    };
+
+double meanTriangleArea(triangleMesh mesh)
+    {
+    double mean = 0.0;
+    double count = 0.0;
+    auto facelist = mesh.faces();
+    for (faceIndex face: facelist)
+        {
+        ++count;
+        std::vector<point3> vs;
+        vs.reserve(3);
+        getVertexPositionsFromFace(mesh,face,vs);
+        mean += triangleArea(vs[0],vs[1],vs[2]);
+        };
+    return mean/count;
+    };
+
+
+
 
 /*
 Let a line in barycentric coordinates be 
