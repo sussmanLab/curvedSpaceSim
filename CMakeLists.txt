@@ -43,7 +43,7 @@ add_subdirectory(src)
 set(myLibs
     model
     updaters
-    databaseshttps://github.com/DanielMSussman/curvedSpaceSimulations/blob/documentation/CMakeLists.txt
+    databases
     simulation
     utility
     forces
