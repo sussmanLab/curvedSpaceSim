@@ -56,15 +56,10 @@ class triangulatedMeshSpace : public baseSpace
             dangerousSubmeshing = _danger;
             };
 
-	void setNewSubmeshCutoff(double newCutoff)
-        {
-           if(submeshingActivated) maximumDistance = newCutoff;
-           else
+    	void setNewSubmeshCutoff(double newCutoff)
            {
-               std::cout << "submeshing is not activated, cannot set new cutoff" <<std::endl;
-               throw std::exception();
+           useSubmeshingRoutines(true,newCutoff);
            }
-        }
 
         //!given a vector of meshPositions that represent barycentric coordinates, fill a second vector of meshPositions that represent the corresponding R3 positions
         void convertToEuclideanPositions(std::vector<meshPosition> &a, std::vector<meshPosition> &b);
@@ -79,7 +74,7 @@ class triangulatedMeshSpace : public baseSpace
     protected:
         void updateMeshSpanAndTree();
         std::pair<faceIndex,vector3> throughVertex(vertexIndex &intersectedVertex, vector3 &toIntersection, faceIndex &sourceFace);
-	bool verbose = false;
+        bool verbose = false;
         shared_ptr<surfaceMeshShortestPath> globalSMSP;
         AABB_tree globalTree;
         //data structures associated with submeshing routines
