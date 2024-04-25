@@ -33,7 +33,7 @@ particle positions at each step.
 
 ### src/simulation directory
 
-"simulations" (basic or mpi) are classes that tie together a model (with its space),
+The "simulation" (basic or mpi) classes tie together a model (with its space),
 forces, and updaters so that a standard "timestep" can be easily called with one line.
 The simulation object is like a wrapper to store important details about the 
 simulation you want to run such that they're easily accessible from within executable 
@@ -62,12 +62,12 @@ aim to change an updater.
 Contains classes for computing interparticle forces. At the moment implementing new
 pairwise interactions is quite easy; new many-body forces will require more work.
 
-Pairwise interactions are taken as implicit assumptions in, for example, the gaussianRepulsion
-and harmonicRepulsion force calculators, which take only distances and separation vectors
-as inputs. A separation vector indicates a vector along the tangent to the path between
-two points. Current sign conventions always point from source to target on both ends
-of the straight-line or geodesic path -- forces on source particles therefore always
-include a negative sign.    
+Specific examples of pairwise interactions are implemented in, for example, the 
+gaussianRepulsion and harmonicRepulsion force calculators, which take only distances
+and separation vectors as inputs. A separation vector indicates a vector along the
+tangent to the path between two points. The currently used sign convention always points
+from source to target on both ends of the straight-line or geodesic path -- forces on
+source particles therefore always include a negative sign.    
 
 ### src/utilities directory
 
@@ -145,7 +145,7 @@ For a description of the individual functionalities:
 ### src/databases  directory
 
 For convenience, contains structures that may be useful for saving simulation
-trajectories. ost of the databases are currently either simple txt files or netCDF.
+trajectories. Most of the databases are currently either simple txt files or netCDF.
 
 baseDatabase is a simple implementation of a netCDF database -- refer to netCDF's 
 documentation for more information on usage. 
