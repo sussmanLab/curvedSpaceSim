@@ -27,6 +27,7 @@ void triangulatedMeshSpace::updateMeshSpanAndTree()
         printf("mesh spans (%f,%f,%f) to (%f,%f,%f)\n", minVertexPosition.x,minVertexPosition.y,minVertexPosition.z, maxVertexPosition.x,maxVertexPosition.y,maxVertexPosition.z);
 
     globalSMSP = make_shared<surfaceMeshShortestPath>(surface);
+    //global tree speeds up all subsequent location operations on the surface
     globalSMSP->build_aabb_tree(globalTree);
     }
 
@@ -34,6 +35,7 @@ void triangulatedMeshSpace::loadMeshFromFile(std::string filename, bool _verbose
     {
     verbose = _verbose;
     positionsAreEuclidean = false;
+    surface = triangleMesh(); //clear mesh so we don't accidentally load two meshes at once
     if(verbose)
         {
         printf("loading from file %s\n",filename.c_str());
@@ -57,7 +59,7 @@ void triangulatedMeshSpace::loadMeshFromFile(std::string filename, bool _verbose
         {
         printf("input mesh has %i faces and %i vertices\n",nFaces,nVertices);
         };
-    //set domain in which surface lives
+    //set spatial domain for surface, create global AABB tree
     updateMeshSpanAndTree();
     };
 
