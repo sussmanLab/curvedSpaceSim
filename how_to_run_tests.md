@@ -97,8 +97,7 @@ line options. One can set  the number of particles to be relaxed, the force
 tolerance at which to stop crystallization, the harmonic stiffness, and a 
 file for starting locations in addition to the usual choice of mesh, 
 interaction range, reproducibility, submeshing on/off, 
-and save frequency. We always had the reproducibility switch set to default (on) 
-for our tests. To see which command line option refers to which thing, 
+and save frequency. To see which command line option refers to which thing, 
 please refer to the torusCrystallization.cpp file.  
 
 The command we used to produce the 32 particle torus configuration
@@ -109,7 +108,7 @@ shown in the paper was
 
 For 1000 particles, we used the command
 ```
-./torusCrystallization.out -m "../exampleMeshes/torusrb20.off" -n 1000 -s 100 -i 7 -e .01 -z 1 -a 0.4
+./torusCrystallization.out -m "../exampleMeshes/torusrb20.off" -a .44 -n 1000 -e .01 -q 0.1 -s 100 -i 7 -z 1
 ``` 
 In both of the above, the final configuration is very sensitive to the interaction radius.
 E.g., one should expect very different results for -a .41 in the 1000 particle test 
