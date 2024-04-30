@@ -115,8 +115,22 @@ E.g., one should expect very different results for -a .41 in the 1000 particle t
 vs. -a .4. We performed tests not included in the paper at, for example -a .43 that still produced
 realistic results. 
 For each, we chose interaction radii that corresponded to disks that would approximately
-cover at or above 100% of the torus' surface area -- however, true toroidal packing with all disks 
+cover at or above 100% of the torus' surface area. In the thousand particle case, this required using a smaller
+force scale to guarantee relaxation. However, true toroidal packing with all disks 
 only kissing would instead correspond to around 90% coverage. 
+
+To generate the narrow torus result, we used the physical settings from the command: 
+```
+./torusCrystallization.out -m "../exampleMeshes/big_torusrb50.off" -f "../startingLocations/big_torus_crystal_twisted_over_150.csv" -n 300 -s 100 -i 8 -e .01 -z 1 -a 1.70
+```
+You could also set the save frequency to 10 for a finer video, and this is what we did for the paper.
+Here, unlike the 32 and 1000 particle AR 3 torus results, the interaction radius chosen corresponds
+to approximately 90% coverage of the torus' surface area.   
+
+The output files for the torus testing file are threefold. They include:
+-A trajectory nc file. This stores the simulation trajectory as a netcdf filetype, which can be decoded using Mathematica. 
+-A neighborNumbers csv file. This outputs the total counts of interacting neighbors at the simulations final timestep, to compare with Voronoi neighbors.
+-A particle voronoi positions csv file. This file is designed to be used by SurfaceVoronoi, which requires face index/r3 position pairs. 
 
 Reproducing the Voronoi diagrams is much harder, and requires, at present, a Windows machine. 
 We used the SurfaceVoronoi package, located at https://github.com/sssomeone/SurfaceVoronoi.
@@ -127,8 +141,8 @@ mesh as the surface and a
 ```
 file as position input. These files are combinations of face indices and r3 positions for each particle 
 at the end of relaxation. We specifically used the SurfaceVoronoi function GetLRVDBisectorsWithDui
-to generate both a bisector image file and a triangular connectivity object file. 
-We will be happy to provide our specific edited SurfaceVoronoi installation upon 
-request, although it is not part of this codebase. 
+to generate both a bisector image file and a connectivity object file, which is defined in the
+SurfaceVoronoi source code as other.obj. We will be happy to provide our specific (lightly) edited SurfaceVoronoi 
+project file upon request, although it is not part of this codebase. 
 
 
