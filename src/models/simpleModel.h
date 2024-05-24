@@ -66,6 +66,9 @@ class simpleModel
         virtual void setRandomParticlePositions(noiseSource &noise);
         virtual void setMaxwellBoltzmannVelocities(noiseSource &noise, double T);
 
+        //!The space the model lives in
+        shared_ptr<baseSpace> space;
+
         //!The number of particles
         int N;
         //!particle  positions
@@ -84,11 +87,11 @@ class simpleModel
 
 
         //!particle types
-        //GPUArray<int> types;
+        //vector<int> types;
         //!particle radii
-        //GPUArray<scalar> radii;
+        //vector<double> radii;
         //!particle masses
-        //GPUArray<scalar> masses;
+        //vector<double> masses;
         
         //sometimes, you just want the actual positions of particles
         vector<double3> euclideanLocations;
@@ -99,7 +102,6 @@ class simpleModel
 
         double clampTolerance = 0.00000000000001;//10^-14 as a current threshold for numerical tolerance. 
     protected:
-        shared_ptr<baseSpace> space;
         shared_ptr<baseNeighborStructure> neighborStructure;
         //!For compatibility across spaces (e.g., mesh-based spaces), a space may have internal functionality to jam euclidean data into a meshPosition. This can be used for neighborStructures
         vector<meshPosition> euclideanMeshPosition;
