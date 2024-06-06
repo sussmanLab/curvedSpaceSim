@@ -47,6 +47,8 @@ class triangulatedMeshSpace : public baseSpace
 
         virtual void randomVectorAtPosition(meshPosition &p, vector3 &v, noiseSource &noise);
 
+        virtual void rotateVectorAtPosition(meshPosition &p, vector3 &v, double angle);
+
         void distanceWithSubmeshing(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent,double distanceThreshold);
 
         void useSubmeshingRoutines(bool _useSubMesh, double maxDist = 1.0, bool _danger = false)

@@ -22,5 +22,6 @@ class euclideanSpace : public baseSpace
         
         virtual void randomPosition(meshPosition &p, noiseSource &noise);
         virtual void randomVectorAtPosition(meshPosition &p, vector3 &v, noiseSource &noise);
+        virtual void rotateVectorAtPosition(meshPosition &p, vector3 &v, double angle);
     };
 #endif

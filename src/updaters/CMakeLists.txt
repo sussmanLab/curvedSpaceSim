@@ -8,4 +8,5 @@ add_library(updaters
     baseUpdater.cpp
     gradientDescent.cpp
     velocityVerletNVE.cpp
+    diffusiveSPP.cpp
     )

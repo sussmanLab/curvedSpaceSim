@@ -39,5 +39,6 @@ class baseSpace
 
         virtual void randomPosition(meshPosition &p, noiseSource &noise)=0;
         virtual void randomVectorAtPosition(meshPosition &p, vector3 &v, noiseSource &noise)=0;
+        virtual void rotateVectorAtPosition(meshPosition &p, vector3 &v, double angle)=0;
     };
 #endif
