@@ -234,7 +234,7 @@ void triangulatedMeshSpace::distance(meshPosition &p1, std::vector<meshPosition>
 
 /*!throughVertex takes as input the index of the vertex we're going through, the vector from the current source to that intersection,
 and the source face. Then, it cycles through the faces adjoining the vertex, collecting the total angle of the vertex (the total
-angle subtended by the edge pairs) and determining the heading that would be halfway through the total angle. The face containing
+angle subtended by the edge pairs), and determines the heading that would be halfway through the total angle. The face containing
 that heading and the heading itself are returned. The half-of-total angle criterion is the same as the straightest geodesic criterion;
 the straightest path has equal angles on both of its sides (e.g. in flat space, 180 degrees either way you rotate).  
 */
@@ -500,7 +500,8 @@ iter+=1;
             targetNormal = PMP::compute_face_normal(provisionalTargetFace,surface);
             double normalDotProduct = currentSourceNormal*targetNormal;
             double angle = acos(normalDotProduct);
-            vector3 axisVector = CGAL::cross_product(currentSourceNormal,targetNormal);
+            if (normalDotProduct >= 1) angle = 0; //clamp for robustness against precision errors for very similar normals
+	    vector3 axisVector = CGAL::cross_product(currentSourceNormal,targetNormal);
             axisVector /= vectorMagnitude(axisVector); //this could use normalize if we wanted to
             std::vector<point3> axis = {sourcePoint, sourcePoint+axisVector};
             target = rotateAboutAxis(target, axis, angle);
@@ -626,6 +627,7 @@ iter+=1;
             targetNormal = PMP::compute_face_normal(provisionalTargetFace,surface);
             double normalDotProduct = currentSourceNormal*targetNormal;
             double angle = acos(normalDotProduct);
+	    if (normalDotProduct >= 1) angle = 0;
             vector3 axisVector = CGAL::cross_product(currentSourceNormal,targetNormal);
             axisVector /= vectorMagnitude(axisVector); //this could use normalize if we wanted to
             std::vector<point3> axis = {sourcePoint, sourcePoint+axisVector};
@@ -654,6 +656,7 @@ iter+=1;
             std::vector<point3> axis = {sourcePoint, sourcePoint+axisVector};
 	    double normalDotProduct = currentSourceNormal*targetNormal;
             double angle = acos(normalDotProduct);
+	    if (normalDotProduct >= 1) angle = 0;
 	    point3 velocityVectorTarget = sourcePoint + velocityVector;
             velocityVectorTarget=rotateAboutAxis(velocityVectorTarget,axis,angle);
             velocityVector =  vector3(sourcePoint,velocityVectorTarget);
