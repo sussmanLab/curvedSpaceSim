@@ -28,6 +28,35 @@ void getFlatVectorOfPositions(shared_ptr<simpleModel> model, vector<double> &pos
         pos[3*ii+2] = p.z;
         }
     };
+//copy-pasted convenience function for logSpacedIntegers
+int countDigit(long long n)
+{
+    if (n == 0)
+        return 1;
+    int count = 0;
+    while (n != 0) {
+        n = n / 10;
+        ++count;
+    }
+    return count;
+}
+
+vector<int> logSpacedIntegers(int nMax, int firstSave = 0, double exp = 1.0/20.0)
+    {
+    set<int> logSpacedInts;
+    int numberDecades = countDigit(nMax); 
+    int counter = 0;
+    double base = pow(10.0, exp);
+    while (pow(base,counter) < nMax) 
+        {
+        logSpacedInts.insert(round(pow(base, counter)));
+	counter += 1; 
+	}
+    cout << "writing to vector " << endl;
+    std::vector<int> logSpacedIntVector(logSpacedInts.begin(), logSpacedInts.end());
+    cout << "finished writing to vector " << endl;
+    return logSpacedIntVector; 
+    };
 
 using namespace TCLAP;
 int main(int argc, char*argv[])
@@ -134,29 +163,33 @@ int main(int argc, char*argv[])
 
     vector<double> posToSave;
     getFlatVectorOfPositions(configuration,posToSave);
-    
-    string trajectoryFilename = "./SPP_N"+to_string(N)+"_Pe"+to_string(PecletNum)+".nc";
+     
+    double scaledVelocity = velocity/(maximumInteractionRange/2); 
+
+    string trajectoryFilename = "./SPP_N"+to_string(N)+"_Pe"+to_string(PecletNum)+"_vs"+to_string(scaledVelocity)+".nc";
     vectorValueDatabase vvdat(posToSave.size(),trajectoryFilename,NcFile::Replace);
     vvdat.writeState(posToSave,0);
 
+    cout << "creating write steps" << endl;
+    //log spaced saving -- MAKE SURE TO PASS LAST ARG AS FLOAT
+    vector<int> writeSteps = logSpacedIntegers(maximumIterations, 0, 1.0/100.0);
+    int placeInWriteSteps = 0; 
+
+    double energyState;
+    
     for (int ii = 0; ii < maximumIterations; ++ii)
         { 
 	timer.start();
         simulator->performTimestep();        
         timer.end(); 
 
-	if(ii%saveFrequency == saveFrequency-1)
+	if(ii == writeSteps[placeInWriteSteps])
             {
             getFlatVectorOfPositions(configuration,posToSave);
             vvdat.writeState(posToSave,dt*ii);
-            if(programBranch <2)
-                {
-                double energyState;
-                energyState = pairwiseForce->computeEnergy();
-		printf("step %i E %.4g\n ",ii, energyState);
-                }
-            else
-                printf("step %i \n",ii);
+            energyState = pairwiseForce->computeEnergy();
+            printf("step %i E %.4g\n ",ii, energyState);
+	    placeInWriteSteps += 1;
             }
 	}
 
