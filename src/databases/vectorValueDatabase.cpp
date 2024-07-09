@@ -7,7 +7,7 @@ vectorValueDatabase::vectorValueDatabase(int vectorLength, string fn, NcFile::Fi
     N=vectorLength;
     val=0.0;
     vec.resize(N);
-    switch(Mode)
+    switch(mode)
         {
         case NcFile::ReadOnly:
             GetDimVar();
@@ -29,7 +29,7 @@ vectorValueDatabase::vectorValueDatabase(int vectorLength, string fn, NcFile::Fi
 void vectorValueDatabase::SetDimVar()
     {
     //Set the dimensions
-    recDim = File.add_dim("rec");
+    recDim = File.add_dim("record");
     dofDim = File.add_dim("dof", N);
     unitDim = File.add_dim("unit",1);
 
@@ -41,7 +41,7 @@ void vectorValueDatabase::SetDimVar()
 void vectorValueDatabase::GetDimVar()
     {
     //Get the dimensions
-    recDim = File.get_dim("rec");
+    recDim = File.get_dim("record");
     dofDim = File.get_dim("dof");
     unitDim = File.get_dim("unit");
     //Get the variables

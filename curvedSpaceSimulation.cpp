@@ -12,6 +12,7 @@
 #include "gaussianRepulsion.h"
 #include "harmonicRepulsion.h"
 #include "vectorValueDatabase.h"
+#include "simpleModelDatabase.h"
 #include "cellListNeighborStructure.h"
 
 void getFlatVectorOfPositions(shared_ptr<simpleModel> model, vector<double> &pos)
@@ -107,11 +108,17 @@ int main(int argc, char*argv[])
         }
     profiler timer("various parts of the code");
 
+    /*
     vector<double> posToSave;
     getFlatVectorOfPositions(configuration,posToSave);
 
     vectorValueDatabase vvdat(posToSave.size(),"./testTrajectory.nc",NcFile::Replace);
     vvdat.writeState(posToSave,0);
+    */
+
+    //by default, the simpleModelDatabase will save euclidean positions, mesh positions (barycentric + faceIdx), and particle velocities. See constructor for saving forces and/or particle types as well
+    simpleModelDatabase saveState(N,"./testModelDatabase.nc",NcFile::Replace);
+    saveState.writeState(configuration,0.0);
 
     for (int ii = 0; ii < maximumIterations; ++ii)
         {
@@ -120,8 +127,11 @@ int main(int argc, char*argv[])
         timer.end();
         if(ii%saveFrequency == saveFrequency-1)
             {
+            /*
             getFlatVectorOfPositions(configuration,posToSave);
             vvdat.writeState(posToSave,dt*ii);
+            */
+            saveState.writeState(configuration,dt*ii);
             if(programBranch <2)
                 {
                 double fNorm,fMax;
