@@ -273,7 +273,7 @@ tar -xf netcdf-cxx-4.2.tar.gz
 
 cd netcdf-cxx-4.2
 
-Now, before configuring, use a text editor to go into the "configure" file and find the line that says "# Create the VERSION file, which contains the package version from" (this should be line 2330). Below that is an uncommented line that says "echo -n 4.2>VERSION"; change this to "echo -n 4.2>VERSION.txt". It's janky, and I don't know why that matters, but it works. Once that change is made, procede as before:
+Now, before configuring, use a text editor to go into the "configure" file and find the line that says "# Create the VERSION file, which contains the package version from" (this should be line 2330). Below that is an uncommented line that says "echo -n 4.2>VERSION"; change this to "echo -n 4.2>VERSION.txt". It's janky, and I don't know why that matters, but it works. Once that change is made, proceed as before:
 
 ./configure --prefix=$HOME/.local
 
