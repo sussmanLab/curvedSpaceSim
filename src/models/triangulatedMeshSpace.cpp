@@ -10,7 +10,8 @@ void triangulatedMeshSpace::updateMeshSpanAndTree()
     maxVertexPosition.x = 0;maxVertexPosition.y = 0;maxVertexPosition.z = 0;
     for (vertexIndex v : surface.vertices())
         {
-        point3 p = surface.point(v);                                                                                              if(p[0] < minVertexPosition.x)
+        point3 p = surface.point(v);                          
+	if(p[0] < minVertexPosition.x)
             minVertexPosition.x = p[0];
         if(p[1] < minVertexPosition.y)
             minVertexPosition.y = p[1];
@@ -399,11 +400,18 @@ std::pair<faceIndex,vector3> triangulatedMeshSpace::throughVertex(vertexIndex &i
     }  
 
 
-
 /*
+Core displacement routine. Takes a degree of freedom and a direction + distance to move in, and moves 
+it around the mesh, always remaining in the tangent plane of a mesh face.
+
 As a reminder: in the routine below, we assume that the point3 member of all of the meshPositions
 (i.e., p1.x), is actually just carrying around the real numbers corresponding to the barycentric
-coordinates of that point in the corresponding faceIndex (i.e., p1.faceIndex)
+coordinates of that point in the corresponding faceIndex (i.e., p1.faceIndex). 
+
+pos: a meshPosition object (three doubles representing barycentric coordinates and a face index) 
+     representing the position of a degree of freedom. 
+displacementVector: The direction and magnitude to displace the degree of freedom in. Starts in the 
+	            tangent plane, but can bend around edges if required. 
 */
 void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displacementVector)
     {
@@ -465,7 +473,18 @@ iter+=1;
 
         if(uninvolvedVertex.size()== 2)
             {
-            toIntersection = vector3(sourcePoint, PMP::construct_point(std::make_pair(currentSourceFace,intersectionPoint), surface)); //always assumed to be from source to intersected vertex
+	    //if we're at a border, we need to invoke boundary conditions -- for now, this is just
+	    //stopping the particle cold. is_border works on both edges and vertices
+            if (surface.is_border(vertexIndex(involvedVertex[0])))
+                {
+                targetBarycentricLocation = intersectionPoint;
+                //clamp so we are not actually on the edge (or over it!), but just very close -- avoids 
+                //confusion on the intersection checker's part at later timesteps. 
+                clampToThreshold(targetBarycentricLocation);
+                continueShifting = false;
+                continue;
+                }
+	    toIntersection = vector3(sourcePoint, PMP::construct_point(std::make_pair(currentSourceFace,intersectionPoint), surface)); //always assumed to be from source to intersected vertex
             printf("updating shift direction with throughvertex\n");
             std::cout << "involved vertex " << involvedVertex[0] << std::endl;
             std::pair<faceIndex, vector3> targetHeading = throughVertex(involvedVertex[0], toIntersection, currentSourceFace);
@@ -491,9 +510,17 @@ iter+=1;
         halfedgeIndex intersectedEdge;
         if (uninvolvedVertex.size() == 1)
             {
-            //if we're going through an edge, standard rotation around the axis formed by the normals is fine
-            intersectedEdge = surface.halfedge(involvedVertex[0],involvedVertex[1]);
-            provisionalTargetFace = surface.face(intersectedEdge);
+            intersectedEdge = surface.halfedge(involvedVertex[0],involvedVertex[1]);  
+            //same as above -- particle stops completely if it hits a boundary, for now
+	    if (surface.is_border(edgeIndex(intersectedEdge)))
+                {
+                targetBarycentricLocation = intersectionPoint;
+                clampToThreshold(targetBarycentricLocation);
+                continueShifting = false;
+                continue;
+                }
+
+	    provisionalTargetFace = surface.face(intersectedEdge);
             if (provisionalTargetFace == currentSourceFace)
                 provisionalTargetFace= surface.face(surface.opposite(intersectedEdge));
 
@@ -594,6 +621,13 @@ iter+=1;
 	
 	if(uninvolvedVertex.size()== 2)
             {
+            if (surface.is_border(vertexIndex(involvedVertex[0])))
+                {
+                targetBarycentricLocation = intersectionPoint;
+                clampToThreshold(targetBarycentricLocation); //clamp avoids any near-edge confusion at later steps
+                continueShifting = false;
+                continue;
+                }
             toIntersection = vector3(sourcePoint, PMP::construct_point(std::make_pair(currentSourceFace,intersectionPoint), surface)); //always assumed to be from source to intersected vertex
             std::pair<faceIndex, vector3> targetHeading = throughVertex(involvedVertex[0], toIntersection, currentSourceFace);
             provisionalTargetFace = targetHeading.first;
@@ -620,7 +654,16 @@ iter+=1;
             {
             //if we're going through an edge, standard rotation around the axis formed by the normals is fine
             intersectedEdge = surface.halfedge(involvedVertex[0],involvedVertex[1]);
-            provisionalTargetFace = surface.face(intersectedEdge);
+            //as in displaceParitcle, particle stops completely if it hits a boundary, for now
+            if (surface.is_border(edgeIndex(intersectedEdge)))
+                {
+                targetBarycentricLocation = intersectionPoint;
+                clampToThreshold(targetBarycentricLocation);
+                continueShifting = false;
+                continue;
+                }
+
+	    provisionalTargetFace = surface.face(intersectedEdge);
             if (provisionalTargetFace == currentSourceFace)
                 provisionalTargetFace= surface.face(surface.opposite(intersectedEdge));
 

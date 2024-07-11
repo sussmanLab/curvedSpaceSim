@@ -94,6 +94,22 @@ double meanTriangleArea(triangleMesh mesh)
     };
 
 
+/*simple clamp function to take barycentric coordinate near the boundary of a face
+ *and place it firmly within the face in question. Be careful this is not used when 
+ *the barycentric coordinates are/might be very negative, as it can obscure meaningful errors. 
+ */
+void clampToThreshold(pmpBarycentricCoordinates &baryPoint)
+    {
+    for (int i = 0; i < 3; i++)
+        {
+        baryPoint[i] = max(baryPoint[i],THRESHOLD);
+        }
+    double clampedBarySum = baryPoint[0]+baryPoint[1]+baryPoint[2];
+    for (int i = 0; i < 3; i++)
+        {
+        baryPoint[i] = baryPoint[i]/clampedBarySum;
+        }
+    }
 
 
 /*

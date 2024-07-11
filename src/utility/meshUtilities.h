@@ -63,6 +63,8 @@ double meanEdgeLength(triangleMesh mesh, bool verbose = false);
 double triangleArea(point3 v1, point3 v2, point3 v3);
 double meanTriangleArea(triangleMesh mesh);
 
+void clampToThreshold(pmpBarycentricCoordinates &baryPoint);
+
 //!return true if the two lines which pass through the given endpoints intersect between the specified points on both lines. fill in the barycentric location of the intersection point
 bool intersectionOfLinesInBarycentricCoordinates(pmpBarycentricCoordinates line1Start, pmpBarycentricCoordinates line1End, pmpBarycentricCoordinates line2Start, pmpBarycentricCoordinates line2End, pmpBarycentricCoordinates &intersectionPoint);
 
