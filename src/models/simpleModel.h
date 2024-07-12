@@ -87,7 +87,7 @@ class simpleModel
 
 
         //!particle types
-        //vector<int> types;
+        vector<int> types;
         //!particle radii
         //vector<double> radii;
         //!particle masses

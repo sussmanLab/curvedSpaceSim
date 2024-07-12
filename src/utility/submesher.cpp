@@ -81,6 +81,7 @@ triangleMesh submesher::constructSubmeshFromSourceAndTargets(triangleMesh &mesh,
     halfedgeIndex hf = mesh.halfedge(sourceFace);
     for (halfedgeIndex hi: halfedges_around_face(hf, mesh))
         {
+        if (mesh.is_border(edgeIndex(hi))) continue; //border edges cannot have adjacent faces to add
         neighboringFace = mesh.face(mesh.opposite(hi));
         visitedFaces.insert(neighboringFace);
         explorationStack.push(neighboringFace);
@@ -104,6 +105,7 @@ triangleMesh submesher::constructSubmeshFromSourceAndTargets(triangleMesh &mesh,
         hf = mesh.halfedge(currentFace);
         for(halfedgeIndex hi : halfedges_around_face(hf, mesh))
             {
+	    if (mesh.is_border(edgeIndex(hi))) continue; //border edges cannot as a rule have adjacent faces we need to add
             neighboringFace = mesh.face(mesh.opposite(hi));
             //avoid forming loops by skipping faces that have already been visited
             if(visitedFaces.count(neighboringFace)>0)

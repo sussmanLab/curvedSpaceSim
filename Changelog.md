@@ -2,7 +2,8 @@
 
 ### Changes in progress
 
-* submesher: switch to breadth-first search with early stopping (optional, not obviously better)
+* documentation
+* simulations on open surfaces
 
 ### version 0.9
 

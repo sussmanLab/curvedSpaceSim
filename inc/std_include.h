@@ -20,7 +20,6 @@
 #include <string.h>
 #include <stdexcept>
 #include <cassert>
-#include <cpuid.h>
 
 #include "dataTypes.h" //defines simple, non-CGAL data types that will be used
 

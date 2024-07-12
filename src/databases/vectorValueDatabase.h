@@ -22,11 +22,6 @@ class vectorValueDatabase : public BaseDatabaseNetCDF
         virtual void readState(int rec);
         //!write a new value and vector
         virtual void writeState(vector<double> &vec,double val);
-        //!read the number of records in the database
-        int GetNumRecs(){
-                    NcDim *rd = File.get_dim("rec");
-                    return rd->size();
-                    };
         //!The variable that will be loaded for "value" when state is read
         double val;
         //!The variable that will be loaded for "vector" when state is read
