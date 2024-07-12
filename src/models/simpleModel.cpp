@@ -96,12 +96,12 @@ void simpleModel::findNeighbors(double maximumInteractionRange)
         printf("mean number of neighbors = %f\n",meanNN/N);
     };
 
-void simpleModel::clampBary(point3 &barycentricWeights)
+void simpleModel::clampBarycentricCoordinatesToFace(point3 &barycentricWeights)
     {
     double w1 = barycentricWeights.x();
     double w2 = barycentricWeights.y();
     double w3 = barycentricWeights.z();
-    double tol = pow(10,-14); // approximately numerical precision of 0 for point3 objects, which we'll treat as zero later
+    double tol = clampTolerance;
     if ((w1 < -tol) || (w2 < -tol) || (w3 < -tol)) cout << "While clamping, weight negative in its face, weights " << w1 << ", " << w2 << ", " << w3 << endl;
     if (abs(w1) < tol) w1 = tol;
     if (abs(w2) < tol) w2 = tol;
@@ -128,7 +128,7 @@ void simpleModel::R3PositionsToMeshPositions(triangleMesh &mesh, vector<point3> 
         {
         pmpFaceLocation locateOutput = PMP::locate_with_AABB_tree(pos, tree, mesh);
         point3 baryWeights = point3(locateOutput.second[0],locateOutput.second[1],locateOutput.second[2]);
-        clampBary(baryWeights);
+        clampBarycentricCoordinatesToFace(baryWeights);
         int face = locateOutput.first;
         simPositions.push_back(meshPosition(baryWeights, face));
         }

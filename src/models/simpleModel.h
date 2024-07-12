@@ -57,12 +57,17 @@ class simpleModel
         virtual void findNeighbors(double maximumInteractionRange);
         virtual void setParticlePositions(vector<meshPosition> &newPositions);
 
-	virtual void clampBary(point3 &barycentricWeights);
+    	virtual void clampBarycentricCoordinatesToFace(point3 &barycentricWeights);
+        //!takes a vector of euclidean positions, and appends to "simPositions" a set of (barycentric coordinates, face index) of the closest point on the mesh.
         virtual void R3PositionsToMeshPositions(triangleMesh &mesh, vector<point3> r3positions, vector<meshPosition> &simPositions);
+        //!A function of convenience to load particle positions from a file
         virtual void setMeshPositionsFromR3File(string filename, triangleMesh &mesh);
         //!uses the space to randomly set particle positions...hence, requires that a space is already set
         virtual void setRandomParticlePositions(noiseSource &noise);
         virtual void setMaxwellBoltzmannVelocities(noiseSource &noise, double T);
+
+        //!The space the model lives in
+        shared_ptr<baseSpace> space;
 
         //!The number of particles
         int N;
@@ -82,11 +87,11 @@ class simpleModel
 
 
         //!particle types
-        //GPUArray<int> types;
+        //vector<int> types;
         //!particle radii
-        //GPUArray<scalar> radii;
+        //vector<double> radii;
         //!particle masses
-        //GPUArray<scalar> masses;
+        //vector<double> masses;
         
         //sometimes, you just want the actual positions of particles
         vector<double3> euclideanLocations;
@@ -94,8 +99,9 @@ class simpleModel
 
         void setVerbose(bool v){verbose = v;};
         bool particleShiftsRequireVelocityTransport = false;
+
+        double clampTolerance = 0.00000000000001;//10^-14 as a current threshold for numerical tolerance. 
     protected:
-        shared_ptr<baseSpace> space;
         shared_ptr<baseNeighborStructure> neighborStructure;
         //!For compatibility across spaces (e.g., mesh-based spaces), a space may have internal functionality to jam euclidean data into a meshPosition. This can be used for neighborStructures
         vector<meshPosition> euclideanMeshPosition;

@@ -65,7 +65,7 @@ foreach(ARG
 	torusCrystallization
 	t_v_n
 	t_v_complexity
-    computationalTiming
+        computationalTiming
 	)
 add_executable("${ARG}.out" "${ARG}.cpp" )
 target_link_libraries("${ARG}.out"

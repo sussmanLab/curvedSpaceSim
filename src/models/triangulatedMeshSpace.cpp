@@ -28,6 +28,7 @@ void triangulatedMeshSpace::updateMeshSpanAndTree()
         printf("mesh spans (%f,%f,%f) to (%f,%f,%f)\n", minVertexPosition.x,minVertexPosition.y,minVertexPosition.z, maxVertexPosition.x,maxVertexPosition.y,maxVertexPosition.z);
 
     globalSMSP = make_shared<surfaceMeshShortestPath>(surface);
+    //global tree speeds up all subsequent location operations on the surface
     globalSMSP->build_aabb_tree(globalTree);
     }
 
@@ -35,8 +36,7 @@ void triangulatedMeshSpace::loadMeshFromFile(std::string filename, bool _verbose
     {
     verbose = _verbose;
     positionsAreEuclidean = false;
-    surface = triangleMesh(); //avoids double-writing if we ever have to load a new mesh 
-
+    surface = triangleMesh(); //clear mesh so we don't accidentally load two meshes at once
     if(verbose)
         {
         printf("loading from file %s\n",filename.c_str());
@@ -60,6 +60,7 @@ void triangulatedMeshSpace::loadMeshFromFile(std::string filename, bool _verbose
         {
         printf("input mesh has %i faces and %i vertices\n",nFaces,nVertices);
         };
+    //set spatial domain for surface, create global AABB tree
     updateMeshSpanAndTree();
     };
 
@@ -232,11 +233,12 @@ void triangulatedMeshSpace::distance(meshPosition &p1, std::vector<meshPosition>
     globalSMSP->remove_all_source_points();
     };
 
-//!throughVertex takes as input the index of the vertex we're going through, the vector from the current source to that intersection,
-//and the source face. Then, it cycles through the faces adjoining the vertex, collecting the total angle of the vertex (the total
-//angle subtended by the edge pairs) and determining the heading that would be halfway through the total angle. The face containing
-//that heading and the heading itself are returned. The half-of-total angle criterion is the same as the straightest geodesic criterion;
-//the straightest path has equal angles on both of its sides (e.g. in flat space, 180 degrees either way you rotate).  
+/*!throughVertex takes as input the index of the vertex we're going through, the vector from the current source to that intersection,
+and the source face. Then, it cycles through the faces adjoining the vertex, collecting the total angle of the vertex (the total
+angle subtended by the edge pairs), and determines the heading that would be halfway through the total angle. The face containing
+that heading and the heading itself are returned. The half-of-total angle criterion is the same as the straightest geodesic criterion;
+the straightest path has equal angles on both of its sides (e.g. in flat space, 180 degrees either way you rotate).  
+*/
 std::pair<faceIndex,vector3> triangulatedMeshSpace::throughVertex(vertexIndex &intersectedVertex, vector3 &toIntersection, faceIndex &sourceFace)  
     {
     point3 vi_r3 = surface.point(intersectedVertex);
@@ -452,7 +454,7 @@ iter+=1;
         std::vector<vertexIndex> involvedVertex;
 
         findTriangleEdgeIntersectionInformation(sourceBarycentricLocation,targetBarycentricLocation,intersectionPoint, vertexList,lastUsedHalfedge,surface, involvedVertex,uninvolvedVertex);
-	/* after above, the following are written to:
+        /* after above, the following are written to:
          * involvedVertex (vertex index)
          * uninvolvedVertex (integer)
          * intersection point (barycentric coords)
@@ -474,7 +476,7 @@ iter+=1;
 	if(uninvolvedVertex.size() != 1)
             ERRORERROR("a barycentric coordinate of the target is negative, but neither 1 nor 2 intersections were found. Apparently some debugging is needed!");
         /*
-        Assume at this point that only one intersection point was found.
+        We have now identified the relevant edge or vertex intersection point.
         intersectionPoint contains the barycentric coordinates of the intersection point
         on a current face. Identify the next face from the relevant halfEdge, update current
         move to be from the edge intersection to the original target, and rotate it around
@@ -483,13 +485,11 @@ iter+=1;
         point3 edgeIntersectionPoint = globalSMSP->point(currentSourceFace,intersectionPoint);
         sourcePoint = edgeIntersectionPoint;
 
-        //update the move vector to intersection->target -- this and above declaration are vestigial, 
-	//but they may be useful later, so it is being left here
         currentMove = vector3(edgeIntersectionPoint, target);
 
         //identify the next faceIndex from the shared intersected edge
         vector3 targetNormal;
-	halfedgeIndex intersectedEdge;
+        halfedgeIndex intersectedEdge;
         if (uninvolvedVertex.size() == 1)
             {
             //if we're going through an edge, standard rotation around the axis formed by the normals is fine
@@ -501,7 +501,8 @@ iter+=1;
             targetNormal = PMP::compute_face_normal(provisionalTargetFace,surface);
             double normalDotProduct = currentSourceNormal*targetNormal;
             double angle = acos(normalDotProduct);
-            vector3 axisVector = CGAL::cross_product(currentSourceNormal,targetNormal);
+            if (normalDotProduct >= 1) angle = 0; //clamp for robustness against precision errors for very similar normals
+	    vector3 axisVector = CGAL::cross_product(currentSourceNormal,targetNormal);
             axisVector /= vectorMagnitude(axisVector); //this could use normalize if we wanted to
             std::vector<point3> axis = {sourcePoint, sourcePoint+axisVector};
             target = rotateAboutAxis(target, axis, angle);
@@ -527,7 +528,8 @@ iter+=1;
         currentSourceNormal = targetNormal;
         lastUsedHalfedge = intersectedEdge;        
 	
-	if(iter ==4000000) ERRORERROR("Error: shifted across an extremely  large number of faces... is this an error, or an accidental call with an extremely large displacement vector? ");
+        if(iter == maximumShiftEdgeCrossings)
+            ERRORERROR("Error: shifted across too many faces. An inadvertently large displacement was almost certainly used.");
         };
 
     pos.faceIndex = currentSourceFace;
@@ -626,6 +628,7 @@ iter+=1;
             targetNormal = PMP::compute_face_normal(provisionalTargetFace,surface);
             double normalDotProduct = currentSourceNormal*targetNormal;
             double angle = acos(normalDotProduct);
+	    if (normalDotProduct >= 1) angle = 0;
             vector3 axisVector = CGAL::cross_product(currentSourceNormal,targetNormal);
             axisVector /= vectorMagnitude(axisVector); //this could use normalize if we wanted to
             std::vector<point3> axis = {sourcePoint, sourcePoint+axisVector};
@@ -654,6 +657,7 @@ iter+=1;
             std::vector<point3> axis = {sourcePoint, sourcePoint+axisVector};
 	    double normalDotProduct = currentSourceNormal*targetNormal;
             double angle = acos(normalDotProduct);
+	    if (normalDotProduct >= 1) angle = 0;
 	    point3 velocityVectorTarget = sourcePoint + velocityVector;
             velocityVectorTarget=rotateAboutAxis(velocityVectorTarget,axis,angle);
             velocityVector =  vector3(sourcePoint,velocityVectorTarget);
