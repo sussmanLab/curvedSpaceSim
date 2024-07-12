@@ -118,7 +118,7 @@ int main(int argc, char*argv[])
     testPositions.push_back(loc1);
     testPositions.push_back(loc2);
     */
-
+    cout << "Initialize mesh from file " << meshName << endl;
     //set space as a triangulatedMeshSpace
     shared_ptr<triangulatedMeshSpace> meshSpace=make_shared<triangulatedMeshSpace>();
     meshSpace->loadMeshFromFile(meshName,verbose);
@@ -166,7 +166,7 @@ int main(int argc, char*argv[])
      
     double scaledVelocity = velocity/(maximumInteractionRange/2); 
 
-    string trajectoryFilename = "./SPP_N"+to_string(N)+"_Pe"+to_string(PecletNum)+"_vs"+to_string(scaledVelocity)+".nc";
+    string trajectoryFilename = "./SPP_N"+to_string(N)+"_Pe"+to_string(PecletNum)+"_vs"+to_string(scaledVelocity)+meshName.substr(17,20)+".nc";
     vectorValueDatabase vvdat(posToSave.size(),trajectoryFilename,NcFile::Replace);
     vvdat.writeState(posToSave,0);
 
