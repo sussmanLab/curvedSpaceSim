@@ -16,6 +16,7 @@
 class noseHooverNVT : public updater
     {
     public:
+        //The constructor allows one to set the time constant associated with the bath variable, but this needs to be implemented in the code by letting tau alter the bath variable mass
         noseHooverNVT(double _dt, double _T, double _tau=1.0, int _M=2);
 
         virtual void performUpdate();
