@@ -91,7 +91,7 @@ class simpleModel
         //!particle radii
         //vector<double> radii;
         //!particle masses
-        //vector<double> masses;
+        vector<double> masses;
         
         //sometimes, you just want the actual positions of particles
         vector<double3> euclideanLocations;
