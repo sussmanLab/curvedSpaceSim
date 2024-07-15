@@ -66,8 +66,6 @@ class triangulatedMeshSpace : public baseSpace
 
 	//!given a goal edge length, remesh the surface isotropically to have that edge length on average and set the new surface
         void isotropicallyRemeshSurface(double targetEdgeLength);
-
-        std::pair<faceIndex,vector3> throughVertex(vertexIndex &intersectedVertex, vector3 &toIntersection, faceIndex &sourceFace);
        
        	//data structures
         triangleMesh surface;
