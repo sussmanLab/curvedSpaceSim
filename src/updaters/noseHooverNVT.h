@@ -28,13 +28,16 @@ class noseHooverNVT : public updater
             initializeFromModel();
             setBathVariables();
             };
+
+	double getTemperatureFromKE();
+
     protected:
         vector<vector3> displacements;
         double temperature;
         int chainLength;
         //!bathVariables contains (pos, vel, accel, mass) of the chain variables
         vector<double4> bathVariables;
-        double timeConstant;
+        double tau;
         void propagateChain();
         void propagatePositionsVelocities();
         void setBathVariables();

@@ -8,7 +8,7 @@ noseHooverNVT::noseHooverNVT(double _dt, double _T, double _tau, int _M)
     dt8 = 0.125*deltaT;
     chainLength = _M;
     temperature = _T;
-    timeConstant = _tau;
+    tau = _tau;
     bathVariables.resize(chainLength+1);
 
     double4 zeroVector; zeroVector.x =0.0; zeroVector.y=0.0; zeroVector.z=0.0; zeroVector.w=0.0;
@@ -130,3 +130,18 @@ void noseHooverNVT::propagatePositionsVelocities()
         }
     sim->moveParticles(displacements);
     }
+
+
+double noseHooverNVT::getTemperatureFromKE()
+    {
+    std::vector<double> kineticEnergies; 
+    kineticEnergies.reserve(Ndof); 
+    for (int i = 0; i < Ndof; i++) 
+        {
+	vector3 vel = model->velocities[i]; 
+	kineticEnergies.push_back(vel*vel);
+        }
+    return (1/(2*Ndof))*std::accumulate(kineticEnergies.begin(), kineticEnergies.end(),0);
+
+    }
+

@@ -72,6 +72,7 @@ foreach(ARG
         flatSpaceSimulation
         curvedSpaceSimulation
         multirankSimulation
+	curvedSpaceNVTSim
         )
 add_executable("${ARG}.out" "${ARG}.cpp" )
 target_link_libraries("${ARG}.out"

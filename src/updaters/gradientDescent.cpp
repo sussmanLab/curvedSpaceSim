@@ -30,6 +30,7 @@ double gradientDescent::getForceNorm()
     squaredTotalForceNorm = forceNorm[0];
     return squaredTotalForceNorm;
     };
+
 double gradientDescent::getMaxForce()
     {
     vector<double> maxNorm(1);
