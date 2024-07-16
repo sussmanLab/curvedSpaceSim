@@ -134,14 +134,13 @@ void noseHooverNVT::propagatePositionsVelocities()
 
 double noseHooverNVT::getTemperatureFromKE()
     {
-    std::vector<double> kineticEnergies; 
-    kineticEnergies.reserve(Ndof); 
+    double v2sum = 0; 
     for (int i = 0; i < Ndof; i++) 
         {
 	vector3 vel = model->velocities[i]; 
-	kineticEnergies.push_back(vel*vel);
+	v2sum = v2sum + vel*vel;
         }
-    return (1/(2*Ndof))*std::accumulate(kineticEnergies.begin(), kineticEnergies.end(),0);
+    return v2sum/(2*Ndof);
 
     }
 

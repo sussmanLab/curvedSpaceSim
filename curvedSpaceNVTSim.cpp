@@ -103,6 +103,10 @@ int main(int argc, char*argv[])
     //by default, the simpleModelDatabase will save euclidean positions, mesh positions (barycentric + faceIdx), and particle velocities. See constructor for saving forces and/or particle types as well
     simpleModelDatabase saveState(N,"./testModelDatabase.nc",NcFile::Replace);
     saveState.writeState(configuration,0.0);
+    cout << "intended starting temp: " << temperature << endl;
+    cout << "starting temp: " << NVTUpdater->getTemperatureFromKE() << endl; 
+    
+    ofstream temperatureFile("nvtTemperatures.csv"); 
 
     for (int ii = 0; ii < maximumIterations; ++ii)
         {
@@ -116,16 +120,13 @@ int main(int argc, char*argv[])
             vvdat.writeState(posToSave,dt*ii);
             */
             saveState.writeState(configuration,dt*ii);
-            if(programBranch <2)
-                {
-                double nowTemp = NVTUpdater->getTemperatureFromKE();
-                printf("step %i T %f fM %f\n",ii,nowTemp);
-                }
-            else
-                printf("step %i \n",ii);
-            }
+            double nowTemp = NVTUpdater->getTemperatureFromKE();
+            printf("step %i T %f \n",ii,nowTemp);
+            temperatureFile << ii << ", " << nowTemp << "\n";
+	    }
         }
-
+    
+    temperatureFile.close(); 
     timer.print();
 
     return 0;
