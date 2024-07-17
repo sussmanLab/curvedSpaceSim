@@ -68,15 +68,16 @@ set(HEADERS
 
 # list the names of cpp files corresponding to linked executables you'd like...
 foreach(ARG
-        meshTesting
-        flatSpaceSimulation
-        curvedSpaceSimulation
+	flatSpaceSimulation
+	curvedSpaceSimulation
         multirankSimulation
 	torusCrystallization
 	t_v_n
 	t_v_complexity
         computationalTiming
-	)
+	curvedSpaceNVTSim
+        )
+
 add_executable("${ARG}.out" "${ARG}.cpp" )
 target_link_libraries("${ARG}.out"
     ${myLibs}

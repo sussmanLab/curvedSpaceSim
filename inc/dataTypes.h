@@ -36,4 +36,23 @@ class double3
             return *this;
             };
     };
+
+class double4
+    {
+    public:
+        double x;
+        double y;
+        double z;
+        double w;
+
+        double4& operator=(const double4& a)
+            {
+            this->x = a.x;
+            this->y = a.y;
+            this->z = a.z;
+            this->w = a.w;
+            return *this;
+            };
+    };
+
 #endif
