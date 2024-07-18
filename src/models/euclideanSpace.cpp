@@ -55,3 +55,9 @@ void euclideanSpace::distance(meshPosition &p1, std::vector<meshPosition> &p2, s
         endPathTangent[ii] = (-1./dist)*Rab;
         };
     };
+
+double euclideanSpace::getArea() 
+    {
+    cout << "You've tried to get the area of a Euclidean space, which has infinite extent and no set area. Returning zero for now." << endl;
+    return 0;
+    }

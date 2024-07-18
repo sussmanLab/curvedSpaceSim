@@ -132,6 +132,13 @@ int main(int argc, char*argv[])
     
     temperatureFile.close(); 
     timer.print();
+    
+    vector<double> stress(9, 0.0); 
+    simulator->computeMonodisperseStress(stress); 
+    cout << "elements of 'stress tensor': "; 
+    for (double sigmaab: stress) cout << sigmaab << " "; 
+    cout << endl; 
+    cout << "pressure: " << stress[0]+stress[4]+stress[8] << endl;
 
     return 0;
     };

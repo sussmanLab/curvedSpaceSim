@@ -80,7 +80,7 @@ double triangleArea(point3 v1, point3 v2, point3 v3)
 double meanTriangleArea(triangleMesh mesh)
     {
     double mean = 0.0;
-    double count = 0.0;
+    int count = 0;
     auto facelist = mesh.faces();
     for (faceIndex face: facelist)
         {
@@ -91,6 +91,22 @@ double meanTriangleArea(triangleMesh mesh)
         mean += triangleArea(vs[0],vs[1],vs[2]);
         };
     return mean/count;
+    };
+
+double totalArea(triangleMesh mesh)
+    {
+    double area = 0.0;
+    int count = 0; 
+    auto facelist = mesh.faces();
+    for (faceIndex face: facelist)
+        {
+        ++count;
+        std::vector<point3> vs;
+        vs.reserve(3);
+        getVertexPositionsFromFace(mesh,face,vs);
+        area += triangleArea(vs[0],vs[1],vs[2]);
+        };
+    return area;
     };
 
 
