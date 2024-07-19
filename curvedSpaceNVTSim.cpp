@@ -111,8 +111,16 @@ int main(int argc, char*argv[])
     cout << "starting temp: " << NVTUpdater->getTemperatureFromKE() << endl; 
     
     ofstream temperatureFile("nvtTemperatures.csv"); 
+ 
+    double area = meshSpace->getArea(); 
+    double density = N/area; 
+    double rhoSigma2 = density*maximumInteractionRange*maximumInteractionRange; 
+    
+    int breakpoint = maximumIterations/100;  
+    double sumBPoR = 0;
+    int counter = 1; 
 
-    for (int ii = 0; ii < maximumIterations; ++ii)
+    for (int ii = 0; ii < 2*maximumIterations; ++ii)
         {
         timer.start();
         simulator->performTimestep();
@@ -128,17 +136,25 @@ int main(int argc, char*argv[])
             printf("step %i T %f \n",ii,nowTemp);
             temperatureFile << ii << ", " << nowTemp << "\n";
 	    }
+	if ((ii > maximumIterations) && (ii%breakpoint == 0))
+       	    {
+            double nowTemp = NVTUpdater->getTemperatureFromKE();
+	    vector<double> stress(9, 0.0); 
+	    simulator->computeMonodisperseStress(stress);
+	    //stress trace is pressure, kb = 1, get temperature from average KE, and density is number density above
+            sumBPoR += (stress[0]+stress[4]+stress[8])/(density*nowTemp);
+	    counter+=1;  
+	    }
         }
     
     temperatureFile.close(); 
     timer.print();
     
-    vector<double> stress(9, 0.0); 
-    simulator->computeMonodisperseStress(stress); 
-    cout << "elements of 'stress tensor': "; 
-    for (double sigmaab: stress) cout << sigmaab << " "; 
-    cout << endl; 
-    cout << "pressure: " << stress[0]+stress[4]+stress[8] << endl;
+    double betaPoverRho = sumBPoR/counter; // mean beta*P/rho "after equilibrium" (hopefully)  
+    
+    cout << "rho sigma squared: " << rhoSigma2 << endl; 
+    cout << "beta P over Rho: " << betaPoverRho << endl;
+    cout << "{" << rhoSigma2 << ", " << betaPoverRho << "}" << endl;
 
     return 0;
     };
