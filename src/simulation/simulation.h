@@ -54,6 +54,7 @@ class simulation : public basicSimulation, public enable_shared_from_this<simula
         //!Enforce reproducible dynamics
         void setReproducible(bool reproducible);
 
+	void computeMonodisperseStress(vector<double> &stress); 
     };
 typedef shared_ptr<simulation> SimulationPtr;
 #endif

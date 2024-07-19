@@ -34,6 +34,8 @@ class baseSpace
         //given a vector of meshPositions, extract some double3 information
         virtual void meshPositionToEuclideanLocation(std::vector<meshPosition> &p1, std::vector<meshPosition> &result)=0;
 
+	virtual double getArea()=0; 
+
         //!Some spaces know that the associated model's default meshPosition structure is already euclidean, but others (e.g., meshes) are not
         bool positionsAreEuclidean = true;
 

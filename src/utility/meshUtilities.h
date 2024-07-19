@@ -62,6 +62,7 @@ void getVertexIndicesFromFace(triangleMesh &mesh, const faceIndex &i, std::vecto
 double meanEdgeLength(triangleMesh mesh, bool verbose = false);
 double triangleArea(point3 v1, point3 v2, point3 v3);
 double meanTriangleArea(triangleMesh mesh);
+double totalArea(triangleMesh mesh); 
 
 void clampToThreshold(pmpBarycentricCoordinates &baryPoint);
 

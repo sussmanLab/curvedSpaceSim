@@ -30,7 +30,6 @@ class triangulatedMeshSpace : public baseSpace
         //!load data from an off file and initialize all mesh data structures
         void loadMeshFromFile(std::string filename, bool verbose = false);
 
-
         //!Given a particle somewhere on the mesh, displace it in the direction of the vector, wrapping around faces to make it a geodesic displacement
         virtual void displaceParticle(meshPosition &pos, vector3 &displacementVector);
         //!On a mesh, if a particle goes across an edge the velocity vector gets rotated along with it
@@ -46,6 +45,8 @@ class triangulatedMeshSpace : public baseSpace
         virtual void randomPosition(meshPosition &p, noiseSource &noise);
 
         virtual void randomVectorAtPosition(meshPosition &p, vector3 &v, noiseSource &noise);
+
+	virtual double getArea(); 
 
         void distanceWithSubmeshing(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent,double distanceThreshold);
 

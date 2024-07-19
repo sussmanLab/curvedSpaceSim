@@ -143,6 +143,11 @@ void triangulatedMeshSpace::convertToEuclideanPositions(std::vector<meshPosition
         };
     }
 
+double triangulatedMeshSpace::getArea() 
+    {
+    return totalArea(surface); 
+    }
+
 
 void triangulatedMeshSpace::distanceWithSubmeshing(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent,double distanceThreshold)
     {
@@ -181,24 +186,12 @@ void triangulatedMeshSpace::distanceWithSubmeshing(meshPosition &p1, std::vector
     for(int ii = 0; ii < nTargets; ++ii)
         {
         computePathDistanceAndTangents(&localSMSP, faceTargetsForSubmesh[ii], distances[ii],startPathTangent[ii], endPathTangent[ii]);
-        //if the submesh has multiple connected components, the distance will be returned as negative
+        //if the submesh has multiple disconnected components, the distance will be returned as negative
         if(distances[ii] <0)
             {
             distances[ii] = 2.0*maximumDistance;
             startPathTangent[ii] = {0,0,1};
             endPathTangent[ii] = {0,0,1};
-            /*
-            printf("disconnected submesh %f %f \n",maximumDistance,distanceThreshold);//for debugging more aggresive submeshing
-            printf("vertices={");
-            for(vertexIndex v : submesh.vertices())
-                {
-                    printPoint(submesh.point(v));printf(",");
-                }
-            printf("};\n");
-            printf("target={");
-            printPoint(PMP::construct_point(faceTargetsForSubmesh[ii],submesh)); printf("};\n");
-            printf("source={"); printPoint(PMP::construct_point(sourcePoint,submesh)); printf("};\n");
-            */
             }
         };
     };
