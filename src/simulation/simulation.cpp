@@ -87,7 +87,7 @@ void simulation::performTimestep()
     {
     integerTimestep += 1;
     Time += integrationTimestep;
-
+    
     //perform any updates, one of which should probably be an EOM
     for (int u = 0; u < updaters.size(); ++u)
         {
