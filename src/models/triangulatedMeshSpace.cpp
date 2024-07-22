@@ -470,12 +470,45 @@ iter+=1;
 	    //stopping the particle cold. is_border works on both edges and vertices
             if (surface.is_border(vertexIndex(involvedVertex[0])))
                 {
-                targetBarycentricLocation = intersectionPoint;
-                //clamp so we are not actually on the edge (or over it!), but just very close -- avoids 
-                //confusion on the intersection checker's part at later timesteps. 
+              	targetBarycentricLocation = intersectionPoint;
                 clampToThreshold(targetBarycentricLocation);
-                continueShifting = false;
-                continue;
+                if (useTangentialBCs) 
+		    {
+		    //now, as in throughvertex, we have to find all the vectors pointing away from the intersected vertex. Thankfully we don't also need to enumerate faces.  
+                    std::vector<vertexIndex> neighborIndices;
+                    neighborIndices.reserve(8); //this should be as large as is possible -- on average, expect 3 for boundary vertex
+
+                    vertexCirculator vbegin(surface.halfedge(intersectedVertex),surface), done(vbegin);
+                    do 
+                        {
+                        neighborIndices.push_back(*vbegin++);
+                        } while(vbegin != done);
+		    //below serves the rule that the next heading will be along the edge that maximally 
+		    //overlaps with the present heading. While it's in principle "possible" to end up heading 
+		    //away from the boundary this way, it should geometrically be impossible -- because we've tried
+		    //to travel over the boundary, we will always be maximally overlapping with one of the boundary edges 
+		    vector possibleEdgeVecs; 
+		    possibleEdgeVecs.reserve(8);
+		    double maxOverlap = -1;  
+		    vector3 newHeading = vector3(0,0,0); 
+		    for (vertexIndex vi: neighborIndices) 
+	                {
+		        vector3 outwardVector(surface.point(involvedVertex[0]),surface.point(vi));
+		        outwardVector = normalize(outwardVector);
+			double currentOverlap = outwardVector*normalize(displacementVector); 
+		        if (outwardVector*normalize(displacementVector) > maxOverlap) 
+			    {
+			    newHeading = outwardVector; 
+			    maxOverlap = currentOverlap;
+			    }
+			}
+                    displacementVector = vectorMagnitude(displacementVector)*newHeading;  
+		    }
+		else 
+		    {	
+                    continueShifting = false;
+                    continue;
+		    }
                 }
 	    toIntersection = vector3(sourcePoint, PMP::construct_point(std::make_pair(currentSourceFace,intersectionPoint), surface)); //always assumed to be from source to intersected vertex
             printf("updating shift direction with throughvertex\n");
@@ -504,13 +537,38 @@ iter+=1;
         if (uninvolvedVertex.size() == 1)
             {
             intersectedEdge = surface.halfedge(involvedVertex[0],involvedVertex[1]);  
-            //same as above -- particle stops completely if it hits a boundary, for now
 	    if (surface.is_border(edgeIndex(intersectedEdge)))
                 {
-                targetBarycentricLocation = intersectionPoint;
+		targetBarycentricLocation = intersectionPoint;
                 clampToThreshold(targetBarycentricLocation);
-                continueShifting = false;
-                continue;
+		if (useTangentialBCs) 
+		    { 
+                    //rotate heading to be tangential to the edge in the direction most aligned with its current heading. 
+		    point3 ev1 = surface.point(involvedVertex[0]);
+	            point3 ev2 = surface.point(involvedVertex[1]);
+		    vector3 edgeVectorForward(ev1,ev2); 
+		    vector3 edgeVectorBackward(ev2,ev1); 
+		    edgeVectorForward = normalize(edgeVectorForward);
+	            edgeVectorBackward = normalize(edgeVectorBackward); 
+		    double forwardDot = displacementVector*edgeVectorForward;
+		    double backwardDot = displacementVector*edgeVectorForward; 
+		    double displacementLength = vectorMagnitude(displacementVector);
+		    if (forwardDot > backwardDot) 
+		        {
+			displacementVector = displacementLength*edgeVectorForward; 
+			}	
+		    else 
+		        {
+			displacementVector = displacementLength*edgeVectorBackward; 
+		        }
+		    }
+	
+                //if not tangential BCs, particle stops completely if it hits a boundary
+		else
+		    { 
+                    continueShifting = false;
+		    }
+		continue;
                 }
 
 	    provisionalTargetFace = surface.face(intersectedEdge);

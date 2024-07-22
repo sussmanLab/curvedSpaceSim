@@ -72,6 +72,9 @@ class triangulatedMeshSpace : public baseSpace
         triangleMesh surface;
         double3 minVertexPosition;
         double3 maxVertexPosition;
+	
+	bool useTangentialBCs = false;
+
     protected:
         void updateMeshSpanAndTree();
         std::pair<faceIndex,vector3> throughVertex(vertexIndex &intersectedVertex, vector3 &toIntersection, faceIndex &sourceFace);
