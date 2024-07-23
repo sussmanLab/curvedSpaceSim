@@ -478,7 +478,7 @@ iter+=1;
                     std::vector<vertexIndex> neighborIndices;
                     neighborIndices.reserve(8); //this should be as large as is possible -- on average, expect 3 for boundary vertex
 
-                    vertexCirculator vbegin(surface.halfedge(intersectedVertex),surface), done(vbegin);
+                    vertexCirculator vbegin(surface.halfedge(vertexIndex(involvedVertex[0])),surface), done(vbegin);
                     do 
                         {
                         neighborIndices.push_back(*vbegin++);
@@ -487,29 +487,29 @@ iter+=1;
 		    //overlaps with the present heading. While it's in principle "possible" to end up heading 
 		    //away from the boundary this way, it should geometrically be impossible -- because we've tried
 		    //to travel over the boundary, we will always be maximally overlapping with one of the boundary edges 
-		    vector possibleEdgeVecs; 
-		    possibleEdgeVecs.reserve(8);
-		    double maxOverlap = -1;  
-		    vector3 newHeading = vector3(0,0,0); 
+		    double maxOverlap = -1; 
+		    double currentOverlap = 0; 
+		    vector3 boundaryHeading = vector3(0,0,0); 
 		    for (vertexIndex vi: neighborIndices) 
 	                {
 		        vector3 outwardVector(surface.point(involvedVertex[0]),surface.point(vi));
 		        outwardVector = normalize(outwardVector);
-			double currentOverlap = outwardVector*normalize(displacementVector); 
-		        if (outwardVector*normalize(displacementVector) > maxOverlap) 
+			currentOverlap = outwardVector*displacementVector; 
+		        if (currentOverlap > maxOverlap) 
 			    {
-			    newHeading = outwardVector; 
+			    boundaryHeading = outwardVector; 
 			    maxOverlap = currentOverlap;
 			    }
 			}
-                    displacementVector = vectorMagnitude(displacementVector)*newHeading;  
+                    displacementVector = currentOverlap*vectorMagnitude(displacementVector)*newHeading;  
 		    }
 		else 
 		    {	
                     continueShifting = false;
-                    continue;
 		    }
-                }
+                
+                continue;
+		}
 	    toIntersection = vector3(sourcePoint, PMP::construct_point(std::make_pair(currentSourceFace,intersectionPoint), surface)); //always assumed to be from source to intersected vertex
             printf("updating shift direction with throughvertex\n");
             std::cout << "involved vertex " << involvedVertex[0] << std::endl;
@@ -555,11 +555,11 @@ iter+=1;
 		    double displacementLength = vectorMagnitude(displacementVector);
 		    if (forwardDot > backwardDot) 
 		        {
-			displacementVector = displacementLength*edgeVectorForward; 
+			displacementVector = forwardDot*displacementLength*edgeVectorForward; 
 			}	
 		    else 
 		        {
-			displacementVector = displacementLength*edgeVectorBackward; 
+			displacementVector = backwardDot*displacementLength*edgeVectorBackward; 
 		        }
 		    }
 	
@@ -674,11 +674,46 @@ iter+=1;
             {
             if (surface.is_border(vertexIndex(involvedVertex[0])))
                 {
-                targetBarycentricLocation = intersectionPoint;
-                clampToThreshold(targetBarycentricLocation); //clamp avoids any near-edge confusion at later steps
-                continueShifting = false;
-                continue;
-                }
+		targetBarycentricLocation = intersectionPoint;
+                clampToThreshold(targetBarycentricLocation);
+                if (useTangentialBCs) 
+		    {
+              	    targetBarycentricLocation = intersectionPoint;
+                    clampToThreshold(targetBarycentricLocation);
+                    if (useTangentialBCs) 
+		        {
+		        //now, as in throughvertex, we have to find all the vectors pointing away from the intersected vertex. Thankfully we don't also need to enumerate faces.  
+                        std::vector<vertexIndex> neighborIndices;
+                        neighborIndices.reserve(8); //this should be as large as is possible -- on average, expect 3 for boundary vertex
+
+                        vertexCirculator vbegin(surface.halfedge(vertexIndex(involvedVertex[0])),surface), done(vbegin);
+                        do 
+                            {
+                            neighborIndices.push_back(*vbegin++);
+                            } while(vbegin != done);
+		        double maxOverlap = -1; 
+		        double currentOverlap = 0; 
+		        vector3 boundaryHeading = vector3(0,0,0); 
+		        for (vertexIndex vi: neighborIndices) 
+	                    {
+		            vector3 outwardVector(surface.point(involvedVertex[0]),surface.point(vi));
+		            outwardVector = normalize(outwardVector);
+			    currentOverlap = outwardVector*displacementVector; 
+		            if (currentOverlap > maxOverlap) 
+			       {
+			       boundaryHeading = outwardVector; 
+			       maxOverlap = currentOverlap;
+			       }
+			    }
+                        displacementVector = currentOverlap*vectorMagnitude(displacementVector)*newHeading;  
+		        }
+		    else 
+		        {	
+                        continueShifting = false;
+		        }
+                    continue;
+		    };
+		}
             toIntersection = vector3(sourcePoint, PMP::construct_point(std::make_pair(currentSourceFace,intersectionPoint), surface)); //always assumed to be from source to intersected vertex
             std::pair<faceIndex, vector3> targetHeading = throughVertex(involvedVertex[0], toIntersection, currentSourceFace);
             provisionalTargetFace = targetHeading.first;
@@ -710,8 +745,35 @@ iter+=1;
                 {
                 targetBarycentricLocation = intersectionPoint;
                 clampToThreshold(targetBarycentricLocation);
-                continueShifting = false;
-                continue;
+		if (useTangentialBCs) 
+		    { 
+                    //rotate heading to be tangential to the edge in the direction most aligned with its current heading. 
+		    point3 ev1 = surface.point(involvedVertex[0]);
+	            point3 ev2 = surface.point(involvedVertex[1]);
+		    vector3 edgeVectorForward(ev1,ev2); 
+		    vector3 edgeVectorBackward(ev2,ev1); 
+		    edgeVectorForward = normalize(edgeVectorForward);
+	            edgeVectorBackward = normalize(edgeVectorBackward); 
+		    double forwardDot = displacementVector*edgeVectorForward;
+		    double backwardDot = displacementVector*edgeVectorForward; 
+		    double displacementLength = vectorMagnitude(displacementVector);
+		    if (forwardDot > backwardDot) 
+		        {
+			displacementVector = forwardDot*displacementLength*edgeVectorForward; 
+			}	
+		    else 
+		        {
+			displacementVector = backwardDot*displacementLength*edgeVectorBackward; 
+		        }
+		    }
+	
+                //if not tangential BCs, particle stops completely if it hits a boundary
+		else
+		    { 
+                    continueShifting = false;
+		    }
+		continue;
+   
                 }
 
 	    provisionalTargetFace = surface.face(intersectedEdge);

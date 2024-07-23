@@ -164,10 +164,10 @@ int main(int argc, char*argv[])
     std::ofstream meshPosFile(mposFilename); 
     
     configuration->fillEuclideanLocations();
-    for (int ii = 0; ii < N; ++ii)
+    for (int jj = 0; jj < N; ++jj)
         {
-	int fIndex = configuration->positions[ii].faceIndex; 
-        double3 p = configuration->euclideanLocations[ii];
+	int fIndex = configuration->positions[jj].faceIndex; 
+        double3 p = configuration->euclideanLocations[jj];
 	meshPosFile << fIndex << ", " << p.x << ", " << p.y << ", " << p.z << "\n";
         }
 
