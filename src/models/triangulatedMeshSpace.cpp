@@ -693,54 +693,50 @@ iter+=1;
 	    cout << "vertex intersection!" << endl;
             if (surface.is_border(vertexIndex(involvedVertex[0])))
                 {
-	        clampToThreshold(intersectionPoint);
-	        cout << "vertex intersection at boundary" << endl; 
+	        cout << "boundary vertex" << endl;
+		clampToThreshold(intersectionPoint);
 		targetBarycentricLocation = intersectionPoint;
-                cout << "intersection point written" << endl;
-                if (useTangentialBCs) 
+                 	   
+                std::vector<vertexIndex> neighborIndices;
+                neighborIndices.reserve(8); //large as possible, but usually only 3 or 4
+	        vertexCirculator vbegin(surface.halfedge(vertexIndex(involvedVertex[0])),surface), done(vbegin);
+                do 
+                    {
+                    neighborIndices.push_back(*vbegin++);
+                    } while(vbegin != done);
+		double maxOverlap = -1; //maybe this can't be less than 0  
+		double currentOverlap = 0; 
+		vector3 boundaryHeading = vector3(0,0,0);
+		for (vertexIndex vi: neighborIndices) 
+	           {
+		   vector3 outwardVector(surface.point(involvedVertex[0]),surface.point(vi));
+		   outwardVector = normalize(outwardVector);
+                   currentOverlap = outwardVector*displacementVector; 
+		   if (currentOverlap > maxOverlap) 
+		       {
+		       boundaryHeading = outwardVector; 
+		       maxOverlap = currentOverlap;
+		       }
+	           }
+                //finally, either update displacement tangentially or just stop moving -- velocity gets
+		//updated the same way either way 
+		if (useTangentialBCs) 
 		    {
-                    std::vector<vertexIndex> neighborIndices;
-                    neighborIndices.reserve(8); //large as possible, but usually only 3 or 4
-                    cout << "reserved neighbor indices" << endl;
-		    vertexCirculator vbegin(surface.halfedge(vertexIndex(involvedVertex[0])),surface), done(vbegin);
-                    do 
-                        {
-                        neighborIndices.push_back(*vbegin++);
-                        } while(vbegin != done);
-		    cout << "neighor indices written" << endl;
-		    double maxOverlap = -1; //maybe this can't be less than 0  
-		    double currentOverlap = 0; 
-		    vector3 boundaryHeading = vector3(0,0,0);
-		    cout << "starting loop to find boundary heading" << endl; 
-		    for (vertexIndex vi: neighborIndices) 
-	                {
-		        vector3 outwardVector(surface.point(involvedVertex[0]),surface.point(vi));
-		        outwardVector = normalize(outwardVector);
-			currentOverlap = outwardVector*displacementVector; 
-		        if (currentOverlap > maxOverlap) 
-			    {
-			    boundaryHeading = outwardVector; 
-			    maxOverlap = currentOverlap;
-			    }
-			}
-                    cout << "boundary heading " << boundaryHeading << ", max overlap " << maxOverlap <<endl;
-                    if (useTangentialBCs) 
-		        {
-                        displacementVector = maxOverlap*vectorMagnitude(displacementVector)*boundaryHeading; 
-                        target = globalSMSP->point(currentSourceFace,intersectionPoint) + displacementVector; 
-			}
-		    else 
-		        {
-                        continueShifting = false;
-		        }
-		    //we had to do a bunch outside of the conditional to allow this, but now we can remove 
-		    //components of velocity orthogonal to the edge we *would* have traveled to, even if
-		    //tangential BCs are not enabled
-                    vector3 orthogonalToEdge = CGAL::cross_product(currentSourceNormal, boundaryHeading);
-		    velocityVector = velocityVector - (velocityVector*orthogonalToEdge)*orthogonalToEdge;
-                    continue;
-		    };
-		}
+                    displacementVector = maxOverlap*vectorMagnitude(displacementVector)*boundaryHeading; 
+                    target = globalSMSP->point(currentSourceFace,intersectionPoint) + displacementVector; 
+	            }
+		else 
+		   {
+                   continueShifting = false;
+		   }
+		//we had to do a bunch outside of the conditional to allow this, but now we can remove 
+		//components of velocity orthogonal to the edge we *would* have traveled to, even if
+		//tangential BCs are not enabled
+                vector3 orthogonalToEdge = CGAL::cross_product(currentSourceNormal, boundaryHeading);
+		velocityVector = velocityVector - (velocityVector*orthogonalToEdge)*orthogonalToEdge;
+                continue;
+		};
+	    
 	    //if we're not at a boundary, do standard throughVertex routine -- key function is throughVertex
             toIntersection = vector3(sourcePoint, PMP::construct_point(std::make_pair(currentSourceFace,intersectionPoint), surface)); 
             std::pair<faceIndex, vector3> targetHeading = throughVertex(involvedVertex[0], toIntersection, currentSourceFace);
