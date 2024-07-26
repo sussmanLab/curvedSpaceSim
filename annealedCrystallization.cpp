@@ -53,6 +53,7 @@ int main(int argc, char*argv[])
     
     SwitchArg reproducibleSwitch("r","reproducible","reproducible random number generation", cmd, true);
     SwitchArg verboseSwitch("v","verbose","output more things to screen ", cmd, false);
+    SwitchArg tangentialSwitch("c", "tangentialBCs", "use tangential BCs for open meshes", cmd, false); 
 
     //parse the arguments
     cmd.parse( argc, argv );
@@ -70,6 +71,7 @@ int main(int argc, char*argv[])
     double stiffness = stiffnessArg.getValue();  
     bool verbose= verboseSwitch.getValue();
     bool reproducible = reproducibleSwitch.getValue();
+    bool tangentialBCs = tangentialSwitch.getValue(); 
 
     double maxTolerance = pow(10,-1*crystallizationTolerance);
 
@@ -78,6 +80,7 @@ int main(int argc, char*argv[])
     meshSpace->useSubmeshingRoutines(false);
     if(programBranch >0)
         meshSpace->useSubmeshingRoutines(true,maximumInteractionRange,false);
+    meshSpace->useTangentialBCs = tangentialBCs;
 
     shared_ptr<simpleModel> configuration=make_shared<simpleModel>(N);
     configuration->setVerbose(verbose);

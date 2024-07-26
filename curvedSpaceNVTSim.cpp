@@ -47,10 +47,12 @@ int main(int argc, char*argv[])
     ValueArg<double> interactionRangeArg("a","interactionRange","range ofthe interaction to set for both potential and cell list",false,1.,"double",cmd);
     ValueArg<double> deltaTArg("e","dt","timestep size",false,.01,"double",cmd);
     ValueArg<double> temperatureArg("t","T","temperature to set",false,.2,"double",cmd);
+    
 
     SwitchArg reproducibleSwitch("r","reproducible","reproducible random number generation", cmd, true);
     SwitchArg dangerousSwitch("d","dangerousMeshes","meshes where submeshes are dangerous", cmd, false);
     SwitchArg verboseSwitch("v","verbose","output more things to screen ", cmd, false);
+    SwitchArg tangentialSwitch("c", "tangentialBCs", "use tangential boundary conditions for open surfaces", cmd, false);
 
     //parse the arguments
     cmd.parse( argc, argv );
@@ -67,16 +69,19 @@ int main(int argc, char*argv[])
     bool verbose= verboseSwitch.getValue();
     bool reproducible = reproducibleSwitch.getValue();
     bool dangerous = dangerousSwitch.getValue(); //not used right now
+    bool tangentialBCs = tangentialSwitch.getValue(); 
 
     shared_ptr<triangulatedMeshSpace> meshSpace=make_shared<triangulatedMeshSpace>();
     meshSpace->loadMeshFromFile(meshName,verbose);
     meshSpace->useSubmeshingRoutines(false);
     if(programBranch >0)
         meshSpace->useSubmeshingRoutines(true,maximumInteractionRange,dangerous);
+    meshSpace->useTangentialBCs = tangentialBCs; 
 
     shared_ptr<simpleModel> configuration=make_shared<simpleModel>(N);
     configuration->setVerbose(verbose);
     configuration->setSpace(meshSpace);
+    cout << "Area: " << meshSpace->getArea() << endl;
 
     //set up the cellListNeighborStructure, which needs to know how large the mesh is
     shared_ptr<cellListNeighborStructure> cellList = make_shared<cellListNeighborStructure>(meshSpace->minVertexPosition,meshSpace->maxVertexPosition,maximumInteractionRange);
@@ -107,7 +112,6 @@ int main(int argc, char*argv[])
     //by default, the simpleModelDatabase will save euclidean positions, mesh positions (barycentric + faceIdx), and particle velocities. See constructor for saving forces and/or particle types as well
     simpleModelDatabase saveState(N,"./testModelDatabase.nc",NcFile::Replace);
     saveState.writeState(configuration,0.0);
-    cout << "intended starting temp: " << temperature << endl;
     cout << "starting temp: " << NVTUpdater->getTemperatureFromKE() << endl; 
     
     ofstream temperatureFile("nvtTemperatures.csv"); 

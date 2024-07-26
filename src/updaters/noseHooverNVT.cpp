@@ -111,7 +111,6 @@ void noseHooverNVT::propagatePositionsVelocities()
     kineticEnergy = 0.0;
 
     //move particles for the first half of the timestep, and compute the forces at the half timestep
-    
     for (int ii = 0; ii < Ndof; ++ii)
         {
         displacements[ii] = dt2*model->velocities[ii];

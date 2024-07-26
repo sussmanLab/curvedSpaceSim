@@ -113,9 +113,13 @@ double totalArea(triangleMesh mesh)
  */
 void clampToThreshold(pmpBarycentricCoordinates &baryPoint)
     {
+    //to ensure we're actually close to threshold/precision of zero, 
+    //to avoid dividing and accidentally getting 10^-18, enlarge the threshold slightly -- 
+    //but these are never going to be completely perfect
+    double gentleThreshold = pow(10,-12); 
     for (int i = 0; i < 3; i++)
         {
-        baryPoint[i] = max(baryPoint[i],THRESHOLD);
+        baryPoint[i] = max(baryPoint[i], gentleThreshold);
         }
     double clampedBarySum = baryPoint[0]+baryPoint[1]+baryPoint[2];
     for (int i = 0; i < 3; i++)

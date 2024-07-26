@@ -466,17 +466,14 @@ iter+=1;
 
         if(uninvolvedVertex.size()== 2)
             {
-	    //if we're at a border, we need to invoke boundary conditions -- for now, this is just
-	    //stopping the particle cold. is_border works on both edges and vertices
             if (surface.is_border(vertexIndex(involvedVertex[0])))
                 {
               	targetBarycentricLocation = intersectionPoint;
                 clampToThreshold(targetBarycentricLocation);
                 if (useTangentialBCs) 
 		    {
-		    //now, as in throughvertex, we have to find all the vectors pointing away from the intersected vertex. Thankfully we don't also need to enumerate faces.  
                     std::vector<vertexIndex> neighborIndices;
-                    neighborIndices.reserve(8); //this should be as large as is possible -- on average, expect 3 for boundary vertex
+                    neighborIndices.reserve(8); //8 is intentional overkill, on average expect 3 for boundary vertex
 
                     vertexCirculator vbegin(surface.halfedge(vertexIndex(involvedVertex[0])),surface), done(vbegin);
                     do 
@@ -485,7 +482,7 @@ iter+=1;
                         } while(vbegin != done);
 		    //below serves the rule that the next heading will be along the edge that maximally 
 		    //overlaps with the present heading. While it's in principle "possible" to end up heading 
-		    //away from the boundary this way, it should geometrically be impossible -- because we've tried
+		    //along a backwards edge this way, it should geometrically be impossible -- because we've tried
 		    //to travel over the boundary, we will always be maximally overlapping with one of the boundary edges 
 		    double maxOverlap = -1; 
 		    double currentOverlap = 0; 
@@ -501,7 +498,7 @@ iter+=1;
 			    maxOverlap = currentOverlap;
 			    }
 			}
-                    displacementVector = currentOverlap*vectorMagnitude(displacementVector)*newHeading;  
+                    displacementVector = maxOverlap*vectorMagnitude(displacementVector)*boundaryHeading;  
 		    }
 		else 
 		    {	
@@ -561,6 +558,8 @@ iter+=1;
 		        {
 			displacementVector = backwardDot*displacementLength*edgeVectorBackward; 
 		        }
+		    //bookkeeping so as not to break later intersections
+		    target = edgeIntersectionPoint+displacementVector; 
 		    }
 	
                 //if not tangential BCs, particle stops completely if it hits a boundary
@@ -613,9 +612,18 @@ iter+=1;
     pos.x = point3(targetBarycentricLocation[0],targetBarycentricLocation[1],targetBarycentricLocation[2]);
     };
 
-//Code copy-pastes a lot of the displace particle routine above...eventually refactor more nicely
+
+
+
+//Code copy-pastes a lot of the displace particle routine above...eventually refactor more nicely!
+/* Big differences: 
+ * -velocity bookkeeping when dealing with meshes that have boundaries is nontrivially different to ensure
+ *  that velocities are updated properly
+ * -velocity is rotated along with displacement as shift proceeds
+ */
 void triangulatedMeshSpace::transportParticleAndVelocity(meshPosition &pos, vector3 &velocityVector, vector3 &displacementVector)
     {
+    //displacementVector is an R3 vector dictating how far to travel and in what initial direction. 
     pmpFaceLocation sourceLocation = meshPositionToFaceLocation(pos);
     point3 sourcePoint = PMP::construct_point(sourceLocation,surface);
     faceIndex currentSourceFace = sourceLocation.first;
@@ -647,7 +655,13 @@ int iter= 0;
 iter+=1;
         //get the current barycentric coordinates of the target
         targetBarycentricLocation = PMP::barycentric_coordinates(vertexPositions[0],vertexPositions[1],vertexPositions[2],target);
-        //if the targetBarycentricLocation is in the face, we have found our destination, so check this before implementing all of the intersection locating and vector rotating logic
+        if (targetBarycentricLocation[0] != targetBarycentricLocation[0]) 
+	    {
+	    //debug statement to prevent the simulation from continuing if erroneous nan
+	    cout << "nan at step " << iter << "of shift, exiting" << endl;
+            exit(0); 	
+	    }
+	//if the targetBarycentricLocation is in the face, we have found our destination, so check this before implementing all of the intersection locating and vector rotating logic
         bool intersectionWithEdge = false;
         for (int cc = 0; cc <3; ++cc)
             if(targetBarycentricLocation[cc] < 0)
@@ -665,56 +679,70 @@ iter+=1;
 
         findTriangleEdgeIntersectionInformation(sourceBarycentricLocation,targetBarycentricLocation,intersectionPoint, vertexList,lastUsedHalfedge,surface, involvedVertex,uninvolvedVertex);
         
-	vector3 toIntersection;
-        //below are just placeholder values which are only defined if we go through a vertex
+	vector3 toIntersection;        
+        point3 edgeIntersectionPoint = globalSMSP->point(currentSourceFace,intersectionPoint);
+	//below are just placeholder values which are only defined if we go through a vertex
         faceIndex provisionalTargetFace = currentSourceFace;
         vector3 newHeading = vector3(0,0,0);
 	
 	if(uninvolvedVertex.size()== 2)
             {
+	    //there is terminal output here because this is almost never
+	    //invoked. However, the code should still be accurate; please 
+	    //notify us of any bugs.
+	    cout << "vertex intersection!" << endl;
             if (surface.is_border(vertexIndex(involvedVertex[0])))
                 {
+	        clampToThreshold(intersectionPoint);
+	        cout << "vertex intersection at boundary" << endl; 
 		targetBarycentricLocation = intersectionPoint;
-                clampToThreshold(targetBarycentricLocation);
+                cout << "intersection point written" << endl;
                 if (useTangentialBCs) 
 		    {
-              	    targetBarycentricLocation = intersectionPoint;
-                    clampToThreshold(targetBarycentricLocation);
+                    std::vector<vertexIndex> neighborIndices;
+                    neighborIndices.reserve(8); //large as possible, but usually only 3 or 4
+                    cout << "reserved neighbor indices" << endl;
+		    vertexCirculator vbegin(surface.halfedge(vertexIndex(involvedVertex[0])),surface), done(vbegin);
+                    do 
+                        {
+                        neighborIndices.push_back(*vbegin++);
+                        } while(vbegin != done);
+		    cout << "neighor indices written" << endl;
+		    double maxOverlap = -1; //maybe this can't be less than 0  
+		    double currentOverlap = 0; 
+		    vector3 boundaryHeading = vector3(0,0,0);
+		    cout << "starting loop to find boundary heading" << endl; 
+		    for (vertexIndex vi: neighborIndices) 
+	                {
+		        vector3 outwardVector(surface.point(involvedVertex[0]),surface.point(vi));
+		        outwardVector = normalize(outwardVector);
+			currentOverlap = outwardVector*displacementVector; 
+		        if (currentOverlap > maxOverlap) 
+			    {
+			    boundaryHeading = outwardVector; 
+			    maxOverlap = currentOverlap;
+			    }
+			}
+                    cout << "boundary heading " << boundaryHeading << ", max overlap " << maxOverlap <<endl;
                     if (useTangentialBCs) 
 		        {
-		        //now, as in throughvertex, we have to find all the vectors pointing away from the intersected vertex. Thankfully we don't also need to enumerate faces.  
-                        std::vector<vertexIndex> neighborIndices;
-                        neighborIndices.reserve(8); //this should be as large as is possible -- on average, expect 3 for boundary vertex
-
-                        vertexCirculator vbegin(surface.halfedge(vertexIndex(involvedVertex[0])),surface), done(vbegin);
-                        do 
-                            {
-                            neighborIndices.push_back(*vbegin++);
-                            } while(vbegin != done);
-		        double maxOverlap = -1; 
-		        double currentOverlap = 0; 
-		        vector3 boundaryHeading = vector3(0,0,0); 
-		        for (vertexIndex vi: neighborIndices) 
-	                    {
-		            vector3 outwardVector(surface.point(involvedVertex[0]),surface.point(vi));
-		            outwardVector = normalize(outwardVector);
-			    currentOverlap = outwardVector*displacementVector; 
-		            if (currentOverlap > maxOverlap) 
-			       {
-			       boundaryHeading = outwardVector; 
-			       maxOverlap = currentOverlap;
-			       }
-			    }
-                        displacementVector = currentOverlap*vectorMagnitude(displacementVector)*newHeading;  
-		        }
+                        displacementVector = maxOverlap*vectorMagnitude(displacementVector)*boundaryHeading; 
+                        target = globalSMSP->point(currentSourceFace,intersectionPoint) + displacementVector; 
+			}
 		    else 
-		        {	
+		        {
                         continueShifting = false;
 		        }
+		    //we had to do a bunch outside of the conditional to allow this, but now we can remove 
+		    //components of velocity orthogonal to the edge we *would* have traveled to, even if
+		    //tangential BCs are not enabled
+                    vector3 orthogonalToEdge = CGAL::cross_product(currentSourceNormal, boundaryHeading);
+		    velocityVector = velocityVector - (velocityVector*orthogonalToEdge)*orthogonalToEdge;
                     continue;
 		    };
 		}
-            toIntersection = vector3(sourcePoint, PMP::construct_point(std::make_pair(currentSourceFace,intersectionPoint), surface)); //always assumed to be from source to intersected vertex
+	    //if we're not at a boundary, do standard throughVertex routine -- key function is throughVertex
+            toIntersection = vector3(sourcePoint, PMP::construct_point(std::make_pair(currentSourceFace,intersectionPoint), surface)); 
             std::pair<faceIndex, vector3> targetHeading = throughVertex(involvedVertex[0], toIntersection, currentSourceFace);
             provisionalTargetFace = targetHeading.first;
             newHeading = targetHeading.second; //this heading comes out normalized
@@ -728,7 +756,6 @@ iter+=1;
         move to be from the edge intersection to the original target, and rotate it around
         the edge according to the angle of the face normals.
         */
-        point3 edgeIntersectionPoint = globalSMSP->point(currentSourceFace,intersectionPoint);
         sourcePoint = edgeIntersectionPoint;
 
         //update the move vector to intersection->target
@@ -743,37 +770,59 @@ iter+=1;
             //as in displaceParitcle, particle stops completely if it hits a boundary, for now
             if (surface.is_border(edgeIndex(intersectedEdge)))
                 {
-                targetBarycentricLocation = intersectionPoint;
-                clampToThreshold(targetBarycentricLocation);
+                clampToThreshold(intersectionPoint);
+		targetBarycentricLocation = intersectionPoint;
+		edgeIntersectionPoint = globalSMSP->point(currentSourceFace,intersectionPoint); 
+	        point3 ev1 = surface.point(involvedVertex[0]);
+	        point3 ev2 = surface.point(involvedVertex[1]);
 		if (useTangentialBCs) 
 		    { 
-                    //rotate heading to be tangential to the edge in the direction most aligned with its current heading. 
-		    point3 ev1 = surface.point(involvedVertex[0]);
-	            point3 ev2 = surface.point(involvedVertex[1]);
+                    //rotate heading to be tangential to the edge in the direction most aligned with its current heading.
 		    vector3 edgeVectorForward(ev1,ev2); 
-		    vector3 edgeVectorBackward(ev2,ev1); 
+		    vector3 edgeVectorBackward(ev2,ev1);
 		    edgeVectorForward = normalize(edgeVectorForward);
 	            edgeVectorBackward = normalize(edgeVectorBackward); 
 		    double forwardDot = displacementVector*edgeVectorForward;
 		    double backwardDot = displacementVector*edgeVectorForward; 
 		    double displacementLength = vectorMagnitude(displacementVector);
-		    if (forwardDot > backwardDot) 
+		    //if we were perpendicular to the boundary, just stop shifting
+		    if ((forwardDot <= 0) && (backwardDot <= 0))
+		         {
+                         continueShifting = false;
+			 } 
+		    else if (forwardDot > backwardDot) 
 		        {
 			displacementVector = forwardDot*displacementLength*edgeVectorForward; 
+			//remove orthogonal components from velocity
+                        vector3 orthogonalToEdge = CGAL::cross_product(currentSourceNormal, edgeVectorForward); 
+			velocityVector = velocityVector - (velocityVector*orthogonalToEdge)*orthogonalToEdge;
 			}	
 		    else 
 		        {
 			displacementVector = backwardDot*displacementLength*edgeVectorBackward; 
-		        }
+		        vector3 orthogonalToEdge = CGAL::cross_product(currentSourceNormal, edgeVectorBackward); 
+			velocityVector = velocityVector - (velocityVector*orthogonalToEdge)*orthogonalToEdge;
+			}
+		    //bookkeeping so that we can do normal intersections later
+		    target = edgeIntersectionPoint + displacementVector;  		  		    		
 		    }
 	
                 //if not tangential BCs, particle stops completely if it hits a boundary
 		else
-		    { 
+		    {
+		    //only bookkeeping necessary for non-tangential BCs is velocity -- lose all orthogonal components so we never point to nowhere
+		    vector3 orthogonalToEdge = CGAL::cross_product(currentSourceNormal, vector3(ev1,ev2));
+		    velocityVector = velocityVector - (velocityVector*orthogonalToEdge)*orthogonalToEdge; 
                     continueShifting = false;
 		    }
+                //extra bookkeeping we can use if updating target is insufficient 
+		currentSourceFace = provisionalTargetFace; //source face stays the same, as we couldn't cross the boundary     
+                getVertexPositionsFromFace(surface,currentSourceFace, vertexPositions);
+		sourceBarycentricLocation = PMP::barycentric_coordinates(vertexPositions[0],vertexPositions[1],vertexPositions[2],edgeIntersectionPoint);
+                lastUsedHalfedge = intersectedEdge; 
+
+	        if(iter ==maximumShiftEdgeCrossings ) ERRORERROR("Error: shift has proceeded for too long!");
 		continue;
-   
                 }
 
 	    provisionalTargetFace = surface.face(intersectedEdge);
@@ -781,15 +830,18 @@ iter+=1;
                 provisionalTargetFace= surface.face(surface.opposite(intersectedEdge));
 
             targetNormal = PMP::compute_face_normal(provisionalTargetFace,surface);
-            double normalDotProduct = currentSourceNormal*targetNormal;
+            
+	    double normalDotProduct = currentSourceNormal*targetNormal;
             double angle = acos(normalDotProduct);
 	    if (normalDotProduct >= 1) angle = 0;
+
             vector3 axisVector = CGAL::cross_product(currentSourceNormal,targetNormal);
             axisVector /= vectorMagnitude(axisVector); //this could use normalize if we wanted to
             std::vector<point3> axis = {sourcePoint, sourcePoint+axisVector};
-            target = rotateAboutAxis(target, axis, angle);
-            displacementVector = vector3(sourcePoint, target); //move gets updated here
-            //we can only update last used halfedge when crossing an edge -- maybe ask daniel if this breaks for going through vertices
+            
+	    target = rotateAboutAxis(target, axis, angle);
+            
+	    displacementVector = vector3(sourcePoint, target); //move gets updated here
             lastUsedHalfedge = intersectedEdge;
             //rotate the velocity vector in the same way
             point3 velocityVectorTarget = sourcePoint + velocityVector;
