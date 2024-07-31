@@ -484,7 +484,7 @@ iter+=1;
             provisionalTargetFace = targetHeading.first;
             newHeading = targetHeading.second; //this heading comes out normalized
             }
-	if(uninvolvedVertex.size() != 1)
+	else if(uninvolvedVertex.size() != 1)
             ERRORERROR("a barycentric coordinate of the target is negative, but neither 1 nor 2 intersections were found. Apparently some debugging is needed!");
         /*
         We have now identified the relevant edge or vertex intersection point.
@@ -626,7 +626,7 @@ iter+=1;
             provisionalTargetFace = targetHeading.first;
             newHeading = targetHeading.second; //this heading comes out normalized
             }
-        if(uninvolvedVertex.size() != 1)
+	else if(uninvolvedVertex.size() != 1)
             ERRORERROR("a barycentric coordinate of the target is negative, but neither 1 nor 2 intersections were found. Apparently some debugging is needed!");
         /*
         Assume at this point that only one intersection point was found.
