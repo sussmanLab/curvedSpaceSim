@@ -11,6 +11,7 @@
 #include "gaussianRepulsion.h"
 #include "harmonicRepulsion.h"
 #include "vectorValueDatabase.h"
+#include "simpleModelDatabase.h"
 #include "cellListNeighborStructure.h"
 
 #include "pointDataType.h" //for point 3 and related
@@ -42,7 +43,7 @@ int main(int argc, char*argv[])
     ValueArg<int> programBranchSwitchArg("z","programBranchSwitch","an integer controlling program branch",false,0,"int",cmd);
     ValueArg<int> particleNumberSwitchArg("n","number","number of particles to simulate",false,20,"int",cmd);
     ValueArg<int> saveFrequencyArg("s","saveFrequency","how often a file gets updated",false,100,"int",cmd); 
-    ValueArg<int> toleranceArg("i","crystallizationTolerance","maximum allowed fN exponent",false, 6, "int",cmd);
+    ValueArg<int> descentStepsArg("i","GDsteps","steps in each gradient descent",false, 10000, "int",cmd);
     ValueArg<int> chainLengthArg("l", "M", "length of N-H chain", false, 2, "int", cmd);
     ValueArg<string> meshSwitchArg("m","meshSwitch","filename of the mesh you want to load",false,"../exampleMeshes/torus_isotropic_remesh.off","string",cmd);
     ValueArg<string> positionsFileArg("f", "positionsFile", "filename for xyz positions you want to load", false, "none", "string", cmd); 
@@ -61,7 +62,7 @@ int main(int argc, char*argv[])
     int programBranch = programBranchSwitchArg.getValue();
     int N = particleNumberSwitchArg.getValue();
     int M = chainLengthArg.getValue();
-    int crystallizationTolerance = toleranceArg.getValue();
+    int descentSteps = descentStepsArg.getValue();
     int saveFrequency = saveFrequencyArg.getValue();
     string meshName = meshSwitchArg.getValue();
     string positionsFile = positionsFileArg.getValue();
@@ -73,7 +74,6 @@ int main(int argc, char*argv[])
     bool reproducible = reproducibleSwitch.getValue();
     bool tangentialBCs = tangentialSwitch.getValue(); 
 
-    double maxTolerance = pow(10,-1*crystallizationTolerance);
 
     shared_ptr<triangulatedMeshSpace> meshSpace=make_shared<triangulatedMeshSpace>();
     meshSpace->loadMeshFromFile(meshName,verbose);
@@ -115,43 +115,44 @@ int main(int argc, char*argv[])
     vector<double> posToSave;
     getFlatVectorOfPositions(configuration,posToSave);
     
-    string trajectoryFilename = "./siloMinimization_" + to_string(N) + "_" + to_string(crystallizationTolerance) + ".nc"; 
-
-    vectorValueDatabase vvdat(posToSave.size(),trajectoryFilename,NcFile::Replace);
-    vvdat.writeState(posToSave,0);
+    cout <<"making minimization file" << endl; 
+    cout << "mesh name is " << meshName << endl;
+    string inputMeshName = meshName.substr(15,14); 
+    cout << "substr appended to outputs is " << inputMeshName << endl;
+    string trajectoryFilename = "./siloMinimization_" + to_string(N) + "_" + inputMeshName + ".nc"; 
+    simpleModelDatabase saveState(N,trajectoryFilename,NcFile::Replace);
+    saveState.writeState(configuration,0.0);
 
     double fNorm,fMax, energyState; 
     fNorm=1;
     int totalAnneals = 10;
     int heatingLength = 1000; 
-    double runningMinimum = 10000; 
-    string minimumFilename = "./siloMinimization_" + to_string(N) + "_" + to_string(crystallizationTolerance) + "_minconfig.nc";
+    double runningMinimum = 2*(pairwiseForce->computeEnergy()); 
+    string minimumFilename = "./siloMinimization_" + to_string(N) + "_" + inputMeshName + "_minconfig.nc";
 
-    int step = 0;
+    int step = 1;
     
     cout << "starting sim loop o7" << endl; 
     for (int annealStep = 0; annealStep < totalAnneals; annealStep++) 
 	{
- 	
         shared_ptr<gradientDescent> energyMinimizer=make_shared<gradientDescent>(dt);		
         energyMinimizer->setModel(configuration);
 	simulator->clearUpdaters();
    	simulator->addUpdater(energyMinimizer,configuration);
 	//gradient descent minimization	
         fNorm = energyMinimizer->getForceNorm();
-	while (fNorm > maxTolerance)
+	for (int ii = 0; ii < descentSteps; ii++)
             {
             timer.start();
             simulator->performTimestep();
             timer.end();
             if(step%saveFrequency == saveFrequency-1)
                 {
-                getFlatVectorOfPositions(configuration,posToSave);
-                vvdat.writeState(posToSave,dt*step);
-                if(programBranch <2)
+                saveState.writeState(configuration,dt*step); 
+		if(programBranch <2)
                     {
                     fNorm = energyMinimizer->getForceNorm();
-                    fMax = energyMinimizer->getMaxForce();\
+                    fMax = energyMinimizer->getMaxForce();
 		    energyState = pairwiseForce->computeEnergy();
                     printf("step %i fN %.4g fM %.4g E %.4g\n ",step,fNorm,fMax, energyState);
                     }
@@ -166,11 +167,10 @@ int main(int argc, char*argv[])
 	if (currentMinEnergy < runningMinimum) 
 	    {
 	    //if this is our lowest energy configuration, save the energy value and the configuration itself	    
-            vectorValueDatabase mindat(posToSave.size(), minimumFilename, NcFile::Replace); 
+            simpleModelDatabase minState(posToSave.size(), minimumFilename, NcFile::Replace); 
             //because it's defined local to this conditional, above will overwrite existing files
 	    runningMinimum=currentMinEnergy;
-	    getFlatVectorOfPositions(configuration,posToSave);
-	    mindat.writeState(posToSave,dt*step);  
+	    minState.writeState(configuration,dt*step);  
 	    }
         
 	shared_ptr<noseHooverNVT> NVTUpdater=make_shared<noseHooverNVT>(dt, temperature, 1.0, M);
@@ -182,14 +182,13 @@ int main(int argc, char*argv[])
 	    {
             simulator->performTimestep();
 	    step++;
-	    if(ii%saveFrequency == saveFrequency-1)
+	    if(step%saveFrequency == saveFrequency-1)
                 {
                 //this needs to be updated to new saveState style 
 		//(see curvedSpaceNVTSim) but for now just proof of concept
-		getFlatVectorOfPositions(configuration,posToSave);
-                vvdat.writeState(posToSave,dt*ii);
-                double nowTemp = NVTUpdater->getTemperatureFromKE();
-                printf("step %i T %f \n",ii,nowTemp);
+                saveState.writeState(configuration,dt*step);
+		double nowTemp = NVTUpdater->getTemperatureFromKE();
+                printf("step %i T %f \n",step,nowTemp);
                 }
 	    }
 	};
@@ -198,11 +197,10 @@ int main(int argc, char*argv[])
     timer.print();    
     
     
-    cout << "tolerance exponent was " << crystallizationTolerance << std::endl;
     cout << "lowest found energy was " << runningMinimum << endl;
     cout << "minimum energy configuration written to " << minimumFilename << endl;
-    
-    string mposFilename = "silo_" + to_string(N) + "_" + to_string(crystallizationTolerance) + "_voronoi_positions.csv";
+    //substr size is meant to include the omega section of silo_meshes mesh names 
+    string mposFilename = "silo_" + to_string(N) + inputMeshName + "_voronoi_positions.csv";
     std::ofstream meshPosFile(mposFilename); 
     
     configuration->fillEuclideanLocations();

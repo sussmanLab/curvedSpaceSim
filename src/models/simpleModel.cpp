@@ -48,7 +48,10 @@ void simpleModel::moveParticles(vector<vector3> &disp)
     if(!particleShiftsRequireVelocityTransport)
         {
         for(int ii = 0; ii < N; ++ii)
+	    {
+	    //cout << "displacing particle " << ii << endl; //debug statement to make sure shifts are finishing
             space->displaceParticle(positions[ii],disp[ii]);
+	    }
         }
     else
         for(int ii = 0; ii < N; ++ii)

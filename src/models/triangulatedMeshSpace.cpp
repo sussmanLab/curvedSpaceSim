@@ -460,16 +460,16 @@ iter+=1;
          * intersection point (barycentric coords)
          */
 	vector3 toIntersection;
-        //below are just placeholder values which are only defined if we go through a vertex
+	//below are just placeholder values which are only defined if we go through a vertex
         faceIndex provisionalTargetFace = currentSourceFace;
         vector3 newHeading = vector3(0,0,0);
-
+        point3 edgeIntersectionPoint;
         if(uninvolvedVertex.size()== 2)
             {
             if (surface.is_border(vertexIndex(involvedVertex[0])))
                 {
-              	targetBarycentricLocation = intersectionPoint;
-                clampToThreshold(targetBarycentricLocation);
+                clampToThreshold(intersectionPoint); //ensure intersection point is in current face
+                edgeIntersectionPoint = globalSMSP->point(currentSourceFace,intersectionPoint);
                 if (useTangentialBCs) 
 		    {
                     std::vector<vertexIndex> neighborIndices;
@@ -504,7 +504,9 @@ iter+=1;
 		    {	
                     continueShifting = false;
 		    }
-                
+		//source face has not changed
+                getVertexPositionsFromFace(surface,currentSourceFace, vertexPositions);
+                sourceBarycentricLocation = intersectionPoint;
                 continue;
 		}
 	    toIntersection = vector3(sourcePoint, PMP::construct_point(std::make_pair(currentSourceFace,intersectionPoint), surface)); //always assumed to be from source to intersected vertex
@@ -513,8 +515,9 @@ iter+=1;
             std::pair<faceIndex, vector3> targetHeading = throughVertex(involvedVertex[0], toIntersection, currentSourceFace);
             provisionalTargetFace = targetHeading.first;
             newHeading = targetHeading.second; //this heading comes out normalized
-            }
-	if(uninvolvedVertex.size() != 1)
+            
+	    }
+	else if(uninvolvedVertex.size() != 1)
             ERRORERROR("a barycentric coordinate of the target is negative, but neither 1 nor 2 intersections were found. Apparently some debugging is needed!");
         /*
         We have now identified the relevant edge or vertex intersection point.
@@ -523,7 +526,7 @@ iter+=1;
         move to be from the edge intersection to the original target, and rotate it around
         the edge according to the angle of the face normals.
         */
-        point3 edgeIntersectionPoint = globalSMSP->point(currentSourceFace,intersectionPoint);
+        edgeIntersectionPoint = globalSMSP->point(currentSourceFace,intersectionPoint);
         sourcePoint = edgeIntersectionPoint;
 
         currentMove = vector3(edgeIntersectionPoint, target);
@@ -536,13 +539,14 @@ iter+=1;
             intersectedEdge = surface.halfedge(involvedVertex[0],involvedVertex[1]);  
 	    if (surface.is_border(edgeIndex(intersectedEdge)))
                 {
-		targetBarycentricLocation = intersectionPoint;
-                clampToThreshold(targetBarycentricLocation);
+		clampToThreshold(intersectionPoint);
+                targetBarycentricLocation = intersectionPoint;
+                edgeIntersectionPoint = globalSMSP->point(currentSourceFace,intersectionPoint);
+                point3 ev1 = surface.point(involvedVertex[0]);
+                point3 ev2 = surface.point(involvedVertex[1]);
 		if (useTangentialBCs) 
 		    { 
                     //rotate heading to be tangential to the edge in the direction most aligned with its current heading. 
-		    point3 ev1 = surface.point(involvedVertex[0]);
-	            point3 ev2 = surface.point(involvedVertex[1]);
 		    vector3 edgeVectorForward(ev1,ev2); 
 		    vector3 edgeVectorBackward(ev2,ev1); 
 		    edgeVectorForward = normalize(edgeVectorForward);
@@ -567,6 +571,10 @@ iter+=1;
 		    { 
                     continueShifting = false;
 		    }
+                getVertexPositionsFromFace(surface,currentSourceFace, vertexPositions);
+                sourceBarycentricLocation = targetBarycentricLocation;
+                lastUsedHalfedge = intersectedEdge;
+		if (iter == 20) ERRORERROR("at boundary, shift proceeded for 20 steps!"); 
 		continue;
                 }
 
@@ -600,8 +608,11 @@ iter+=1;
         //update source face index info and new bary coords in  the new face.
         currentSourceFace = provisionalTargetFace;
         getVertexPositionsFromFace(surface,currentSourceFace, vertexPositions);
-        sourceBarycentricLocation = PMP::barycentric_coordinates(vertexPositions[0],vertexPositions[1],vertexPositions[2],edgeIntersectionPoint);
-        currentSourceNormal = targetNormal;
+        sourceBarycentricLocation = PMP::barycentric_coordinates(vertexPositions[0],vertexPositions[1],vertexPositions[2],edgeIntersectionPoint); 
+        //make sure our new source point is in our new source face -- this usually does nothing, but if we've accidentally saved a position slightly
+	//on the side of the other face, it avoids catastrophe
+	clampToThreshold(sourceBarycentricLocation); 
+    	currentSourceNormal = targetNormal;
         lastUsedHalfedge = intersectedEdge;        
 	
         if(iter == maximumShiftEdgeCrossings)
@@ -743,7 +754,7 @@ iter+=1;
             provisionalTargetFace = targetHeading.first;
             newHeading = targetHeading.second; //this heading comes out normalized
             }
-        if(uninvolvedVertex.size() != 1)
+	else if(uninvolvedVertex.size() != 1)
             ERRORERROR("a barycentric coordinate of the target is negative, but neither 1 nor 2 intersections were found. Apparently some debugging is needed!");
         /*
         Assume at this point that only one intersection point was found.
@@ -796,11 +807,11 @@ iter+=1;
 		    else 
 		        {
 			displacementVector = backwardDot*displacementLength*edgeVectorBackward; 
-		        vector3 orthogonalToEdge = CGAL::cross_product(currentSourceNormal, edgeVectorBackward); 
+		        vector3 orthogonalToEdge = CGAL::cross_product(currentSourceNormal, edgeVectorBackward);
 			velocityVector = velocityVector - (velocityVector*orthogonalToEdge)*orthogonalToEdge;
 			}
 		    //bookkeeping so that we can do normal intersections later
-		    target = edgeIntersectionPoint + displacementVector;  		  		    		
+		    target = edgeIntersectionPoint + displacementVector;
 		    }
 	
                 //if not tangential BCs, particle stops completely if it hits a boundary
@@ -819,7 +830,7 @@ iter+=1;
 
 	        if(iter ==maximumShiftEdgeCrossings ) ERRORERROR("Error: shift has proceeded for too long!");
 		continue;
-                }
+		}
 
 	    provisionalTargetFace = surface.face(intersectedEdge);
             if (provisionalTargetFace == currentSourceFace)
