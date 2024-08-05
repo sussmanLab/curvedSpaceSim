@@ -77,6 +77,7 @@ foreach(ARG
         computationalTiming
 	curvedSpaceNVTSim
 	annealedCrystallization
+	siloClusterAnly
         )
 
 add_executable("${ARG}.out" "${ARG}.cpp" )

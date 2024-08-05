@@ -76,6 +76,7 @@ class triangulatedMeshSpace : public baseSpace
 	bool useTangentialBCs = false;
 
     protected:
+	void checkBaryNan(pmpBarycentricCoordinates bcoords); 
         void updateMeshSpanAndTree();
         std::pair<faceIndex,vector3> throughVertex(vertexIndex &intersectedVertex, vector3 &toIntersection, faceIndex &sourceFace);
         bool verbose = false;

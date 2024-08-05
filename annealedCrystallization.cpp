@@ -51,7 +51,8 @@ int main(int argc, char*argv[])
     ValueArg<double> deltaTArg("e","dt","timestep size",false,.01,"double",cmd);
     ValueArg<double> temperatureArg("t","T","temperature to set",false,1.0,"double",cmd);
     ValueArg<double> stiffnessArg("q", "stiffness", "harmonic stiffness", false, 1.0, "double", cmd); 
-    
+    ValueArg<double> omegaArg("w", "helicity", "helicity of mesh surface", false, 1.0, "double", cmd);  
+
     SwitchArg reproducibleSwitch("r","reproducible","reproducible random number generation", cmd, true);
     SwitchArg verboseSwitch("v","verbose","output more things to screen ", cmd, false);
     SwitchArg tangentialSwitch("c", "tangentialBCs", "use tangential BCs for open meshes", cmd, false); 
@@ -70,6 +71,7 @@ int main(int argc, char*argv[])
     double maximumInteractionRange= interactionRangeArg.getValue();
     double temperature = temperatureArg.getValue();
     double stiffness = stiffnessArg.getValue();  
+    double omega = omegaArg.getValue(); 
     bool verbose= verboseSwitch.getValue();
     bool reproducible = reproducibleSwitch.getValue();
     bool tangentialBCs = tangentialSwitch.getValue(); 
@@ -126,13 +128,15 @@ int main(int argc, char*argv[])
     double fNorm,fMax, energyState; 
     fNorm=1;
     int totalAnneals = 10;
-    int heatingLength = 1000; 
+    int heatingLength = 100; 
     double runningMinimum = 2*(pairwiseForce->computeEnergy()); 
     string minimumFilename = "./siloMinimization_" + to_string(N) + "_" + inputMeshName + "_minconfig.nc";
 
     int step = 1;
-    
-    cout << "starting sim loop o7" << endl; 
+    bool nanFlag = false; 
+    cout << "starting annealing loop" << endl;
+    vector<double3> minR3Positions;
+    vector<meshPosition> minMeshPositions;   
     for (int annealStep = 0; annealStep < totalAnneals; annealStep++) 
 	{
         shared_ptr<gradientDescent> energyMinimizer=make_shared<gradientDescent>(dt);		
@@ -141,11 +145,24 @@ int main(int argc, char*argv[])
    	simulator->addUpdater(energyMinimizer,configuration);
 	//gradient descent minimization	
         fNorm = energyMinimizer->getForceNorm();
+        //before the cooling section of every heating/cooling cycle, we'll check in with the 
+	//positions to see if anything has gone awry
+        for (meshPosition p: configuration->positions) 
+                {
+                cout << p.faceIndex << ", " << p.x << endl;
+		double w1 = p.x.x();
+	        //it's funny to look for the right structure for "not greater than,"
+		//as people are quick to quip that you can use less than (ignoring nan case) 	
+                if (!((w1 < 2) && (w1 > -1))) nanFlag = true;
+		}
+        if (nanFlag) exit(0); 
+
 	for (int ii = 0; ii < descentSteps; ii++)
             {
             timer.start();
             simulator->performTimestep();
-            timer.end();
+            timer.end();	    
+
             if(step%saveFrequency == saveFrequency-1)
                 {
                 saveState.writeState(configuration,dt*step); 
@@ -170,7 +187,10 @@ int main(int argc, char*argv[])
             simpleModelDatabase minState(posToSave.size(), minimumFilename, NcFile::Replace); 
             //because it's defined local to this conditional, above will overwrite existing files
 	    runningMinimum=currentMinEnergy;
-	    minState.writeState(configuration,dt*step);  
+	    minState.writeState(configuration,dt*step); 
+	    configuration->fillEuclideanLocations();
+	    minR3Positions = configuration->euclideanLocations; 
+	    minMeshPositions = configuration->positions;  
 	    }
         
 	shared_ptr<noseHooverNVT> NVTUpdater=make_shared<noseHooverNVT>(dt, temperature, 1.0, M);
@@ -203,14 +223,45 @@ int main(int argc, char*argv[])
     string mposFilename = "silo_" + to_string(N) + inputMeshName + "_voronoi_positions.csv";
     std::ofstream meshPosFile(mposFilename); 
     
-    configuration->fillEuclideanLocations();
     for (int ii = 0; ii < N; ++ii)
         {
-	int fIndex = configuration->positions[ii].faceIndex; 
-        double3 p = configuration->euclideanLocations[ii];
+	int fIndex = minMeshPositions[ii].faceIndex; 
+        double3 p = minR3Positions[ii];
 	meshPosFile << fIndex << ", " << p.x << ", " << p.y << ", " << p.z << "\n";
         }
 
+    point3 origin(0,0,0);
+    pmpFaceLocation originBary = PMP::locate(origin,meshSpace->surface);
+    meshPosition originMeshPos;
+    originMeshPos.x = point3(originBary.second[0],originBary.second[1],originBary.second[2]);
+    originMeshPos.faceIndex = int(originBary.first);
+    cout << "origin mesh position: " << originMeshPos.x << endl;
+    cout << "origin face: " << originMeshPos.faceIndex << endl;
+    double maxDist = 0;
+    vector<double> allDists;
+    vector<vector3> startTangents;
+    vector<vector3> endTangents;
+    meshSpace->distance(originMeshPos, minMeshPositions, allDists, startTangents,endTangents);
+    for (double dist: allDists)
+        {
+        maxDist = max(maxDist,dist);
+        }
+    double R = maxDist; // we could average instead from e.g. 5 maximum distances or n/50 maximum distances
+
+    double omegaR = omega*R;
+    double RoverD = R/maximumInteractionRange;
+    cout << "R: " << R << ", d: " << maximumInteractionRange << endl; 
+    cout << "omegaR = " << omegaR << endl;
+    cout << "R over d = " << RoverD << endl;
+   
+    ofstream plotPointsFile;
+    plotPointsFile.open("omegaR_Rdivd.csv", ios::app);
+    if (!plotPointsFile)
+        {
+        plotPointsFile = ofstream("omegaR_Rdivd.csv"); 
+        }
+    plotPointsFile << omegaR << ", " << RoverD << ", " << minimumFilename << "\n";  
+    plotPointsFile.close();  
 
     return 0;
     };
