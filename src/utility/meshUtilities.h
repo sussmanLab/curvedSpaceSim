@@ -59,30 +59,41 @@ void getVertexPositionsFromFace(triangleMesh &mesh, faceIndex i, std::vector<poi
 //!REQUIRE result has size 3
 void getVertexIndicesFromFace(triangleMesh &mesh, const faceIndex &i, std::vector<vertexIndex> &result);
 
+//! Return the average edge length of a given mesh
 double meanEdgeLength(triangleMesh mesh, bool verbose = false);
+//! area of a triangle defined by its vertices
 double triangleArea(point3 v1, point3 v2, point3 v3);
+//! Return the mean area of triangles in a mesh
 double meanTriangleArea(triangleMesh mesh);
+//! Return the total surface area of a mesh
 double totalArea(triangleMesh mesh); 
 
+//! avoid finite-numerical-precision artifacts by clamping points near an edge to have a zero barycentric coordinate
 void clampToThreshold(pmpBarycentricCoordinates &baryPoint);
 
 //!return true if the two lines which pass through the given endpoints intersect between the specified points on both lines. fill in the barycentric location of the intersection point
 bool intersectionOfLinesInBarycentricCoordinates(pmpBarycentricCoordinates line1Start, pmpBarycentricCoordinates line1End, pmpBarycentricCoordinates line2Start, pmpBarycentricCoordinates line2End, pmpBarycentricCoordinates &intersectionPoint);
 
 
-//specialize the intersectionOfLinesInBarycentricCoordinates function to the case where you care about the intersection of "line2" with a "line1" which goes from one vertex to another (i.e., has barycentric coordinates which are a permutation of (1,0,0))
+//! specialize the intersectionOfLinesInBarycentricCoordinates function to the case where you care about the intersection of "line2" with a "line1" which goes from one vertex to another (i.e., has barycentric coordinates which are a permutation of (1,0,0))
 bool intersectionBarycentricLinesV1V2(pmpBarycentricCoordinates line2Start, pmpBarycentricCoordinates line2End, pmpBarycentricCoordinates &intersectionPoint);
+//! specialize the intersectionOfLinesInBarycentricCoordinates function to the case where you care about the intersection of "line2" with a "line1" which goes from one vertex to another (i.e., has barycentric coordinates which are a permutation of (1,0,0))
 bool intersectionBarycentricLinesV2V3(pmpBarycentricCoordinates line2Start, pmpBarycentricCoordinates line2End, pmpBarycentricCoordinates &intersectionPoint);
+//! specialize the intersectionOfLinesInBarycentricCoordinates function to the case where you care about the intersection of "line2" with a "line1" which goes from one vertex to another (i.e., has barycentric coordinates which are a permutation of (1,0,0))
 bool intersectionBarycentricLinesV3V1(pmpBarycentricCoordinates line2Start, pmpBarycentricCoordinates line2End, pmpBarycentricCoordinates &intersectionPoint);
 
 //Go through each of the vAvB edge intersection functions
 bool findTriangleEdgeIntersectionInformation(pmpBarycentricCoordinates sourceBarycentricLocation, pmpBarycentricCoordinates targetBarycentricLocation, pmpBarycentricCoordinates &intersectionPoint, std::vector<vertexIndex> vertexList, halfedgeIndex  previousHalfEdge, triangleMesh &surface, std::vector<vertexIndex> &involvedVertex,std::vector<int> &uninvolvedVertex);
 
+//! Given a map between the faces of two meshes, convert barycentric coordinate values from one to the other
 void convertBarycentricCoordinates(triangleMesh &mesh1, triangleMesh &mesh2, std::unordered_map<faceIndex,int> &faceMap, smspFaceLocation &locationToConvert);
 
+//! Given the right data structures, compute the geodesic path and start/end tangent vectors between points
 void computePathDistanceAndTangents(surfaceMeshShortestPath *smsp, smspFaceLocation &targetPoint, double &distance, vector3 &startPathTangent, vector3 &endPathTangent);
 
+//!Print to screen the coordinates of a point.
 void printPoint(point3 a);
+//! print to screen a set of barycentric coordinates
 void printBary(smspBarycentricCoordinates a);
 
 #endif

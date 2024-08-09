@@ -12,15 +12,9 @@
 * \brief defines an interface to CGAL mesh-based functionality
 */
 
-//! A class that interfaces with CGAL functionality
-
+//! A class that interfaces with CGAL functionality for working with triangulated meshes
 /*!
-On "loadMeshFromFile", loads a triangle mesh into the surface member and also initializes a global
-surfaceMeshShortestPath (and builds an associated AABB_tree), which can be used for any whole-mesh
-operations
-The triangulatedMeshSpace *ASSUMES* that the data contained in the meshPositions is not actually a
-(point3,faceIndex) pair, but rather a point3 which is storing the 3 Barycentric coordinates of the
-point. (and a faceIndex integer)
+Note that this class interfaces tightly with some of the function in the meshUtilities files
 */
 class triangulatedMeshSpace : public baseSpace
     {
@@ -38,25 +32,27 @@ class triangulatedMeshSpace : public baseSpace
         //!Given a source particle and a vector of target points, determine the geodesic distance and store the start and end path tangents along the paths
         virtual void distance(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent, double distanceThreshold= VERYLARGEDOUBLE);
 
-        virtual void meshPositionToEuclideanLocation(std::vector<meshPosition> &p1, std::vector<double3> &result);
-
-        virtual void meshPositionToEuclideanLocation(std::vector<meshPosition> &p1, std::vector<meshPosition> &result);
-
+        //!Get a random face and a random barycentric location within that face
         virtual void randomPosition(meshPosition &p, noiseSource &noise);
 
+        //!Get a random unit vector in the tangent space of the targget position
         virtual void randomVectorAtPosition(meshPosition &p, vector3 &v, noiseSource &noise);
 
-	virtual double getArea(); 
+        //!Get the area of the mesh
+        virtual double getArea(); 
 
+        //!specialize the calculation of distances to use submeshes
         void distanceWithSubmeshing(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent,double distanceThreshold);
 
+        //!Activate the use of submeshing routines
         void useSubmeshingRoutines(bool _useSubMesh, double maxDist = 1.0, bool _danger = false)
             {submeshingActivated = _useSubMesh;
             maximumDistance = maxDist;
-            //dangerous submeshing no longer needed, but might be revived later
+            //dangerous submeshing no longer needed, but might be revived later TODO
             dangerousSubmeshing = _danger;
             };
 
+        //!set a new cutoff scale for submeshing routines (used in some of Toler's mesh refinement tests)
     	void setNewSubmeshCutoff(double newCutoff)
            {
            useSubmeshingRoutines(true,newCutoff);
@@ -68,18 +64,26 @@ class triangulatedMeshSpace : public baseSpace
 	//!given a goal edge length, remesh the surface isotropically to have that edge length on average and set the new surface
         void isotropicallyRemeshSurface(double targetEdgeLength);
 
-        //data structures
+        virtual void meshPositionToEuclideanLocation(std::vector<meshPosition> &p1, std::vector<double3> &result);
+
+        virtual void meshPositionToEuclideanLocation(std::vector<meshPosition> &p1, std::vector<meshPosition> &result);
+
+        //!The actual meshed surface itself
         triangleMesh surface;
+        //! The lower-bottom-left position of the rectilinear domain containing the surface
         double3 minVertexPosition;
+        //! The upper-top-right position of the rectilinear domain containing the surface
         double3 maxVertexPosition;
     protected:
+        //!Update some internal datastructures used in finding shortest paths
         void updateMeshSpanAndTree();
+        //!Handle transport through vertices rather than across edges
         std::pair<faceIndex,vector3> throughVertex(vertexIndex &intersectedVertex, vector3 &toIntersection, faceIndex &sourceFace);
         bool verbose = false;
         shared_ptr<surfaceMeshShortestPath> globalSMSP;
         AABB_tree globalTree;
-        //data structures associated with submeshing routines
         bool submeshingActivated = false;
+        //!A data structure for helping with submeshing routines
         submesher submeshAssistant;
         double maximumDistance = 0;
         //data structures associated with the potential for "dangerous" submeshes -- these can occur when submeshing routine is capable of returning a submesh with multiple connected components (e.g., when dealing with a surface that looks like an elephant's ear)

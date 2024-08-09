@@ -226,7 +226,8 @@ void triangulatedMeshSpace::distance(meshPosition &p1, std::vector<meshPosition>
     globalSMSP->remove_all_source_points();
     };
 
-/*!throughVertex takes as input the index of the vertex we're going through, the vector from the current source to that intersection,
+/*!
+throughVertex takes as input the index of the vertex we're going through, the vector from the current source to that intersection,
 and the source face. Then, it cycles through the faces adjoining the vertex, collecting the total angle of the vertex (the total
 angle subtended by the edge pairs), and determines the heading that would be halfway through the total angle. The face containing
 that heading and the heading itself are returned. The half-of-total angle criterion is the same as the straightest geodesic criterion;
@@ -555,7 +556,7 @@ iter+=1;
     pos.x = point3(targetBarycentricLocation[0],targetBarycentricLocation[1],targetBarycentricLocation[2]);
     };
 
-//Code copy-pastes a lot of the displace particle routine above...eventually refactor more nicely
+//TODO: Code copy-pastes a lot of the displace particle routine above...eventually refactor more nicely
 void triangulatedMeshSpace::transportParticleAndVelocity(meshPosition &pos, vector3 &velocityVector, vector3 &displacementVector)
     {
     pmpFaceLocation sourceLocation = meshPositionToFaceLocation(pos);

@@ -29,7 +29,9 @@ class simpleModelDatabase : public BaseDatabaseNetCDF
 
 
     protected:
+        //! Set all of the netcdf dimensions and variables in the file (for creating or writing new files)
         void SetDimVar();
+        //! When reading (or writing to an existing files) load in the pre-existing netcdf info
         void GetDimVar();
         //!number of particles in the model
         int N;
@@ -40,6 +42,7 @@ class simpleModelDatabase : public BaseDatabaseNetCDF
         //! a vector for reading doubles in and out
         vector<double> vec;
 
+        //! flags for whether to save and/or load different data structures
         bool velocity, type,force;
         typedef shared_ptr<simpleModel> STATE;
     };

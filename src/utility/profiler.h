@@ -5,6 +5,14 @@
 #include <string>
 #include <iostream>
 using namespace std;
+
+//!A class for simple timing within the codebase
+/*!
+Initialize the profiler with some string to be used in printing, then call it
+with start() and end().  Asking the profiler for timing() will return the
+average time taken between start and end blocks,and print() will print some
+information to screen for convenience.  chrono is used to do the timing
+*/
 class profiler
     {
     public:

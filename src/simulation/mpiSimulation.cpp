@@ -1,6 +1,13 @@
 #include "mpiSimulation.h"
 /*! \file mpiSimulation.cpp */
 
+/*!
+This function sets up MPI_Barriers that ask the mpiModel associated with the
+simulation to populate a buffer of integers and a buffer of doubles to be
+globally communicated.  For instance, this might be particle type and position
+information, but it is up to the model to decide what needs to be shared.  MPI
+routines then synchronize this information across all ranks
+*/
 void mpiSimulation::synchronizeAndTransferBuffers()
     {
     MPI_Barrier(MPI_COMM_WORLD);
@@ -35,19 +42,9 @@ void mpiSimulation::synchronizeAndTransferBuffers()
     transfersUpToDate = true;
     }
 
-void mpiSimulation::computeForces()
-    {
-    auto Conf = mConfiguration.lock();
-    for (unsigned int f = 0; f < forceComputers.size(); ++f)
-        {
-        auto frc = forceComputers[f].lock();
-        bool zeroForces = (f==0);
-        frc->computeForces(Conf->forces,zeroForces);
-        };
-    };
 /*!
-Calls the configuration to displace the degrees of freedom, and communicates halo sites according
-to the rankTopology and boolean settings
+Has all models move the particles they are responsible for, then places a call
+to synchronize any information needed.
 */
 void mpiSimulation::moveParticles(vector<vector3> &displacements)
     {
@@ -68,6 +65,8 @@ void mpiSimulation::setConfiguration(MPIConfigPtr _config)
     };
 
 /*!
+For now: in your main cpp file make a database class on rank 0, and use it (and
+its global information) to save the state.
 */
 void mpiSimulation::saveState(string fname)
     {

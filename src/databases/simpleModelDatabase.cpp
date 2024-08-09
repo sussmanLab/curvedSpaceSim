@@ -1,6 +1,9 @@
 #include "simpleModelDatabase.h"
 /*! \file simpleModelDatabase.cpp */
 
+/*!
+Resize arrays and set whether to save various data entries
+*/
 simpleModelDatabase::simpleModelDatabase(int numberOfParticles, string fn, NcFile::FileMode mode,
                             bool saveVelocities, bool saveTypes, bool saveForces)
     :BaseDatabaseNetCDF(fn,mode)
@@ -76,6 +79,15 @@ void simpleModelDatabase::GetDimVar()
         typeVar = File.get_var("type");
     }
 
+/*!
+Save a record that always saves particle positions and optionally a few other
+data structures to the file Information is automatically extracted from the
+member variables in the STATE.  Additionally, a scalar value will be saved with
+the record (typically the current simulation time, but could be anything).  By
+default (rec = -1) the record will be appended as a new record in the netcdf
+file.  If a specific index is given, it will be saved to that record instead
+(potentially overwriting existing information)
+*/
 void simpleModelDatabase::writeState(STATE s, double time, int rec)
     {
     int record = rec;
@@ -116,7 +128,7 @@ void simpleModelDatabase::writeState(STATE s, double time, int rec)
             forceVector[3*ii+2] = s->forces[ii][2];
             }
         if(type)
-            typeVector[ii] = s->types[ii];
+            typeVector[ii] = s->types[ii]
         }
 
 
@@ -133,7 +145,16 @@ void simpleModelDatabase::writeState(STATE s, double time, int rec)
 
     File.sync();
     };
-
+/*!
+This loads the targeted record into the state.  If you want to load the last
+state in the file (or otherwise want to know what the options are), use the
+GetNumRecs() function of the database.  This will return an int, and the final
+record will be (GetNumRecs()-1).  Please also note that if you have not saved
+velocity and force information in the database and then run some equation of
+motion, the first timestep might be incorrect (i.e., with updaters that use a
+partial-timestep-scheme that first updates a position via current velocity,
+etc).
+*/
 void simpleModelDatabase::readState(STATE s, int rec)
     {
     int totalRecords = GetNumRecs();

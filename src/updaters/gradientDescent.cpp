@@ -1,5 +1,8 @@
 #include "gradientDescent.h"
 
+/*!
+move every particle in the direction of the negative energy gradient, scaled by delatT
+*/
 void gradientDescent::performUpdate()
     {
     if(displacements.size() != Ndof)
@@ -12,7 +15,9 @@ void gradientDescent::performUpdate()
         }
     sim->moveParticles(displacements);
     };
-
+/*!
+get the norm of the force vector
+*/
 double gradientDescent::getForceNorm()
     {
     vector<double> forceNorm(1);
@@ -31,6 +36,9 @@ double gradientDescent::getForceNorm()
     return squaredTotalForceNorm;
     };
 
+/*!
+get the max norm of the force vector
+*/
 double gradientDescent::getMaxForce()
     {
     vector<double> maxNorm(1);

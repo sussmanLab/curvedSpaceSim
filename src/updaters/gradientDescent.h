@@ -2,7 +2,7 @@
 #define gradientDescent_H
 
 #include "baseUpdater.h"
-
+//! A class which performs a bog-standard gradient descent 
 class gradientDescent : public updater
     {
     public:

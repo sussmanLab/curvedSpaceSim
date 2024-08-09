@@ -5,7 +5,7 @@ by highlighting the key parts of the example code. To do so, it will reference
 curvedSpaceSimulation.cpp and explain why the file is structured in the way 
 it is. 
 
-##Structure of a Simulation Executable
+## Structure of a Simulation Executable
 
 We can break a simulation executable file down into its core parts:
 1. Command line arguments. These can be anything from a control on whether submeshing is done
@@ -50,7 +50,7 @@ We can break a simulation executable file down into its core parts:
    the forceNorm, which we get out to assess simulation status in curvedSpaceSimulation.cpp). 
 
 
-##Walkthrough
+## Walkthrough
 
 This walkthrough essentially explains the structure of curvedSpaceSimulations.cpp,
 and will generally assume the defaults for command line arguments. 

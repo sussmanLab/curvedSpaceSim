@@ -30,8 +30,8 @@ void noseHooverNVT::setBathVariables()
     }
 
 /*!
-The implementation here closely follows algorithms 30 - 32 in Frenkel & Smit, generalized to the
-case where the chain length is not necessarily always 2
+The implementation here closely follows algorithms 30 - 32 in Frenkel & Smit,
+generalized to the case where the chain length is not necessarily always 2
 */
 void noseHooverNVT::performUpdate()
     {
@@ -54,8 +54,8 @@ void noseHooverNVT::performUpdate()
 
 
 /*!
-This part of the algorithm partially updates the chain positions and velocities. It should be
-called twice per time step
+This part of the algorithm partially updates the chain positions and velocities.
+It should be called twice per time step
 */
 void noseHooverNVT::propagateChain()
     {

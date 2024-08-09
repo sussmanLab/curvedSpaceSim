@@ -1,5 +1,6 @@
 #include "cellListNeighborStructure.h"
 #include "std_include.h"
+
 cellListNeighborStructure::cellListNeighborStructure(double3 minPos, double3 maxPos, double gridSize)
     {
     std::vector<double> minimumPos(3);
@@ -34,10 +35,13 @@ void cellListNeighborStructure::initialize(std::vector<meshPosition> &_particles
         {
         indices[ii]=ii;
         }
-//printf("%i %f\n", particles.size(),particles[0].x[0]);
     cellList.sort(particles);
     };
-
+/*!
+For each particle, find its set of nearby cells and add any particle within a
+euclidean distance in any of those nearby cells to the list of candidate
+neighbors
+*/
 double  cellListNeighborStructure::constructCandidateNeighborList(meshPosition &p, int particleIndex, std::vector<int> &candidateNeighborIndices, std::vector<meshPosition> &candidateParticles, int offset)
     {
     int neighborNumberGuess = cellList.nMax*2;

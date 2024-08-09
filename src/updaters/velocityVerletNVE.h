@@ -3,6 +3,7 @@
 
 #include "baseUpdater.h"
 
+//!A class to use the standard velocity-verlet algorithm to perform an NVE simulation
 class velocityVerletNVE : public updater
     {
     public:

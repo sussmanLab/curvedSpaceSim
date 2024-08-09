@@ -34,7 +34,6 @@ void euclideanSpace::randomPosition(meshPosition &p, noiseSource &noise)
     p.faceIndex=0;
     }
 
-//!fills v with a random vector (zero mean unit gaussian in each direction)
 void euclideanSpace::randomVectorAtPosition(meshPosition &p, vector3 &v, noiseSource &noise)
     {
     v= vector3(noise.getRealNormal(), noise.getRealNormal(), noise.getRealNormal());

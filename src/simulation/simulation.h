@@ -10,9 +10,20 @@
 
 //! A class that ties together all the parts of a simulation
 /*!
-Simulation objects should have a configuration set, and then at least one updater (such as an equation of motion). In addition to
-being a centralized object controlling the progression of a simulation of cell models, the Simulation
-class provides some interfaces to cell configuration and updater parameter setters.
+Simulation objects should have a configuration set, and then at least one
+updater (such as an equation of motion).  In addition to being a centralized
+object controlling the progression of a simulation of cell models, the
+Simulation class provides some interfaces to cell configuration and updater
+parameter setters.
+
+The basic pattern of all simulations is to first define a model (with associated
+space it lives in), define forces that you want to act on particles in that
+model (if any), define equations of motion or other updaters, and then tie all
+of these pieces together through the set...  commands below.  This results in a
+bunch of (shared) pointers between the model, forces, updaters, and controlling
+simulation.  In this way, for instance, an updater can ask the simulation to
+move particles around (which in turn results in the simulation calling the
+moveParticles function that the model implements), etc.
 */
 class simulation : public basicSimulation, public enable_shared_from_this<simulation>
     {
@@ -54,7 +65,8 @@ class simulation : public basicSimulation, public enable_shared_from_this<simula
         //!Enforce reproducible dynamics
         void setReproducible(bool reproducible);
 
-	void computeMonodisperseStress(vector<double> &stress); 
+        //! Compute the current global stress tensor associated with the system.
+        void computeMonodisperseStress(vector<double> &stress); 
     };
 typedef shared_ptr<simulation> SimulationPtr;
 #endif
