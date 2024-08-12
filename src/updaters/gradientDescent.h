@@ -16,7 +16,6 @@ class gradientDescent : public updater
 	virtual void setModel(shared_ptr<simpleModel> _model)
             {
             model=_model;
-            model->particleShiftsRequireVelocityTransport = false;
 	    initializeFromModel();
             };
 

@@ -446,16 +446,41 @@ void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displac
     while(continueShifting)
         {
         iter+=1;
+
+
         //get the current barycentric coordinates of the target
         targetBarycentricLocation = PMP::barycentric_coordinates(vertexPositions[0],vertexPositions[1],vertexPositions[2],target);
-	cout << "checking target bary coords at iter " << iter << endl;
+        //to avoid situations where we have basically moved *onto* an edge, but won't find an intersection, we clamp targets that are very close to the threshold
+	if ((targetBarycentricLocation[0] > -pow(10.0,-12)) && (targetBarycentricLocation[1] > -pow(10,-12)) && (targetBarycentricLocation[2] > -pow(10,-12))) 
+	    {
+            clampToThreshold(targetBarycentricLocation);
+	    meshPosition targetPos; 
+	    targetPos.x = point3(targetBarycentricLocation[0], targetBarycentricLocation[1], targetBarycentricLocation[2]); 
+	    targetPos.faceIndex = currentSourceFace; 
+	    pmpFaceLocation targetLocation = meshPositionToFaceLocation(targetPos);  
+            target = PMP::construct_point(targetLocation, surface); 
+	    displacementVector = vector3(sourcePoint,target);
+	    }
+ 
+	//additional clamp on source to target distance? 
+	/*
+	vector3 sourceTarget(sourcePoint, target); 
+	maxDist = pow(10,-3);  
+	if vectorMagnitude(sourceTarget)... 
+        */ 
+
+	//cout << "checking target bary coords at iter " << iter << endl;
         checkBaryNan(targetBarycentricLocation); 
         //if the targetBarycentricLocation is in the face, we have found our destination, so check this before implementing all of the intersection locating and vector rotating logic
         bool intersectionWithEdge = false;
         for (int cc = 0; cc <3; ++cc)
             if(targetBarycentricLocation[cc] < 0)
                 intersectionWithEdge = true;
-	   
+	
+	cout << "source r3: " << sourcePoint << endl;
+        cout << "source bary: " << sourceBarycentricLocation[0] << ", " << sourceBarycentricLocation[1] << ", " <<  sourceBarycentricLocation[2] << endl;
+        cout << "target: " << target << endl;
+        cout << "target barycentric: " << targetBarycentricLocation[0] << ", " << targetBarycentricLocation[1] << ", " << targetBarycentricLocation[2] << endl;   
         if(!intersectionWithEdge)
             {
             continueShifting = false;
@@ -507,7 +532,7 @@ void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displac
 	                {
 		        vector3 outwardVector(surface.point(involvedVertex[0]),surface.point(vi));
 		        outwardVector = normalize(outwardVector);
-			currentOverlap = outwardVector*displacementVector; 
+			currentOverlap = outwardVector*normalize(displacementVector); 
 		        if (currentOverlap > maxOverlap) 
 			    {
 			    boundaryHeading = outwardVector; 
@@ -535,8 +560,18 @@ void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displac
             newHeading = targetHeading.second; //this heading comes out normalized 
 	    }
 	else if(uninvolvedVertex.size() != 1)
+            {
+	    cout << endl;
+	    cout << "failure :( " << endl;
+	    cout << "source face: " << currentSourceFace << endl;
+	    cout << "provisional target face(?): " << provisionalTargetFace << endl;
+	    cout << "source r3: " << sourcePoint << endl;
+            cout << "source bary: " << sourceBarycentricLocation[0] << ", " << sourceBarycentricLocation[1] << ", " << sourceBarycentricLocation[2] << endl;
+            cout << "target: " << target << endl;
+            cout << "target barycentric: " << targetBarycentricLocation[0] << ", " << targetBarycentricLocation[1] << ", " << targetBarycentricLocation[2] << endl;
             ERRORERROR("a barycentric coordinate of the target is negative, but neither 1 nor 2 intersections were found. Apparently some debugging is needed!");
-        /*
+            }
+	/*
         We have now identified the relevant edge or vertex intersection point.
         intersectionPoint contains the barycentric coordinates of the intersection point
         on a current face. Identify the next face from the relevant halfEdge, update current
@@ -551,11 +586,11 @@ void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displac
         halfedgeIndex intersectedEdge;
         if (uninvolvedVertex.size() == 1)
             {
-	    cout <<"through edge routine" <<endl;
+	    //cout <<"through edge routine" <<endl;
             intersectedEdge = surface.halfedge(involvedVertex[0],involvedVertex[1]);  
 	    if (surface.is_border(edgeIndex(intersectedEdge)))
                 {
-		cout <<"at border " << endl;
+		//cout <<"at border " << endl;
 		clampToThreshold(intersectionPoint);
                 targetBarycentricLocation = intersectionPoint;
                 edgeIntersectionPoint = globalSMSP->point(currentSourceFace,intersectionPoint);
@@ -568,8 +603,8 @@ void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displac
 		    vector3 edgeVectorBackward(ev2,ev1); 
 		    edgeVectorForward = normalize(edgeVectorForward);
 	            edgeVectorBackward = normalize(edgeVectorBackward); 
-		    double forwardDot = displacementVector*edgeVectorForward;
-		    double backwardDot = displacementVector*edgeVectorForward; 
+		    double forwardDot = normalize(displacementVector)*edgeVectorForward;
+		    double backwardDot = normalize(displacementVector)*edgeVectorForward; 
 		    double displacementLength = vectorMagnitude(displacementVector);
 		    if (forwardDot > backwardDot) 
 		        {
@@ -591,8 +626,9 @@ void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displac
                 getVertexPositionsFromFace(surface,currentSourceFace, vertexPositions);
                 sourceBarycentricLocation = targetBarycentricLocation;
                 lastUsedHalfedge = intersectedEdge;
-                checkBaryNan(sourceBarycentricLocation); 
-		if (iter == 20) ERRORERROR("at boundary, shift proceeded for 20 steps!"); 
+                checkBaryNan(sourceBarycentricLocation);
+
+		if (iter == 500) ERRORERROR("at boundary, shift proceeded for 500 steps!"); 
 		continue;
                 }
 
@@ -643,7 +679,7 @@ void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displac
     pos.faceIndex = currentSourceFace;
     pos.x = point3(targetBarycentricLocation[0],targetBarycentricLocation[1],targetBarycentricLocation[2]);   
     checkBaryNan(targetBarycentricLocation);
-    cout << "all checks passed, final pos " << pos.x <<endl;
+    //cout << "all checks passed, final pos " << pos.x <<endl;
     };
 
 
@@ -744,7 +780,7 @@ iter+=1;
 	           {
 		   vector3 outwardVector(surface.point(involvedVertex[0]),surface.point(vi));
 		   outwardVector = normalize(outwardVector);
-                   currentOverlap = outwardVector*displacementVector; 
+                   currentOverlap = outwardVector*normalize(displacementVector); 
 		   if (currentOverlap > maxOverlap) 
 		       {
 		       boundaryHeading = outwardVector; 
@@ -778,7 +814,13 @@ iter+=1;
             newHeading = targetHeading.second; //this heading comes out normalized
             }
 	else if(uninvolvedVertex.size() != 1)
-            ERRORERROR("a barycentric coordinate of the target is negative, but neither 1 nor 2 intersections were found. Apparently some debugging is needed!");
+	    {
+            cout << "source r3: " << sourcePoint << endl;
+	    cout << "source bary: " << sourceBarycentricLocation[0] <<  sourceBarycentricLocation[1] <<  sourceBarycentricLocation[2] << endl;
+	    cout << "target: " << target << endl;
+            cout << "target barycentric: " << targetBarycentricLocation[0] << ", " << targetBarycentricLocation[1] << ", " << targetBarycentricLocation[2] << endl;
+	    ERRORERROR("a barycentric coordinate of the target is negative, but neither 1 nor 2 intersections were found. Apparently some debugging is needed!");
+            }
         /*
         Assume at this point that only one intersection point was found.
         intersectionPoint contains the barycentric coordinates of the intersection point
@@ -811,8 +853,8 @@ iter+=1;
 		    vector3 edgeVectorBackward(ev2,ev1);
 		    edgeVectorForward = normalize(edgeVectorForward);
 	            edgeVectorBackward = normalize(edgeVectorBackward); 
-		    double forwardDot = displacementVector*edgeVectorForward;
-		    double backwardDot = displacementVector*edgeVectorForward; 
+		    double forwardDot = normalize(displacementVector)*edgeVectorForward;
+		    double backwardDot = normalize(displacementVector)*edgeVectorForward; 
 		    double displacementLength = vectorMagnitude(displacementVector);
 		    //if we were perpendicular to the boundary, just stop shifting
 		    if ((forwardDot <= 0) && (backwardDot <= 0))

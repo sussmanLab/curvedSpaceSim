@@ -31,6 +31,24 @@ void getFlatVectorOfPositions(shared_ptr<simpleModel> model, vector<double> &pos
         }
     };
 
+void checkOutOfBounds(vector<meshPosition> positions, int step) 
+    {
+    bool nanFlag = false;
+    for (meshPosition p: positions)
+        {
+        double w1 = p.x.x();
+	double w2 = p.x.y(); 
+	double w3 = p.x.z(); 
+        //it's funny to look for the right structure for "not greater than,"
+        //as people are quick to quip that you can use less than (ignoring nan case)
+        if (!((w1 < 2) && (w1 > -1))) {nanFlag = true; break;}
+        if (!((w2 < 2) && (w2 > -1))) {nanFlag = true; break;}
+	if (!((w3 < 2) && (w3 > -1))) {nanFlag = true; break;}
+	}
+        if (nanFlag) cout << "Step " << step << endl;
+        if (nanFlag) ERRORERROR("Bad particle found." );
+    } 
+
 using namespace TCLAP;
 int main(int argc, char*argv[])
     {
@@ -101,7 +119,6 @@ int main(int argc, char*argv[])
     }
     else configuration->setRandomParticlePositions(noise);
 
-    configuration->setMaxwellBoltzmannVelocities(noise,temperature);
  
     //riesz potential order is scale, stiffness exponent
     shared_ptr<harmonicRepulsion> pairwiseForce = make_shared<harmonicRepulsion>(stiffness,maximumInteractionRange);//stiffness and sigma. this is a monodisperse setting
@@ -117,26 +134,24 @@ int main(int argc, char*argv[])
     vector<double> posToSave;
     getFlatVectorOfPositions(configuration,posToSave);
     
-    cout <<"making minimization file" << endl; 
-    cout << "mesh name is " << meshName << endl;
     string inputMeshName = meshName.substr(15,14); 
-    cout << "substr appended to outputs is " << inputMeshName << endl;
     string trajectoryFilename = "./siloMinimization_" + to_string(N) + "_" + inputMeshName + ".nc"; 
     simpleModelDatabase saveState(N,trajectoryFilename,NcFile::Replace);
     saveState.writeState(configuration,0.0);
 
     double fNorm,fMax, energyState; 
     fNorm=1;
-    int totalAnneals = 10;
-    int heatingLength = 100; 
+    int totalAnneals = 20;
+    int heatingLength = 1000; 
     double runningMinimum = 2*(pairwiseForce->computeEnergy()); 
-    string minimumFilename = "./siloMinimization_" + to_string(N) + "_" + inputMeshName + "_minconfig.nc";
+    string minimumFilename = "../silo_data/siloMinimization_" + to_string(N) + "_" + inputMeshName + "_minconfig.nc";
 
     int step = 1;
-    bool nanFlag = false; 
     cout << "starting annealing loop" << endl;
     vector<double3> minR3Positions;
-    vector<meshPosition> minMeshPositions;   
+    vector<meshPosition> minMeshPositions;  
+    meshPosition obviouslyWrongMeshPosition; 
+
     for (int annealStep = 0; annealStep < totalAnneals; annealStep++) 
 	{
         shared_ptr<gradientDescent> energyMinimizer=make_shared<gradientDescent>(dt);		
@@ -147,19 +162,14 @@ int main(int argc, char*argv[])
         fNorm = energyMinimizer->getForceNorm();
         //before the cooling section of every heating/cooling cycle, we'll check in with the 
 	//positions to see if anything has gone awry
-        for (meshPosition p: configuration->positions) 
-                {
-                cout << p.faceIndex << ", " << p.x << endl;
-		double w1 = p.x.x();
-	        //it's funny to look for the right structure for "not greater than,"
-		//as people are quick to quip that you can use less than (ignoring nan case) 	
-                if (!((w1 < 2) && (w1 > -1))) nanFlag = true;
-		}
-        if (nanFlag) exit(0); 
+ 
 
 	for (int ii = 0; ii < descentSteps; ii++)
             {
-            timer.start();
+	
+	    checkOutOfBounds(configuration->positions,step);
+	
+	    timer.start();
             simulator->performTimestep();
             timer.end();	    
 
@@ -196,10 +206,13 @@ int main(int argc, char*argv[])
 	shared_ptr<noseHooverNVT> NVTUpdater=make_shared<noseHooverNVT>(dt, temperature, 1.0, M);
         NVTUpdater->setModel(configuration); 
 	simulator->clearUpdaters();
+	cout << "setting mb velocities" << endl;
+        configuration->setMaxwellBoltzmannVelocities(noise,temperature);
         simulator->addUpdater(NVTUpdater,configuration);
 	//now, heat the system up to get a new configuration 
 	for (int ii = 0; ii < heatingLength; ++ii)
 	    {
+	    checkOutOfBounds(configuration->positions,step);
             simulator->performTimestep();
 	    step++;
 	    if(step%saveFrequency == saveFrequency-1)
@@ -217,10 +230,8 @@ int main(int argc, char*argv[])
     timer.print();    
     
     
-    cout << "lowest found energy was " << runningMinimum << endl;
-    cout << "minimum energy configuration written to " << minimumFilename << endl;
     //substr size is meant to include the omega section of silo_meshes mesh names 
-    string mposFilename = "silo_" + to_string(N) + inputMeshName + "_voronoi_positions.csv";
+    string mposFilename = "../silo_data/silo_" + to_string(N) + inputMeshName + "_voronoi_positions.csv";
     std::ofstream meshPosFile(mposFilename); 
     
     for (int ii = 0; ii < N; ++ii)
@@ -235,12 +246,17 @@ int main(int argc, char*argv[])
     meshPosition originMeshPos;
     originMeshPos.x = point3(originBary.second[0],originBary.second[1],originBary.second[2]);
     originMeshPos.faceIndex = int(originBary.first);
-    cout << "origin mesh position: " << originMeshPos.x << endl;
-    cout << "origin face: " << originMeshPos.faceIndex << endl;
     double maxDist = 0;
     vector<double> allDists;
     vector<vector3> startTangents;
     vector<vector3> endTangents;
+
+    //the below is necessary so that we don't accidentally cut off distances, since we actually want the genuine 
+    //maximum
+    double largeDouble = 10000.0;
+    meshSpace->setNewSubmeshCutoff(largeDouble);
+    meshSpace->useSubmeshingRoutines(false);
+
     meshSpace->distance(originMeshPos, minMeshPositions, allDists, startTangents,endTangents);
     for (double dist: allDists)
         {
@@ -255,7 +271,7 @@ int main(int argc, char*argv[])
     cout << "R over d = " << RoverD << endl;
    
     ofstream plotPointsFile;
-    plotPointsFile.open("omegaR_Rdivd.csv", ios::app);
+    plotPointsFile.open("../silo_data/omegaR_Rdivd.csv", ios::app);
     if (!plotPointsFile)
         {
         plotPointsFile = ofstream("omegaR_Rdivd.csv"); 

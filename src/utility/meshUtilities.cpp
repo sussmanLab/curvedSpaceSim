@@ -116,7 +116,7 @@ void clampToThreshold(pmpBarycentricCoordinates &baryPoint)
     //to ensure we're actually close to threshold/precision of zero, 
     //to avoid dividing and accidentally getting 10^-18, enlarge the threshold slightly -- 
     //but these are never going to be completely perfect
-    double gentleThreshold = pow(10,-12); 
+    double gentleThreshold = pow(10,-15); 
     for (int i = 0; i < 3; i++)
         {
         baryPoint[i] = max(baryPoint[i], gentleThreshold);

@@ -160,5 +160,33 @@ int main(int argc, char*argv[])
     cout << "beta P over Rho: " << betaPoverRho << endl;
     cout << "{" << rhoSigma2 << ", " << betaPoverRho << "}" << endl;
 
+    string distancesFilename = "../sphere_data/NVTrun_N" + to_string(N) + "_a"+to_string(maximumInteractionRange) + "_distances.csv";
+    std::ofstream distancesFile(distancesFilename);
+
+    vector<double> tempDistList;
+    vector<vector3> startTangents;
+    vector<vector3> endTangents;
+    vector<meshPosition> positions = configuration->positions;
+    //the below is necessary so that we don't accidentally cut off distances
+    double largeDouble = 10000.0;
+    meshSpace->setNewSubmeshCutoff(largeDouble);
+    meshSpace->useSubmeshingRoutines(false); 
+     
+    for (int i = 0; i < (positions.size()-1); i++)
+        {
+	//size -1 because we can't find the ``last'' particle's distance with itself
+	vector<meshPosition>::const_iterator first = positions.begin() + i + 1;
+        vector<meshPosition>::const_iterator last = positions.end(); 
+	vector<meshPosition> targets(first, last);	
+	tempDistList.reserve(positions.size() - (i+1)); //largely just readability, a resize call happens within distance 
+        meshSpace->distance(positions[i], targets, tempDistList, startTangents, endTangents);
+	//as usual, we only care about distances, so we could just discard startTangents and endTangents
+        for (double dist: tempDistList)
+       	    { 
+            distancesFile << dist << ", "; 
+	    }
+        }
+    distancesFile.close(); 
+
     return 0;
     };
