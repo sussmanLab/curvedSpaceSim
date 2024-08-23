@@ -162,7 +162,10 @@ int main(int argc, char*argv[])
         fNorm = energyMinimizer->getForceNorm();
         //before the cooling section of every heating/cooling cycle, we'll check in with the 
 	//positions to see if anything has gone awry
- 
+	
+        for (meshPosition pos: configuration->positions)
+	{ cout << endl; printPoint(pos.x);}
+        cout << endl;	
 
 	for (int ii = 0; ii < descentSteps; ii++)
             {

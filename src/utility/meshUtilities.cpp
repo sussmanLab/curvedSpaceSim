@@ -111,22 +111,36 @@ double totalArea(triangleMesh mesh)
  *and place it firmly within the face in question. Be careful this is not used when 
  *the barycentric coordinates are/might be very negative, as it can obscure meaningful errors. 
  */
-void clampToThreshold(pmpBarycentricCoordinates &baryPoint)
+void belowZeroClamp(pmpBarycentricCoordinates &baryPoint)
     {
     //to ensure we're actually close to threshold/precision of zero, 
     //to avoid dividing and accidentally getting 10^-18, enlarge the threshold slightly -- 
-    //but these are never going to be completely perfect
-    double gentleThreshold = pow(10,-15); 
+    //but these are never going to be completely perfect 
+    double clampedBarySum = 0; 
     for (int i = 0; i < 3; i++)
         {
-        baryPoint[i] = max(baryPoint[i], gentleThreshold);
+        baryPoint[i] = max(baryPoint[i], THRESHOLD);
+	clampedBarySum += baryPoint[i]; 
         }
-    double clampedBarySum = baryPoint[0]+baryPoint[1]+baryPoint[2];
     for (int i = 0; i < 3; i++)
         {
         baryPoint[i] = baryPoint[i]/clampedBarySum;
         }
     }
+
+void nearZeroClamp(pmpBarycentricCoordinates &baryPoint) 
+    {
+    double clampedBarySum = 0;
+    for (int i = 0; i < 3; i++)
+        {
+        if (-THRESHOLD < baryPoint[i] < THRESHOLD) baryPoint[i] = THRESHOLD;
+	clampedBarySum += baryPoint[i]; 
+        }
+    for (int i = 0; i < 3; i++)
+        {
+        baryPoint[i] = baryPoint[i]/clampedBarySum;
+        }
+    } 
 
 /*
 Let a line in barycentric coordinates be 
@@ -286,11 +300,14 @@ void computePathDistanceAndTangents(surfaceMeshShortestPath *smsp, smspFaceLocat
     }
 
 
-void printPoint(point3 a)
+void printPoint(point3 a, bool precise)
     {
-    printf("{%f,%f,%f}",a[0],a[1],a[2]);
+    if (precise) printf("{%.16g,%.16g,%.16g}",a[0],a[1],a[2]);
+    else printf("{%f,%f,%f}",a[0],a[1],a[2]);
     };
-void printBary(smspBarycentricCoordinates a)
+
+void printBary(smspBarycentricCoordinates a, bool precise)
     {
-    printf("{%f,%f,%f}",a[0],a[1],a[2]);
+    if (precise) printf("{%.32g,%.32g,%.32g}",a[0],a[1],a[2]);
+    else printf("{%f,%f,%f}",a[0],a[1],a[2]);
     };

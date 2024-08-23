@@ -50,6 +50,7 @@ int main(int argc, char*argv[])
         printf("%i %f %i\n",N,dt,maximumIterations);
     noiseSource noise(reproducible);
 
+    cout << "program branch " << programBranch <<endl;
 
 if(programBranch ==1)
 {
@@ -237,37 +238,69 @@ if(programBranch ==0)
     meshSpace->displaceParticle(source, displacement);
     std::cout << source.faceIndex << ", " << source.x << std::endl;
     };
-/*
-//spot test of edge intersection detection
-for(int ii = 0; ii < 10; ++ii)
+
+if (programBranch == 3) 
 {
-randomFace = noise.getInt(0,nFaces-1);
-faceDescriptor fDtest2(randomFace);
-std::vector<point3> vertices;
-getVertexPositionsFromFace(meshSpace->surface, faceDescriptor(randomFace), vertices);
+//spot test of edge intersection detection
+string meshName = "../silo_meshes/silo_omega0.10_R2.0_remesh.off"; 
+shared_ptr<triangulatedMeshSpace> meshSpace = make_shared<triangulatedMeshSpace>();
+meshSpace->loadMeshFromFile(meshName,true);
+
+int testFace = 459;
+faceIndex testFaceInd(testFace);
+cout << "face descriptor... " << testFaceInd << endl;
+std::vector<point3> vertices = {point3(0,0,0), point3(0,0,0), point3(0,0,0)};
+std::vector<vertexIndex> vIndices = {vertexIndex(0),vertexIndex(0),vertexIndex(0)}; 
+getVertexPositionsFromFace(meshSpace->surface, testFaceInd, vertices);
+getVertexIndicesFromFace(meshSpace->surface, testFaceInd, vIndices); 
 printf("{");
+cout << "test face vertices: " << endl;
 printPoint(vertices[0]);
 printPoint(vertices[1]);
 printPoint(vertices[2]);
-double3 sourcePoint= noise.getRandomBarycentricSet();
+cout << endl;
+//source bary: 0.00325281, 1e-15, 0.996747
+//target bary: -0.00131854, -1.35887e-15, 1.00132
+point3 sPoint(0.50013524144038568053360904741567,0.49986475855961315373221509616997,9.9999999999999889441404204514337e-16);
+point3 tPoint(0.50018256079903378186202189681353,0.49981743920096616262682687192864,-2.0618633998662694504004602557436e-18);
 smspBarycentricCoordinates source, target, i1,i2,i3;
-source[0] = sourcePoint.x;
-source[1] = sourcePoint.y;
-source[2] = sourcePoint.z;
-target[0]=noise.getRealUniform(-2,2);
-target[1]=noise.getRealUniform(-2,2);
-target[2]=1-target[0]-target[1];
+source[0] = sPoint.x();
+source[1] = sPoint.y();
+source[2] = sPoint.z();
+target[0] = tPoint.x();
+target[1] = tPoint.y();
+target[2] = tPoint.z();
 bool ii1 = intersectionBarycentricLinesV1V2(source,target,i1);
 bool ii2 = intersectionBarycentricLinesV2V3(source,target,i2);
 bool ii3 = intersectionBarycentricLinesV3V1(source,target,i3);
+printf("source & target bary:\n");
 printBary(source);
 printBary(target);
+cout <<endl;
+cout << "i1 = " << ii1 << ", i2 = " << ii2 << ", i3 = " << ii3 << endl;
 if (ii1) printBary(i1);
 if (ii2) printBary(i2);
-if (ii3)printBary(i3);
+if (ii3) printBary(i3);
+cout << endl;
+pmpBarycentricCoordinates intersectionPoint = {0,0,0}; 
+halfedgeIndex lastUsedHalfedge(-1); 
+std::vector<vertexIndex> intersectedVertices = {}; 
+std::vector<int> nonIntersectedVertices = {};
+bool hasIntersection = findTriangleEdgeIntersectionInformation(source, target, intersectionPoint, vIndices, lastUsedHalfedge, meshSpace->surface, intersectedVertices,nonIntersectedVertices);
+if (hasIntersection) 
+    {
+    printf("intersected\n");
+    for (vertexIndex v: intersectedVertices) cout << v << endl;
+    printf("non-intersected\n");
+    for (int v: nonIntersectedVertices) cout << v << endl;
+    printf("intersection point\n"); 
+    printBary(intersectionPoint); 
+    }
+else printf("no intersection."); 
+
 printf("}\n");
 }
- */
+
 /*
    smspFaceLocation smspRL = randomLocationOnRandomFace;
 //spot testing of simple timing

@@ -64,7 +64,8 @@ double triangleArea(point3 v1, point3 v2, point3 v3);
 double meanTriangleArea(triangleMesh mesh);
 double totalArea(triangleMesh mesh); 
 
-void clampToThreshold(pmpBarycentricCoordinates &baryPoint);
+void belowZeroClamp(pmpBarycentricCoordinates &baryPoint);
+void nearZeroClamp(pmpBarycentricCoordinates &baryPoint); 
 
 //!return true if the two lines which pass through the given endpoints intersect between the specified points on both lines. fill in the barycentric location of the intersection point
 bool intersectionOfLinesInBarycentricCoordinates(pmpBarycentricCoordinates line1Start, pmpBarycentricCoordinates line1End, pmpBarycentricCoordinates line2Start, pmpBarycentricCoordinates line2End, pmpBarycentricCoordinates &intersectionPoint);
@@ -82,7 +83,7 @@ void convertBarycentricCoordinates(triangleMesh &mesh1, triangleMesh &mesh2, std
 
 void computePathDistanceAndTangents(surfaceMeshShortestPath *smsp, smspFaceLocation &targetPoint, double &distance, vector3 &startPathTangent, vector3 &endPathTangent);
 
-void printPoint(point3 a);
-void printBary(smspBarycentricCoordinates a);
+void printPoint(point3 a, bool precise = false);
+void printBary(smspBarycentricCoordinates a, bool precise = false);
 
 #endif
