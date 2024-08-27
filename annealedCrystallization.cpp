@@ -33,7 +33,8 @@ void getFlatVectorOfPositions(shared_ptr<simpleModel> model, vector<double> &pos
 
 void checkOutOfBounds(vector<meshPosition> positions, int step) 
     {
-    bool nanFlag = false;
+    bool outFlag = false;
+    int counter = 0; 
     for (meshPosition p: positions)
         {
         double w1 = p.x.x();
@@ -41,12 +42,20 @@ void checkOutOfBounds(vector<meshPosition> positions, int step)
 	double w3 = p.x.z(); 
         //it's funny to look for the right structure for "not greater than,"
         //as people are quick to quip that you can use less than (ignoring nan case)
-        if (!((w1 < 2) && (w1 > -1))) {nanFlag = true; break;}
-        if (!((w2 < 2) && (w2 > -1))) {nanFlag = true; break;}
-	if (!((w3 < 2) && (w3 > -1))) {nanFlag = true; break;}
+        if (!(w1 < 2 && w1 > -2)) outFlag = true;
+        if (!(w2 < 2 && w2 > -2)) outFlag = true;
+	if (!(w3 < 2 && w3 > -2)) outFlag = true;
+	if (outFlag) 
+	    {
+	    cout << "Step " << step << endl;  
+	    cout << "particle " << counter << endl;
+	    cout << "particle weights: "; 
+	    printPoint(p.x); 
+	    printf("\n");	   
+            ERRORERROR("Bad particle found.");
+	    }
+	counter++;
 	}
-        if (nanFlag) cout << "Step " << step << endl;
-        if (nanFlag) ERRORERROR("Bad particle found." );
     } 
 
 using namespace TCLAP;
@@ -146,12 +155,29 @@ int main(int argc, char*argv[])
     double runningMinimum = 2*(pairwiseForce->computeEnergy()); 
     string minimumFilename = "../silo_data/siloMinimization_" + to_string(N) + "_" + inputMeshName + "_minconfig.nc";
 
+    
+    /*
+    vector<meshPosition> fakePositions;
+    meshPosition dummyPosition;
+    meshPosition nanPosition; 
+    dummyPosition.faceIndex = -1; 
+    nanPosition.faceIndex = -1; 
+    dummyPosition.x = point3(.5,.5,.5); 
+    nanPosition.x = point3(0,sqrt(-2),1);  
+    fakePositions.push_back(dummyPosition);
+    fakePositions.push_back(nanPosition);
+    fakePositions.push_back(dummyPosition); 
+    
+    configuration->positions = fakePositions;
+    */
+    checkOutOfBounds(configuration->positions,0);
+
+
     int step = 1;
     cout << "starting annealing loop" << endl;
     vector<double3> minR3Positions;
     vector<meshPosition> minMeshPositions;  
-    meshPosition obviouslyWrongMeshPosition; 
-
+    
     for (int annealStep = 0; annealStep < totalAnneals; annealStep++) 
 	{
         shared_ptr<gradientDescent> energyMinimizer=make_shared<gradientDescent>(dt);		
@@ -162,10 +188,9 @@ int main(int argc, char*argv[])
         fNorm = energyMinimizer->getForceNorm();
         //before the cooling section of every heating/cooling cycle, we'll check in with the 
 	//positions to see if anything has gone awry
-	
-        for (meshPosition pos: configuration->positions)
-	{ cout << endl; printPoint(pos.x);}
-        cout << endl;	
+
+	cout << endl;
+        for (meshPosition pos: configuration->positions) {printPoint(pos.x); cout << pos.faceIndex <<endl;}
 
 	for (int ii = 0; ii < descentSteps; ii++)
             {
@@ -215,6 +240,17 @@ int main(int argc, char*argv[])
 	//now, heat the system up to get a new configuration 
 	for (int ii = 0; ii < heatingLength; ++ii)
 	    {
+	    vector<meshPosition> cPositions = configuration->positions;
+	    vector<vector3> cVelocities = configuration->velocities; 
+            for (int jj = 0; jj < cPositions.size(); jj++) 
+	        {
+	        meshPosition pos = cPositions[jj]; 
+		vector3 vel = cVelocities[jj]; 	
+		cout << "particle " << jj << " position: ";
+		printPoint(pos.x);
+	       	cout << " " << pos.faceIndex << " velocity: " << vel << endl;
+		}
+
 	    checkOutOfBounds(configuration->positions,step);
             simulator->performTimestep();
 	    step++;

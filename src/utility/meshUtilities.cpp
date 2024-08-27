@@ -111,15 +111,12 @@ double totalArea(triangleMesh mesh)
  *and place it firmly within the face in question. Be careful this is not used when 
  *the barycentric coordinates are/might be very negative, as it can obscure meaningful errors. 
  */
-void belowZeroClamp(pmpBarycentricCoordinates &baryPoint)
+void belowZeroClamp(pmpBarycentricCoordinates &baryPoint, double tol)
     {
-    //to ensure we're actually close to threshold/precision of zero, 
-    //to avoid dividing and accidentally getting 10^-18, enlarge the threshold slightly -- 
-    //but these are never going to be completely perfect 
-    double clampedBarySum = 0; 
+    double clampedBarySum = 0;
     for (int i = 0; i < 3; i++)
         {
-        baryPoint[i] = max(baryPoint[i], THRESHOLD);
+        baryPoint[i] = max(baryPoint[i], tol);
 	clampedBarySum += baryPoint[i]; 
         }
     for (int i = 0; i < 3; i++)
@@ -128,12 +125,15 @@ void belowZeroClamp(pmpBarycentricCoordinates &baryPoint)
         }
     }
 
-void nearZeroClamp(pmpBarycentricCoordinates &baryPoint) 
+void nearZeroClamp(pmpBarycentricCoordinates &baryPoint, double tol) 
     {
     double clampedBarySum = 0;
     for (int i = 0; i < 3; i++)
         {
-        if (-THRESHOLD < baryPoint[i] < THRESHOLD) baryPoint[i] = THRESHOLD;
+        if (baryPoint[i] > -tol && baryPoint[i] < tol) 
+	    {
+	    baryPoint[i] = tol;
+	    }
 	clampedBarySum += baryPoint[i]; 
         }
     for (int i = 0; i < 3; i++)

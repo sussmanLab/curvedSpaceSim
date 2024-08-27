@@ -246,8 +246,11 @@ string meshName = "../silo_meshes/silo_omega0.10_R2.0_remesh.off";
 shared_ptr<triangulatedMeshSpace> meshSpace = make_shared<triangulatedMeshSpace>();
 meshSpace->loadMeshFromFile(meshName,true);
 
-int testFace = 459;
+int testFace = 1021;
+int testFace2 = 1535; 
+
 faceIndex testFaceInd(testFace);
+faceIndex testFaceInd2(testFace2); 
 cout << "face descriptor... " << testFaceInd << endl;
 std::vector<point3> vertices = {point3(0,0,0), point3(0,0,0), point3(0,0,0)};
 std::vector<vertexIndex> vIndices = {vertexIndex(0),vertexIndex(0),vertexIndex(0)}; 
@@ -259,10 +262,15 @@ printPoint(vertices[0]);
 printPoint(vertices[1]);
 printPoint(vertices[2]);
 cout << endl;
-//source bary: 0.00325281, 1e-15, 0.996747
-//target bary: -0.00131854, -1.35887e-15, 1.00132
-point3 sPoint(0.50013524144038568053360904741567,0.49986475855961315373221509616997,9.9999999999999889441404204514337e-16);
-point3 tPoint(0.50018256079903378186202189681353,0.49981743920096616262682687192864,-2.0618633998662694504004602557436e-18);
+cout << "second test face vertices: " << endl;
+getVertexPositionsFromFace(meshSpace->surface, testFaceInd2, vertices);
+getVertexIndicesFromFace(meshSpace->surface, testFaceInd2, vIndices); 
+printPoint(vertices[0]);
+printPoint(vertices[1]);
+printPoint(vertices[2]);
+cout << endl;
+point3 sPoint(1.16573e-14, 0.999823, 0.000176703);
+point3 tPoint(1e-14, 1.00009, -9.34012e-05);
 smspBarycentricCoordinates source, target, i1,i2,i3;
 source[0] = sPoint.x();
 source[1] = sPoint.y();
