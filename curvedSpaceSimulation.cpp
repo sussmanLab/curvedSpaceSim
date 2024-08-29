@@ -70,7 +70,7 @@ int main(int argc, char*argv[])
     shared_ptr<triangulatedMeshSpace> meshSpace=make_shared<triangulatedMeshSpace>();
     meshSpace->loadMeshFromFile(meshName,verbose);
     meshSpace->useSubmeshingRoutines(false);
-    if(programBranch >0)
+    if(programBranch >=0)
         meshSpace->useSubmeshingRoutines(true,maximumInteractionRange,dangerous);
 
     shared_ptr<simpleModel> configuration=make_shared<simpleModel>(N);
@@ -142,7 +142,7 @@ int main(int argc, char*argv[])
             vvdat.writeState(posToSave,dt*ii);
             */
             saveState.writeState(configuration,dt*ii);
-            if(programBranch <2)
+            if(programBranch =1)
                 {
                 double fNorm,fMax;
                 fNorm = energyMinimizer->getForceNorm();
@@ -152,6 +152,13 @@ int main(int argc, char*argv[])
             else
                 printf("step %i \n",ii);
             }
+        }
+    if(programBranch =0)
+        {
+        double fNorm,fMax;
+        fNorm = energyMinimizerFire->getForceNorm();
+        fMax = energyMinimizerFire->getMaxForce();
+        printf("fN %f fM %f\n",fNorm,fMax);
         }
 
     timer.print();
