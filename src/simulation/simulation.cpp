@@ -37,7 +37,7 @@ void simulation::setIntegrationTimestep(double dt)
     {
     integrationTimestep = dt;
     for (int u = 0; u < updaters.size(); ++u)
-        {da
+        {
         auto upd = updaters[u].lock();
         upd->setDeltaT(dt);
         };

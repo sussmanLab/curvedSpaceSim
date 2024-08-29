@@ -128,8 +128,8 @@ void simpleModelDatabase::writeState(STATE s, double time, int rec)
             forceVector[3*ii+2] = s->forces[ii][2];
             }
         if(type)
-            typeVector[ii] = s->types[ii]
-        }
+            typeVector[ii] = s->types[ii];
+        };
 
 
     timeVar  -> put_rec(&time, record);

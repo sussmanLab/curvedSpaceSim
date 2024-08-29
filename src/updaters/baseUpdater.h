@@ -20,7 +20,7 @@ class updater
         updater(int _p){Period = _p; Phase = 0;};
         virtual ~updater() = default;
         //! The fundamental function that a controlling Simulation can call
-        virtual void Update(int timestep)
+        virtual void Update(int timestep);
         //! The function which performs the update
         virtual void performUpdate();
         //! A pointer to the governing simulation
@@ -79,6 +79,9 @@ class updater
 
         //!The number of iterations performed
         int iterations;
+
+        double squaredTotalForceNorm;
+        double maximumForceNorm;
 
     protected:
         //!number of threads to use TODO

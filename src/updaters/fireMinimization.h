@@ -16,7 +16,7 @@ class fireMinimization : public velocityVerletNVE
     public:
         fireMinimization(){deltaT = 0.001;alpha = 0.99;};
 
-        virtual void performUpdate(minimizeByFire());
+        virtual void performUpdate(){minimizeByFire();};
 
         //! Minimize to the target force tolerance, or to the maximum number of iterations
         void minimizeByFire();

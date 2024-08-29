@@ -1,28 +1,14 @@
 #include "fireMinimization.h"
 
-/*!
-move every particle in the direction of the negative energy gradient, scaled by delatT
-*/
-void fireMinimization::performUpdate()
+void fireMinimization::minimizeByFire()
     {
     if(displacements.size() != Ndof)
         displacements.resize(Ndof);
     sim->computeForces();
-    for (int ii = 0; ii < Ndof; ++ii)
-        {
-        displacements[ii] = deltaT*model->forces[ii];
-        //printf("p %i d (%f %f %f)  %f\n",ii,displacements[ii][0],displacements[ii][1],displacements[ii][2], displacements[ii].squared_length());
-        }
-    sim->moveParticles(displacements);
-    };
-
-void fireMinimization::minimizeByFire()
-    {
-    sim->computeForces();
 
     forceMax = getMaxForce();
     int iteration = 0;
-    while((iteration < maximumIteration) && forceMax > forceCutoff)
+    while((iteration < maximumIterations) && forceMax > forceCutoff)
         {
         iteration +=1;
         velocityVerletFirstHalfStep();
@@ -34,7 +20,7 @@ void fireMinimization::minimizeByFire()
     //cout << "maximum force is: " << forceMax << endl;
     };
 
-double fireMinimization::updaterVectorDotProduct(vector<vector3> &v1, vector<vector3>> &v2)
+double fireMinimization::updaterVectorDotProduct(vector<vector3> &v1, vector<vector3> &v2)
     {
     vector<double> dotProd(1);
     dotProd[0] = 0.0;
@@ -89,12 +75,12 @@ void fireMinimization::fireStep()
         };
     };
 
-void fireMinimization::setFIREParameters(int _maximumIterations,double _deltaT, double _alphaStart, double _deltaTMax, double _deltaTMin, double _deltaTInc, double _deltaTDec, double _alphaDec, int _nMin, double _forceCutoff, double _alphaMin = 0.75)
+void fireMinimization::setFIREParameters(int _maximumIterations,double _deltaT, double _alphaStart, double _deltaTMax, double _deltaTMin, double _deltaTInc, double _deltaTDec, double _alphaDec, int _nMin, double _forceCutoff, double _alphaMin)
     {
     maximumIterations = _maximumIterations;
     alphaStart = _alphaStart;
     deltaTMax = _deltaTMax;
-    deltaTInc = _deltaTInce;
+    deltaTInc = _deltaTInc;
     deltaTMin = _deltaTMin;
     deltaTDec = _deltaTDec;
     alphaDec = _alphaDec;

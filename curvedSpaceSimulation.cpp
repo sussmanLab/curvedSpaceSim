@@ -7,6 +7,7 @@
 #include "triangulatedMeshSpace.h"
 #include "simulation.h"
 #include "gradientDescent.h"
+#include "fireMinimization.h"
 #include "velocityVerletNVE.h"
 #include "simpleModel.h"
 #include "gaussianRepulsion.h"
@@ -78,7 +79,7 @@ int main(int argc, char*argv[])
 
     //set up the cellListNeighborStructure, which needs to know how large the mesh is
     shared_ptr<cellListNeighborStructure> cellList = make_shared<cellListNeighborStructure>(meshSpace->minVertexPosition,meshSpace->maxVertexPosition,maximumInteractionRange);
-    if(programBranch >= 1)
+    if(programBranch >= 0)
         configuration->setNeighborStructure(cellList);
 
     //for testing, just initialize particles randomly in a small space. Similarly, set random velocities in the tangent plane
@@ -95,16 +96,25 @@ int main(int argc, char*argv[])
     simulator->addForce(pairwiseForce);
 
     shared_ptr<gradientDescent> energyMinimizer=make_shared<gradientDescent>(dt);
+    shared_ptr<fireMinimization> energyMinimizerFire=make_shared<fireMinimization>();
     shared_ptr<velocityVerletNVE> nve=make_shared<velocityVerletNVE>(dt);
     if(programBranch >=2)
         {
+        cout <<"running nve" << endl;
         nve->setModel(configuration);
         simulator->addUpdater(nve,configuration);
         }
-    else
+    else if (programBranch >=1)
         {
+        cout <<"running gradient descent" << endl;
         energyMinimizer->setModel(configuration);
         simulator->addUpdater(energyMinimizer,configuration);
+        }
+    else
+        {
+        cout <<"running FIRE minimization" << endl;
+        energyMinimizerFire->setModel(configuration);
+        simulator->addUpdater(energyMinimizerFire,configuration);
         }
     profiler timer("various parts of the code");
 

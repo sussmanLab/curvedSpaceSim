@@ -12,9 +12,6 @@ class gradientDescent : public updater
             };  
 
         virtual void performUpdate();
-
-        double squaredTotalForceNorm;
-        double maximumForceNorm;
     protected:
         vector<vector3> displacements;
 
