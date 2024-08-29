@@ -7,10 +7,10 @@ void fireMinimization::minimizeByFire()
     sim->computeForces();
 
     forceMax = getMaxForce();
-    int iteration = 0;
-    while((iteration < maximumIterations) && forceMax > forceCutoff)
+    iterations= 0;
+    while((iterations < maximumIterations) && forceMax > forceCutoff)
         {
-        iteration +=1;
+        iterations +=1;
         velocityVerletFirstHalfStep();
         velocityVerletSecondHalfStep();
 

@@ -147,7 +147,7 @@ int main(int argc, char*argv[])
                 double fNorm,fMax;
                 fNorm = energyMinimizer->getForceNorm();
                 fMax = energyMinimizer->getMaxForce();
-                printf("step %i fN %f fM %f\n",ii,fNorm,fMax);
+                printf("step %i fN %g fM %g\n",ii,fNorm,fMax);
                 }
             else
                 printf("step %i \n",ii);
@@ -158,7 +158,7 @@ int main(int argc, char*argv[])
         double fNorm,fMax;
         fNorm = energyMinimizerFire->getForceNorm();
         fMax = energyMinimizerFire->getMaxForce();
-        printf("fN %f fM %f\n",fNorm,fMax);
+        printf("fN %g fM %g\n",fNorm,fMax);
         }
 
     timer.print();
