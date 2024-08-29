@@ -61,8 +61,10 @@ class updater
 
         //!allow for setting multiple threads
         virtual void setNThreads(int n){nThreads = n;};
-
-        virtual double getMaxForce(){return 0.0;};
+        //!A sample function, mostly to show how to use manipulateUpdaterData
+        virtual double getMaxForce();
+        //!A sample function, mostly to show how to use manipulateUpdaterData
+        virtual double getForceNorm();
 
         //!Set the maximum number of iterations before terminating
         void setMaximumIterations(int maxIt=-1){maxIterations = maxIt;};
