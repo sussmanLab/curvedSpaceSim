@@ -142,7 +142,7 @@ int main(int argc, char*argv[])
             vvdat.writeState(posToSave,dt*ii);
             */
             saveState.writeState(configuration,dt*ii);
-            if(programBranch =1)
+            if(programBranch ==1)
                 {
                 double fNorm,fMax;
                 fNorm = energyMinimizer->getForceNorm();
@@ -153,7 +153,7 @@ int main(int argc, char*argv[])
                 printf("step %i \n",ii);
             }
         }
-    if(programBranch =0)
+    if(programBranch ==0)
         {
         double fNorm,fMax;
         fNorm = energyMinimizerFire->getForceNorm();
