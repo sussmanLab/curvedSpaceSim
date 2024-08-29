@@ -291,7 +291,7 @@ int main(int argc, char*argv[])
             simpleModelDatabase minState(N, minimumFilename, NcFile::Replace); //don't use posToSave.size(), it's three times as large as it should be 
             //because it's defined local to this conditional, above will overwrite existing files
 	    runningMinimum=currentMinEnergy;
-	    minState.writeState(configuration,dt*step,5); 
+	    minState.writeState(configuration,dt*step); 
 	    configuration->fillEuclideanLocations();
 	    checkEucOutOfBounds(configuration->euclideanLocations, configuration->positions, step);
 	    minR3Positions = configuration->euclideanLocations; 
