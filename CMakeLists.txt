@@ -77,7 +77,6 @@ foreach(ARG
         computationalTiming
 	curvedSpaceNVTSim
 	annealedCrystallization
-	siloClusterAnly
 	meshTesting
         )
 

@@ -64,7 +64,7 @@ double triangleArea(point3 v1, point3 v2, point3 v3);
 double meanTriangleArea(triangleMesh mesh);
 double totalArea(triangleMesh mesh); 
 
-void belowZeroClamp(pmpBarycentricCoordinates &baryPoint, double tol = 1e-13);
+void belowZeroClamp(pmpBarycentricCoordinates &baryPoint, double tol = 1e-11);
 void nearZeroClamp(pmpBarycentricCoordinates &baryPoint, double tol = 1e-13); 
 
 //!return true if the two lines which pass through the given endpoints intersect between the specified points on both lines. fill in the barycentric location of the intersection point

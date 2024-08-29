@@ -34,7 +34,8 @@ void getFlatVectorOfPositions(shared_ptr<simpleModel> model, vector<double> &pos
 void checkOutOfBounds(vector<meshPosition> positions, int step) 
     {
     bool outFlag = false;
-    int counter = 0; 
+    int counter = 0;
+    double bound = 2.0; 
     for (meshPosition p: positions)
         {
         double w1 = p.x.x();
@@ -42,9 +43,9 @@ void checkOutOfBounds(vector<meshPosition> positions, int step)
 	double w3 = p.x.z(); 
         //it's funny to look for the right structure for "not greater than,"
         //as people are quick to quip that you can use less than (ignoring nan case)
-        if (!(w1 < 2 && w1 > -2)) outFlag = true;
-        if (!(w2 < 2 && w2 > -2)) outFlag = true;
-	if (!(w3 < 2 && w3 > -2)) outFlag = true;
+        if (!(w1 < bound && w1 > -bound)) outFlag = true;
+        if (!(w2 < bound && w2 > -bound)) outFlag = true;
+	if (!(w3 < bound && w3 > -bound)) outFlag = true;
 	if (outFlag) 
 	    {
 	    cout << "Step " << step << endl;  
@@ -57,6 +58,52 @@ void checkOutOfBounds(vector<meshPosition> positions, int step)
 	counter++;
 	}
     } 
+
+void checkEucOutOfBounds(vector<double3> positions, vector<meshPosition> baryCoords, int step)
+    {
+    bool outFlag = false;
+    int counter = 0;
+    double bound = 1000.0;
+    for (double3 p: positions)
+        {
+        double x = p.x;
+        double y = p.y;
+        double z = p.z;
+        //it's funny to look for the right structure for "not greater than,"
+        //as people are quick to quip that you can use less than (ignoring nan case)
+        if (!(x < bound && x > -bound)) outFlag = true;
+        if (!(y < bound && y > -bound)) outFlag = true;
+        if (!(z < bound && z > -bound)) outFlag = true;
+        counter++;
+	if (outFlag) break; 
+        }
+    if (outFlag)
+        {
+        cout << "Step " << step << endl;
+        cout << "broken particle " << counter << endl; 
+	cout << "particle positions: \n";
+	int c = 0; 
+        for (double3 p: positions)
+	    {
+            printf("%i ", c);
+	    printf("{%f,%f,%f}",p.x,p.y,p.z);
+	    printf("\n");
+	    c++;
+	    }
+	
+	c=0;
+	cout << "barycentric coords: \n"; 
+        for (meshPosition b: baryCoords)
+            {
+            printf("%i ", c);
+            printPoint(b.x);
+            printf("\n");
+	    c++; 
+            }
+
+        ERRORERROR("Bad particle Euclidean location found.");
+        }
+    }
 
 using namespace TCLAP;
 int main(int argc, char*argv[])
@@ -157,21 +204,39 @@ int main(int argc, char*argv[])
 
     
     /*
+     * simple tester to check and make sure the out of bounds routines are working 
     vector<meshPosition> fakePositions;
     meshPosition dummyPosition;
     meshPosition nanPosition; 
-    dummyPosition.faceIndex = -1; 
-    nanPosition.faceIndex = -1; 
+    dummyPosition.faceIndex = 1; 
+    nanPosition.faceIndex = 2; 
     dummyPosition.x = point3(.5,.5,.5); 
-    nanPosition.x = point3(0,sqrt(-2),1);  
+    nanPosition.x = point3(0,0.1,1e10);  
     fakePositions.push_back(dummyPosition);
     fakePositions.push_back(nanPosition);
     fakePositions.push_back(dummyPosition); 
     
     configuration->positions = fakePositions;
-    */
-    checkOutOfBounds(configuration->positions,0);
+    cout << "set mesh positions, filling euclidean locations" << endl; 
+    configuration->fillEuclideanLocations();     
+    double3 badpos; 
+    badpos.x = 1.3;
+    badpos.y = 1.76025e199; 
+    badpos.z = 2.0; 
+    configuration->euclideanLocations[1] = badpos;  
+    checkEucOutOfBounds(configuration->euclideanLocations, configuration->positions,0);
 
+    int c = 0;
+    for (double3 p: configuration->euclideanLocations)
+       {
+       printf("%i ", c);
+       printf("{%f,%f,%f}",p.x,p.y,p.z);
+       printf("\n");
+       c++;
+       }
+
+    ERRORERROR("sim was intended to fail before here"); 
+    */
 
     int step = 1;
     cout << "starting annealing loop" << endl;
@@ -196,7 +261,8 @@ int main(int argc, char*argv[])
             {
 	
 	    checkOutOfBounds(configuration->positions,step);
-	
+	    configuration->fillEuclideanLocations(); 
+            checkEucOutOfBounds(configuration->euclideanLocations, configuration->positions, step);	
 	    timer.start();
             simulator->performTimestep();
             timer.end();	    
@@ -222,11 +288,12 @@ int main(int argc, char*argv[])
 	if (currentMinEnergy < runningMinimum) 
 	    {
 	    //if this is our lowest energy configuration, save the energy value and the configuration itself	    
-            simpleModelDatabase minState(posToSave.size(), minimumFilename, NcFile::Replace); 
+            simpleModelDatabase minState(N, minimumFilename, NcFile::Replace); //don't use posToSave.size(), it's three times as large as it should be 
             //because it's defined local to this conditional, above will overwrite existing files
 	    runningMinimum=currentMinEnergy;
-	    minState.writeState(configuration,dt*step); 
+	    minState.writeState(configuration,dt*step,5); 
 	    configuration->fillEuclideanLocations();
+	    checkEucOutOfBounds(configuration->euclideanLocations, configuration->positions, step);
 	    minR3Positions = configuration->euclideanLocations; 
 	    minMeshPositions = configuration->positions;  
 	    }
@@ -234,8 +301,8 @@ int main(int argc, char*argv[])
 	shared_ptr<noseHooverNVT> NVTUpdater=make_shared<noseHooverNVT>(dt, temperature, 1.0, M);
         NVTUpdater->setModel(configuration); 
 	simulator->clearUpdaters();
-	cout << "setting mb velocities" << endl;
-        configuration->setMaxwellBoltzmannVelocities(noise,temperature);
+        
+	configuration->setMaxwellBoltzmannVelocities(noise,temperature);
         simulator->addUpdater(NVTUpdater,configuration);
 	//now, heat the system up to get a new configuration 
 	for (int ii = 0; ii < heatingLength; ++ii)
@@ -246,18 +313,20 @@ int main(int argc, char*argv[])
 	        {
 	        meshPosition pos = cPositions[jj]; 
 		vector3 vel = cVelocities[jj]; 	
+		/*
 		cout << "particle " << jj << " position: ";
 		printPoint(pos.x);
 	       	cout << " " << pos.faceIndex << " velocity: " << vel << endl;
+		*/
 		}
 
-	    checkOutOfBounds(configuration->positions,step);
-            simulator->performTimestep();
+            checkOutOfBounds(configuration->positions,step);
+            configuration->fillEuclideanLocations();
+            checkEucOutOfBounds(configuration->euclideanLocations, configuration->positions, step);
+	    simulator->performTimestep();
 	    step++;
 	    if(step%saveFrequency == saveFrequency-1)
                 {
-                //this needs to be updated to new saveState style 
-		//(see curvedSpaceNVTSim) but for now just proof of concept
                 saveState.writeState(configuration,dt*step);
 		double nowTemp = NVTUpdater->getTemperatureFromKE();
                 printf("step %i T %f \n",step,nowTemp);
