@@ -120,6 +120,8 @@ int main(int argc, char*argv[])
     simpleModelDatabase saveState(N,"./testModelDatabase.nc",NcFile::Replace);
     saveState.writeState(configuration,0.0);
 
+    ofstream energies("density_0.90_energies.csv"); 
+
     for (int ii = 0; ii < maximumIterations; ++ii)
         {
         timer.start();

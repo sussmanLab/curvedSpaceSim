@@ -117,7 +117,7 @@ int main(int argc, char*argv[])
     ValueArg<int> programBranchSwitchArg("z","programBranchSwitch","an integer controlling program branch",false,0,"int",cmd);
     ValueArg<int> particleNumberSwitchArg("n","number","number of particles to simulate",false,20,"int",cmd);
     ValueArg<int> saveFrequencyArg("s","saveFrequency","how often a file gets updated",false,100,"int",cmd); 
-    ValueArg<int> descentStepsArg("i","GDsteps","steps in each gradient descent",false, 10000, "int",cmd);
+    ValueArg<int> numberAnnealsArg("i","nAnneals","number of anneals to do",false, 10, "int",cmd);
     ValueArg<int> chainLengthArg("l", "M", "length of N-H chain", false, 2, "int", cmd);
     ValueArg<string> meshSwitchArg("m","meshSwitch","filename of the mesh you want to load",false,"../exampleMeshes/torus_isotropic_remesh.off","string",cmd);
     ValueArg<string> positionsFileArg("f", "positionsFile", "filename for xyz positions you want to load", false, "none", "string", cmd); 
@@ -137,7 +137,7 @@ int main(int argc, char*argv[])
     int programBranch = programBranchSwitchArg.getValue();
     int N = particleNumberSwitchArg.getValue();
     int M = chainLengthArg.getValue();
-    int descentSteps = descentStepsArg.getValue();
+    int totalAnneals = numberAnnealsArg.getValue();
     int saveFrequency = saveFrequencyArg.getValue();
     string meshName = meshSwitchArg.getValue();
     string positionsFile = positionsFileArg.getValue();
@@ -195,54 +195,18 @@ int main(int argc, char*argv[])
     simpleModelDatabase saveState(N,trajectoryFilename,NcFile::Replace);
     saveState.writeState(configuration,0.0);
 
-    double fNorm,fMax, energyState; 
+    double fNorm, fMax, energyState; 
     fNorm=1;
-    int totalAnneals = 20;
     int heatingLength = 1000; 
     double runningMinimum = 2*(pairwiseForce->computeEnergy()); 
-    string minimumFilename = "../silo_data/siloMinimization_" + to_string(N) + "_" + inputMeshName + "_minconfig.nc";
-
-    
-    /*
-     * simple tester to check and make sure the out of bounds routines are working 
-    vector<meshPosition> fakePositions;
-    meshPosition dummyPosition;
-    meshPosition nanPosition; 
-    dummyPosition.faceIndex = 1; 
-    nanPosition.faceIndex = 2; 
-    dummyPosition.x = point3(.5,.5,.5); 
-    nanPosition.x = point3(0,0.1,1e10);  
-    fakePositions.push_back(dummyPosition);
-    fakePositions.push_back(nanPosition);
-    fakePositions.push_back(dummyPosition); 
-    
-    configuration->positions = fakePositions;
-    cout << "set mesh positions, filling euclidean locations" << endl; 
-    configuration->fillEuclideanLocations();     
-    double3 badpos; 
-    badpos.x = 1.3;
-    badpos.y = 1.76025e199; 
-    badpos.z = 2.0; 
-    configuration->euclideanLocations[1] = badpos;  
-    checkEucOutOfBounds(configuration->euclideanLocations, configuration->positions,0);
-
-    int c = 0;
-    for (double3 p: configuration->euclideanLocations)
-       {
-       printf("%i ", c);
-       printf("{%f,%f,%f}",p.x,p.y,p.z);
-       printf("\n");
-       c++;
-       }
-
-    ERRORERROR("sim was intended to fail before here"); 
-    */
-
-    int step = 1;
+    string minimumFilename = "../silo_data/siloMinimization_" + to_string(N) + "_" + inputMeshName + "_minconfig.nc"; 
+    int step = 1;//purely for printouts
+    double energyVariationCutoff = 2e-6;
     cout << "starting annealing loop" << endl;
     vector<double3> minR3Positions;
     vector<meshPosition> minMeshPositions;  
-    
+    int descentSteps = 100000; //absolute maximum descent steps, which should essentially never occur 
+
     for (int annealStep = 0; annealStep < totalAnneals; annealStep++) 
 	{
         shared_ptr<gradientDescent> energyMinimizer=make_shared<gradientDescent>(dt);		
@@ -257,6 +221,8 @@ int main(int argc, char*argv[])
 	cout << endl;
         for (meshPosition pos: configuration->positions) {printPoint(pos.x); cout << pos.faceIndex <<endl;}
 
+        double ePrev = pairwiseForce->computeEnergy(); 
+	
 	for (int ii = 0; ii < descentSteps; ii++)
             {
 	
@@ -266,6 +232,18 @@ int main(int argc, char*argv[])
 	    timer.start();
             simulator->performTimestep();
             timer.end();	    
+            energyState = pairwiseForce->computeEnergy();
+	    double energyVariation = abs((ePrev-energyState)/ePrev); 
+            if (energyVariation <= energyVariationCutoff) 
+	        {
+		printf("Reached energy variation threshold.\n"); 
+		fNorm = energyMinimizer->getForceNorm();
+                fMax = energyMinimizer->getMaxForce();
+		printf("step %i fN %.4g fM %.4g E %.4g\n",step,fNorm,fMax, energyState);
+		printf("energy variation %.6g\n", energyVariation);
+		break; 
+		}
+	    ePrev = energyState;
 
             if(step%saveFrequency == saveFrequency-1)
                 {
@@ -274,23 +252,23 @@ int main(int argc, char*argv[])
                     {
                     fNorm = energyMinimizer->getForceNorm();
                     fMax = energyMinimizer->getMaxForce();
-		    energyState = pairwiseForce->computeEnergy();
-                    printf("step %i fN %.4g fM %.4g E %.4g\n ",step,fNorm,fMax, energyState);
-                    }
+                    printf("step %i fN %.4g fM %.4g E %.4g\n",step,fNorm,fMax, energyState);
+                    printf("energy variation %.6g\n", energyVariation); 
+		    }
                 else
                     printf("step %i \n",step);
                }
-	    step++; 
+	    step++;
+	    if (ii == descentSteps-1) printf("Reached max cooling length."); 
             };
         
 	//now, save the minimum energy configuration
-        double currentMinEnergy = pairwiseForce->computeEnergy(); 
-	if (currentMinEnergy < runningMinimum) 
+	if (energyState < runningMinimum) 
 	    {
 	    //if this is our lowest energy configuration, save the energy value and the configuration itself	    
             simpleModelDatabase minState(N, minimumFilename, NcFile::Replace); //don't use posToSave.size(), it's three times as large as it should be 
             //because it's defined local to this conditional, above will overwrite existing files
-	    runningMinimum=currentMinEnergy;
+	    runningMinimum=energyState;
 	    minState.writeState(configuration,dt*step); 
 	    configuration->fillEuclideanLocations();
 	    checkEucOutOfBounds(configuration->euclideanLocations, configuration->positions, step);
@@ -309,18 +287,7 @@ int main(int argc, char*argv[])
 	    {
 	    vector<meshPosition> cPositions = configuration->positions;
 	    vector<vector3> cVelocities = configuration->velocities; 
-            for (int jj = 0; jj < cPositions.size(); jj++) 
-	        {
-	        meshPosition pos = cPositions[jj]; 
-		vector3 vel = cVelocities[jj]; 	
-		/*
-		cout << "particle " << jj << " position: ";
-		printPoint(pos.x);
-	       	cout << " " << pos.faceIndex << " velocity: " << vel << endl;
-		*/
-		}
-
-            checkOutOfBounds(configuration->positions,step);
+                        checkOutOfBounds(configuration->positions,step);
             configuration->fillEuclideanLocations();
             checkEucOutOfBounds(configuration->euclideanLocations, configuration->positions, step);
 	    simulator->performTimestep();
@@ -333,8 +300,6 @@ int main(int argc, char*argv[])
                 }
 	    }
 	};
-    
-    
     timer.print();    
     
     
@@ -374,10 +339,11 @@ int main(int argc, char*argv[])
 
     double omegaR = omega*R;
     double RoverD = R/maximumInteractionRange;
+    cout << "Minimal energy found: " << runningMinimum << endl;
     cout << "R: " << R << ", d: " << maximumInteractionRange << endl; 
     cout << "omegaR = " << omegaR << endl;
     cout << "R over d = " << RoverD << endl;
-   
+     
     ofstream plotPointsFile;
     plotPointsFile.open("../silo_data/omegaR_Rdivd.csv", ios::app);
     if (!plotPointsFile)
@@ -389,3 +355,52 @@ int main(int argc, char*argv[])
 
     return 0;
     };
+
+ 
+/*
+ * simple tester to check and make sure the out of bounds routines are working 
+vector<meshPosition> fakePositions;
+meshPosition dummyPosition;
+meshPosition nanPosition; 
+dummyPosition.faceIndex = 1; 
+nanPosition.faceIndex = 2; 
+dummyPosition.x = point3(.5,.5,.5); 
+nanPosition.x = point3(0,0.1,1e10);  
+fakePositions.push_back(dummyPosition);
+fakePositions.push_back(nanPosition);
+fakePositions.push_back(dummyPosition); 
+
+configuration->positions = fakePositions;
+cout << "set mesh positions, filling euclidean locations" << endl; 
+configuration->fillEuclideanLocations();     
+double3 badpos; 
+badpos.x = 1.3;
+badpos.y = 1.76025e199; 
+badpos.z = 2.0; 
+configuration->euclideanLocations[1] = badpos;  
+checkEucOutOfBounds(configuration->euclideanLocations, configuration->positions,0);
+
+int c = 0;
+for (double3 p: configuration->euclideanLocations)
+   {
+   printf("%i ", c);
+   printf("{%f,%f,%f}",p.x,p.y,p.z);
+   printf("\n");
+   c++;
+   }
+
+ERRORERROR("sim was intended to fail before here"); 
+*/
+
+/* quick position printer to check 
+	    for (int jj = 0; jj < cPositions.size(); jj++) 
+	        {
+	        meshPosition pos = cPositions[jj]; 
+		vector3 vel = cVelocities[jj]; 	
+		cout << "particle " << jj << " position: ";
+		printPoint(pos.x);
+	       	cout << " " << pos.faceIndex << " velocity: " << vel << endl;
+		
+		}
+            */
+

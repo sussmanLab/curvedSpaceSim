@@ -547,6 +547,7 @@ void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displac
 		else 
 		    {	
                     continueShifting = false;
+		    targetBarycentricLocation = sourceBarycentricLocation;
 		    }
 		checkBaryNan(sourceBarycentricLocation); //purely for debugging
                 continue; //this statement ensures that this through boundary vertex branch is isolated from the below
@@ -658,6 +659,7 @@ void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displac
 		else
 		    { 
                     continueShifting = false;
+		    targetBarycentricLocation = sourceBarycentricLocation; //actual displacment removal
 		    }
 		//source face stays the same because we can't cross boundary edges
                 lastUsedHalfedge = nullHalfedge; //allows future intersections checks to include this boundary edge
@@ -842,6 +844,7 @@ void triangulatedMeshSpace::transportParticleAndVelocity(meshPosition &pos, vect
 		else 
 		   {
                    continueShifting = false;
+		   targetBarycentricLocation = sourceBarycentricLocation;
 		   }
 		//we had to do a bunch outside of the conditional to allow this, but now we can remove 
 		//components of velocity orthogonal to the edge we *would* have traveled to, even if
@@ -945,6 +948,7 @@ void triangulatedMeshSpace::transportParticleAndVelocity(meshPosition &pos, vect
 		    vector3 orthogonalToEdge = CGAL::cross_product(currentSourceNormal, vector3(ev1,ev2));
 		    velocityVector = velocityVector - (velocityVector*orthogonalToEdge)*orthogonalToEdge; 
                     continueShifting = false;
+		    targetBarycentricLocation = sourceBarycentricLocation;
 		    }
 		
 		lastUsedHalfedge = nullHalfedge; 

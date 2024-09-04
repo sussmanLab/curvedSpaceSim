@@ -78,6 +78,7 @@ foreach(ARG
 	curvedSpaceNVTSim
 	annealedCrystallization
 	meshTesting
+	siloEnergyChecker
         )
 
 add_executable("${ARG}.out" "${ARG}.cpp" )
