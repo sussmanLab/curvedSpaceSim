@@ -25,15 +25,12 @@ void simpleModel::initializeSimpleModel(int n)
     forces.resize(n,vector3(0.,0.,0.));
     masses.resize(n);
     masses = vector<double>(n,1.0);
+    types.resize(n,0);
 
     neighbors.resize(n);
     neighborVectors.resize(n);
     neighborDistances.resize(n);
-    //types.resize(n);
-    //masses.resize(n);
     //radii.resize(n);
-    //vector<scalar> halves(N,.5);
-    //vector<int> units(N,0);
 
     neighborStructure = make_shared<baseNeighborStructure>();
     };
@@ -216,6 +213,14 @@ void simpleModel::setMaxwellBoltzmannVelocities(noiseSource &noise, double T)
         }
     };
 
+/*!
+It is possible that in some complex models it may be easier to implement a force
+calculation from within the model (see, e.g., the way cellGPU handles
+cell-model-like forces).  In that case, the simulation should call the model's
+internal force function.  This is currently not implement in the simulation
+classes, but would be easy to do.
+TODO
+*/
 void simpleModel::computeForces(bool zeroOutForces)
     {
     if(zeroOutForces)

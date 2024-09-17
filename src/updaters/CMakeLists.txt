@@ -7,6 +7,7 @@ include_directories(incDirs)
 add_library(updaters
     baseUpdater.cpp
     gradientDescent.cpp
+    fireMinimization.cpp
     velocityVerletNVE.cpp
     noseHooverNVT.cpp
     )

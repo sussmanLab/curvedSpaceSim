@@ -1,7 +1,7 @@
 #ifndef BASICSIMULATION_H
 #define BASICSIMULATION_H
 /*! \file basicSimulation.h */
-//!Basic simulations just know that there are virtual functions that implement computeForces, moveParticles, and have a simulation domain
+//!Basic simulations just know that there are virtual functions that implement computeForces, moveParticles, and have a simulation domain. Only child classes are actually used in a main cpp file
 
 #include "simpleModel.h"
 #include <functional>
@@ -29,11 +29,11 @@ class basicSimulation
         //! The dt of a time step
         double integrationTimestep;
 
-        //!Set the time between spatial sorting operations.
+        //!Set the time between spatial sorting operations...currently not implemented TODO
         void setSortPeriod(int sp){sortPeriod = sp;};
 
         //!reset the simulation clock
-        virtual void setCurrentTime(double _cTime);
+        virtual void setCurrentTime(double _cTime){Time = _cTime;};
         //!reset the simulation clock counter
         virtual void setCurrentTimestep(int _cTime){integerTimestep =_cTime;};
 

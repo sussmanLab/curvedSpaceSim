@@ -8,6 +8,11 @@
  */
 
 /*!
+The simplest implementation of an MPI extension of the simpleModel class... rank 0 is used to set any global information (say, initial particle positions), and then each rank gets approximately (N/(numberOfRanks)) particles to take care of. Coordinates tightly with the functions in mpiSimulation.
+
+In this implementation, only positional information is shared.  A separate class
+would be needed if velocity information also is to be coordinated across ranks
+(as in, e.g., an updater in which velocities locally align).
 */
 class mpiModel : public simpleModel
     {
@@ -37,39 +42,50 @@ class mpiModel : public simpleModel
         void broadcastParticlePositions(vector<meshPosition> &p, int broadcastRoot = 0);
         //!have (by default) rank 0 fill and then broadcast the globalVelocities vector... mostly useful for setting initial conditions
         void broadcastParticleVelocities(vector<vector3> &v, int broadcastRoot = 0);
-
+        
+        //!before MPI communication, prepare the sending buffer with relevant model data
         virtual void processSendingBuffer(int directionType = -1); 
+        //! after MPI communication, convert the receiving buffer into the relevant model data
         virtual void processReceivingBuffer(int directionType = -1);  
 
+        //!look at the global position information and update the information that should be local to this process
         void readFromGlobalPositions();
 
+        //!specialize the findNeighbors routine to deal with particle index offsetting
         virtual void findNeighbors(double maximumInteractionRange);
 
         //!The total number of particles across all ranks
         int NTotal;
 
-        //!global particle  positions
+        //!global particle  positions (i.e., the positions of *all* particles in the simulation)
         vector<meshPosition> globalPositions;
+        //!global particle velocities
+        vector<vector3> globalVelocities;
 
+        //Buffers for sending and receiving ints and doubles for inter-process communication
         vector<int> intTransferBufferSend;
         vector<double> doubleTransferBufferSend;
         vector<int> intTransferBufferReceive;
         vector<double> doubleTransferBufferReceive;
 
         int largestNumberOfParticlesPerRank;
+        //!convert from the internal meshPosition representation and fill the vector of euclidean locations
         virtual void fillEuclideanLocations();
 
     protected:
         //the current rank has N of NTotal degrees of freedom in the globalPositions vector, corresponding to "for (int ii = minIdx; ii < maxIdx; ++ii)" type accesses
+        //!the global index corresponding to the current rank's "particle 0"
         int minIdx;
+        //!the global index corresponding to the current rank's last particle
         int maxIdx;
+        //!The local rank of the process
         int localRank;
+        //! the total number of processes that are communicating in the simulation
         int totalRanks;
 
-        //!Use nTotal, localRank, and totalRanks to set min/maxIdx
+        //!Use nTotal, localRank, and totalRanks to set min/maxIdx and N
         virtual void determineIndexBounds();
 
-        vector<vector3> globalVelocities;
     };
 typedef shared_ptr<mpiModel> MPIConfigPtr;
 typedef weak_ptr<mpiModel> MPIWeakConfigPtr;

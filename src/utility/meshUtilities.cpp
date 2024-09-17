@@ -262,6 +262,12 @@ bool findTriangleEdgeIntersectionInformation(pmpBarycentricCoordinates sourceBar
     return answer;
     }
 
+/*!
+Submeshing is very helpful in these calculations, but one then needs to map
+between barycentric coordinates of a particle on a face of the submesh and the
+barycentric coordinates of that same particle on the original mesh.  This
+function does just that.
+*/
 void convertBarycentricCoordinates(triangleMesh &mesh1, triangleMesh &mesh2, std::unordered_map<faceIndex,int> &faceMap, smspFaceLocation &locationToConvert)
     {
     std::vector<point3> vertexPositions1(3);

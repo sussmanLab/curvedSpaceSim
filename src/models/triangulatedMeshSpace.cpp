@@ -227,7 +227,8 @@ void triangulatedMeshSpace::distance(meshPosition &p1, std::vector<meshPosition>
     globalSMSP->remove_all_source_points();
     };
 
-/*!throughVertex takes as input the index of the vertex we're going through, the vector from the current source to that intersection,
+/*!
+throughVertex takes as input the index of the vertex we're going through, the vector from the current source to that intersection,
 and the source face. Then, it cycles through the faces adjoining the vertex, collecting the total angle of the vertex (the total
 angle subtended by the edge pairs), and determines the heading that would be halfway through the total angle. The face containing
 that heading and the heading itself are returned. The half-of-total angle criterion is the same as the straightest geodesic criterion;
@@ -566,7 +567,7 @@ void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displac
 	else if(uninvolvedVertex.size() != 1)
             {
 	    cout << endl;
-	    cout << "did the program say we found an intersection?" << endl;
+	    cout << "did the program say there was  an intersection?" << endl;
 	    cout << ifIntersection << endl;
 	    cout << "uninvolved vertex size: " << uninvolvedVertex.size() << endl;
 	    cout << "failure :( (within NO velocity transport routine)" << endl;
@@ -594,7 +595,7 @@ void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displac
 	    cout << endl;
 	    
 	    cout << "displacement vector: " << displacementVector[0] << ", " << displacementVector[1] << ", " << displacementVector[2] << endl; 
-            ERRORERROR("a barycentric coordinate of the target is negative, but neither 1 nor 2 intersections were found. Apparently some debugging is needed!");
+	    ERRORERROR("a barycentric coordinate of the target is negative, but neither 1 nor 2 intersections were found. Apparently some debugging is needed!");
             }
 	/*
         We have now identified the relevant edge or vertex intersection point.
@@ -716,9 +717,6 @@ void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displac
     pos.x = point3(targetBarycentricLocation[0],targetBarycentricLocation[1],targetBarycentricLocation[2]);   
     checkBaryNan(targetBarycentricLocation);
     }
-
-
-
 
 //Code copy-pastes a lot of the displace particle routine above...eventually refactor more nicely!
 /* Big differences: 

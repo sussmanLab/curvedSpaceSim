@@ -6,12 +6,11 @@
 /*! \file noseHooverNVT.h */
 //! Implements NVT dynamics according to the Nose-Hoover equations of motion with a chain of thermostats
 /*!
- *This allows one to do standard NVT simulations. A chain (whose length can be specified by the user)
- of thermostats is used to maintain the target temperature. We closely follow the Frenkel & Smit
- update scheme, which is itself based on:
- Martyna, Tuckerman, Tobias, and Klein
- Mol. Phys. 87, 1117 (1996)
-*/
+ This allows one to do standard NVT simulations.  A chain (whose length can be
+ specified by the user) of thermostats is used to maintain the target
+ temperature.  We closely follow the Frenkel & Smit update scheme, which is
+ itself based on:
+ Martyna, Tuckerman, Tobias, and Klein, Mol. Phys. 87, 1117 (1996) */
 
 class noseHooverNVT : public updater
     {
@@ -19,6 +18,7 @@ class noseHooverNVT : public updater
         //here tau is the inverse of the frequency of the chain degrees of freedom, and M is the length of the NH chain
         noseHooverNVT(double _dt, double _T, double _tau=1.0, int _M=2);
 
+        //!perform the MTTK symplectic NVT update
         virtual void performUpdate();
 
         virtual void setModel(shared_ptr<simpleModel> _model)
@@ -29,6 +29,7 @@ class noseHooverNVT : public updater
             setBathVariables();
             };
 
+    //!compute the instantaneous kinetic temperature
 	double getTemperatureFromKE();
 
     protected:

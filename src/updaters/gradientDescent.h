@@ -2,7 +2,7 @@
 #define gradientDescent_H
 
 #include "baseUpdater.h"
-
+//! A class which performs a bog-standard gradient descent 
 class gradientDescent : public updater
     {
     public:
@@ -20,14 +20,6 @@ class gradientDescent : public updater
             };
 
         virtual void performUpdate();
-
-        //!A sample function, mostly to show how to use manipulateUpdaterData
-        virtual double getMaxForce();
-        //!A sample function, mostly to show how to use manipulateUpdaterData
-        virtual double getForceNorm();
-
-        double squaredTotalForceNorm;
-        double maximumForceNorm;
     protected:
         vector<vector3> displacements;
 

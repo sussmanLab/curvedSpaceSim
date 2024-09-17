@@ -20,7 +20,7 @@ class vectorValueDatabase : public BaseDatabaseNetCDF
         NcVar *valVar, *vecVar;
         //!read values in a new value and vector
         virtual void readState(int rec);
-        //!write a new value and vector
+        //!write a new value and vector. Unlike the state savers, we always just append a new record
         virtual void writeState(vector<double> &vec,double val);
         //!The variable that will be loaded for "value" when state is read
         double val;
