@@ -91,14 +91,9 @@ void convertBarycentricCoordinates(triangleMesh &mesh1, triangleMesh &mesh2, std
 //! Given the right data structures, compute the geodesic path and start/end tangent vectors between points
 void computePathDistanceAndTangents(surfaceMeshShortestPath *smsp, smspFaceLocation &targetPoint, double &distance, vector3 &startPathTangent, vector3 &endPathTangent);
 
-<<<<<<< HEAD
-void printPoint(point3 a, bool precise = false);
-void printBary(smspBarycentricCoordinates a, bool precise = false);
-=======
 //!Print to screen the coordinates of a point.
-void printPoint(point3 a);
+void printPoint(point3 a, bool precise = false);
 //! print to screen a set of barycentric coordinates
-void printBary(smspBarycentricCoordinates a);
->>>>>>> main
+void printBary(smspBarycentricCoordinates a, bool precise = false);
 
 #endif

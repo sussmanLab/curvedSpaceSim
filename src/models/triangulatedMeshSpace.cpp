@@ -566,18 +566,17 @@ void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displac
 
 	else if(uninvolvedVertex.size() != 1)
             {
+	    //below is extensive debug output in case there is a major error in shift
 	    cout << endl;
 	    cout << "did the program say there was  an intersection?" << endl;
 	    cout << ifIntersection << endl;
 	    cout << "uninvolved vertex size: " << uninvolvedVertex.size() << endl;
-	    cout << "failure :( (within NO velocity transport routine)" << endl;
 	    cout << "source face: " << currentSourceFace << endl;
 	    cout << "source vertices: " << vertexList[0] << ", " << vertexList[1] << ", " << vertexList[2] << endl;
             printPoint(surface.point(vertexList[0]),false); 
 	    printPoint(surface.point(vertexList[1]),false); 
 	    printPoint(surface.point(vertexList[2]),false); 
 	    cout << endl; 
-	    cout << "provisional target face(?): " << provisionalTargetFace << endl;
 	    cout << "source r3: "; 
 	    printPoint(sourcePoint); 
 	    cout << endl;

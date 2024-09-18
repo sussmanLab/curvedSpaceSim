@@ -38,6 +38,35 @@ double updater::getForceNorm()
     };
 
 /*!
+ get the norm of the force vector while excluding a subset of the particles
+ */
+double updater::getForceNormWithExclusions(vector<int> exclusions)
+    {
+    //version of force norm calculation that excludes any particle index we suggest in argument exclusions
+    vector<double> forceNorm(1);
+    forceNorm[0] = 0.0;
+    for (int ii = 0; ii < Ndof; ++ii)
+        {
+        if(find(exclusions.begin(), exclusions.end(), ii) != exclusions.end())
+            {/* exclusions contains ii -- we can cut down on computation time
+                creating exclusions sorted, as indices are unique, then only ever
+                considering the 'next' value of exclusions */
+            continue;
+            }
+        forceNorm[0] += model->forces[ii].squared_length();
+        }
+    //define a lambda which is just addition
+    sim->manipulateUpdaterData(forceNorm,
+                         [](double x, double y)-> double
+                                        {
+                                        return x+y;
+                                        });
+    squaredTotalForceNorm = forceNorm[0];
+    return squaredTotalForceNorm;
+    };
+
+
+/*!
 get the max norm of the force vector
 */
 double updater::getMaxForce()
