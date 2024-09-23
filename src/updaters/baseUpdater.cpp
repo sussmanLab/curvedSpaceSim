@@ -38,17 +38,16 @@ double updater::getForceNorm()
     };
 
 /*!
- get the norm of the force vector while excluding a subset of the particles
+ get the norm of the force vector while excluding a subset of the particles, marked by particle index
  */
 double updater::getForceNormWithExclusions(vector<int> exclusions)
     {
-    //version of force norm calculation that excludes any particle index we suggest in argument exclusions
     vector<double> forceNorm(1);
     forceNorm[0] = 0.0;
     for (int ii = 0; ii < Ndof; ++ii)
         {
         if(find(exclusions.begin(), exclusions.end(), ii) != exclusions.end())
-            {/* exclusions contains ii -- we can cut down on computation time
+            {/* checks if exclusions contains ii -- we can cut down on computation time
                 creating exclusions sorted, as indices are unique, then only ever
                 considering the 'next' value of exclusions */
             continue;
@@ -76,6 +75,37 @@ double updater::getMaxForce()
 
     for (int ii = 0; ii < Ndof; ++ii)
         {
+        double currentNormSquared = model->forces[ii].squared_length();
+        if (currentNormSquared > maxNorm[0])
+            maxNorm[0] = currentNormSquared;
+        }
+    //define a lambda which is just the max operation
+    sim->manipulateUpdaterData(maxNorm,
+                         [](double x, double y)-> double
+                                        {
+                                        return std::max(x,y);
+                                        });
+    maximumForceNorm = sqrt(maxNorm[0]);
+    return maximumForceNorm;
+    };
+
+
+/*!
+get the max norm of the force vector while excluding particle indices contained in exclusions
+*/
+double updater::getMaxForceWithExclusions(vector<int> exclusions)
+    {
+    vector<double> maxNorm(1);
+    maxNorm[0] = 0.0;
+
+    for (int ii = 0; ii < Ndof; ++ii)
+        {
+	if(find(exclusions.begin(), exclusions.end(), ii) != exclusions.end())
+            {/* checks if exclusions contains ii -- we can cut down on computation time
+                creating exclusions sorted, as indices are unique, then only ever
+                considering the 'next' value of exclusions */
+            continue;
+            }
         double currentNormSquared = model->forces[ii].squared_length();
         if (currentNormSquared > maxNorm[0])
             maxNorm[0] = currentNormSquared;

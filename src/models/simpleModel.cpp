@@ -99,6 +99,26 @@ void simpleModel::findNeighbors(double maximumInteractionRange)
         printf("mean number of neighbors = %f\n",meanNN/N);
     };
 
+void simpleModel::findBoundaryParticles(vector<int> &result)
+    {
+    result.reserve(positions.size()/2); //way more than it needs
+    for (int ii = 0; ii < positions.size(); ii++)
+        {
+        faceIndex iiFace = faceIndex(positions[ii].faceIndex);
+        //is_border only works with halfedges, so we need to dig out the associated edges
+        halfedgeIndex hf(tMeshSpace->surface.halfedge(iiFace));
+        for(halfedgeIndex hi : halfedges_around_face(hf, tMeshSpace->surface))
+            {
+            edgeIndex ei = tMeshSpace->surface.edge(hi);
+            if(tMeshSpace->surface.is_border(ei))
+                {
+                result.push_back(ii);
+                break;
+                }
+            }
+        }
+    }
+
 void simpleModel::clampBarycentricCoordinatesToFace(point3 &barycentricWeights)
     {
     double w1 = barycentricWeights.x();

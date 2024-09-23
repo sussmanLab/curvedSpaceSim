@@ -78,9 +78,11 @@ foreach(ARG
         computationalTiming
 	curvedSpaceNVTSim
 	annealedCrystallization
+	cleanAnnealedCrystallization
 	meshTesting
 	siloEnergyChecker
-        )
+	clusterRadiusChecker
+	)
 
 add_executable("${ARG}.out" "${ARG}.cpp" )
 target_link_libraries("${ARG}.out"

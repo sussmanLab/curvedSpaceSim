@@ -65,8 +65,9 @@ class updater
         virtual double getMaxForce();
         //!A sample function, mostly to show how to use manipulateUpdaterData
         virtual double getForceNorm();
-  	//!Specialized sample function, used for some tests but mostly an extension of getForceNorm
+  	//!Specialized sample functions, used for some tests but mostly an extension of getForceNorm
 	virtual double getForceNormWithExclusions(vector<int> exclusions);
+        virtual double getMaxForceWithExclusions(vector<int> exclusions);
 
         //!Set the maximum number of iterations before terminating
         void setMaximumIterations(int maxIt=-1){maxIterations = maxIt;};

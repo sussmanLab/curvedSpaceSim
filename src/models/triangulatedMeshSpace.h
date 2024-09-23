@@ -45,6 +45,7 @@ class triangulatedMeshSpace : public baseSpace
         //!Get the area of the mesh
         virtual double getArea(); 
 
+
         //!specialize the calculation of distances to use submeshes
         void distanceWithSubmeshing(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent,double distanceThreshold);
 
