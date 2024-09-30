@@ -11,13 +11,13 @@ There is one unlimited dimension, and each record stores a scalar value and a ve
 class vectorValueDatabase : public BaseDatabaseNetCDF
     {
     public:
-        vectorValueDatabase(int vectorLength, string fn="temp.nc", NcFile::FileMode mode=NcFile::ReadOnly);
+        vectorValueDatabase(int vectorLength, string fn="temp.nc", NcFile::FileMode mode=NcFile::read);
         ~vectorValueDatabase(){File.close();};
 
         //! NcDims we'll use
-        NcDim *recDim, *dofDim, *unitDim;
+        NcDim recDim, dofDim, unitDim;
         //! NcVars
-        NcVar *valVar, *vecVar;
+        NcVar valVar, vecVar;
         //!read values in a new value and vector
         virtual void readState(int rec);
         //!write a new value and vector. Unlike the state savers, we always just append a new record

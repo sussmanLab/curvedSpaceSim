@@ -79,7 +79,7 @@ add_executable("${ARG}.out" "${ARG}.cpp" )
 target_link_libraries("${ARG}.out"
     ${myLibs}
     netcdf
-    netcdf_c++
+    netcdf_c++4
     #OpenMP::OpenMP_CXX
     CGAL::CGAL
     ${MPI_LIBRARIES}

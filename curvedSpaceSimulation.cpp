@@ -122,12 +122,12 @@ int main(int argc, char*argv[])
     vector<double> posToSave;
     getFlatVectorOfPositions(configuration,posToSave);
 
-    vectorValueDatabase vvdat(posToSave.size(),"./testTrajectory.nc",NcFile::Replace);
+    vectorValueDatabase vvdat(posToSave.size(),"./testTrajectory.nc",NcFile::replace);
     vvdat.writeState(posToSave,0);
     */
 
     //by default, the simpleModelDatabase will save euclidean positions, mesh positions (barycentric + faceIdx), and particle velocities. See constructor for saving forces and/or particle types as well
-    simpleModelDatabase saveState(N,"./testModelDatabase.nc",NcFile::Replace);
+    simpleModelDatabase saveState(N,"./testModelDatabase.nc",NcFile::replace);
     saveState.writeState(configuration,0.0);
 
     for (int ii = 0; ii < maximumIterations; ++ii)

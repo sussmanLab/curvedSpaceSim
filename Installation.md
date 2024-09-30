@@ -1,8 +1,8 @@
 This project uses a standard cmake build pattern to compile and run. Once the requirements (below) are set on your system, one should be able to, e.g., cd build; cmake ..; make
 
-# Sample compilation from a clean install of Ubuntu 22.04
+# Sample compilation from a clean install of Ubuntu 24.04
 
-Starting from a fresh copy of Ubuntu 22.04 as an example, the main branch  can be compiled by first installing Cmake, boost, and CGAL. Start in a directory that you don't mind adding some tar files and software folders to, and then run the following commands:
+Starting from a fresh copy of Ubuntu 24.04 as an example, the main branch  can be compiled by first installing Cmake, boost, and CGAL. Start in a directory that you don't mind adding some tar files and software folders to, and then run the following commands:
 
 ##  CMake, Boost and CGAL:
 
@@ -22,11 +22,11 @@ Starting from a fresh copy of Ubuntu 22.04 as an example, the main branch  can b
 
 ## Other required packages:
 
-Other dependencies can be install via  apt-get. We need netcdf-cxx (the legacy version,  4.2.X), which itself requires things like zlib, hdf5, and netcdf),  and the CGAL headers will need  gmp and mpfr. An MPI package  is needed as well. The following commands will do the trick:
+Other dependencies can be install via  apt-get. We need netcdf-cxx (for which we are now using the updated 4.3.X verions), which itself requires things like zlib, hdf5, and netcdf),  and the CGAL headers will need  gmp and mpfr. An MPI package  is needed as well. The following commands will do the trick:
 
     $ sudo add-apt-repository universe
     $ sudo apt-get update
-    $ sudo apt-get install zlib1g-dev libhdf5-dev libnetcdf-dev  netcdf-bin libnetcdf-cxx-legacy-dev libgmp-dev libmpfr-dev mpich
+    $ sudo apt-get install zlib1g-dev libhdf5-dev libnetcdf-dev  netcdf-bin libnetcdf-c++4-dev libgmp-dev libmpfr-dev mpich
 
 ## Compiling the curvedSpaceSimulation executables
 

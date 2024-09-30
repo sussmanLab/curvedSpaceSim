@@ -18,16 +18,16 @@ simpleModelDatabase::simpleModelDatabase(int numberOfParticles, string fn, NcFil
     vec.resize(dof);
     switch(mode)
         {
-        case NcFile::ReadOnly:
+        case NcFile::read:
             GetDimVar();
             break;
-        case NcFile::Write:
+        case NcFile::write:
             GetDimVar();
             break;
-        case NcFile::Replace:
+        case NcFile::replace:
             SetDimVar();
             break;
-        case NcFile::New:
+        case NcFile::newFile:
             SetDimVar();
             break;
         default:
@@ -38,45 +38,45 @@ simpleModelDatabase::simpleModelDatabase(int numberOfParticles, string fn, NcFil
 void simpleModelDatabase::SetDimVar()
     {
     //Set the dimensions
-    recDim = File.add_dim("record");
-    nDim = File.add_dim("numberOfParticles", N);
-    dofDim = File.add_dim("spatialDegreesOfFreedom", dof);
-    unitDim = File.add_dim("unit",1);
+    recDim = File.addDim("record");
+    nDim = File.addDim("numberOfParticles", N);
+    dofDim = File.addDim("spatialDegreesOfFreedom", dof);
+    unitDim = File.addDim("unit",1);
 
     //Set the variables
-    timeVar = File.add_var("time",ncDouble,recDim);
-    positionVar = File.add_var("R3position",ncDouble,recDim,dofDim);
-    barycentricPositionVar = File.add_var("barycentricPosition",ncDouble,recDim,dofDim);
-    faceIndexVar = File.add_var("faceIndex",ncInt,recDim,nDim);
+    timeVar = File.addVar("time",ncDouble,recDim);
+    positionVar = File.addVar("R3position",ncDouble,{recDim,dofDim});
+    barycentricPositionVar = File.addVar("barycentricPosition",ncDouble,{recDim,dofDim});
+    faceIndexVar = File.addVar("faceIndex",ncInt,{recDim,nDim});
 
     if(velocity)
-        velocityVar = File.add_var("velocity",ncDouble,recDim,dofDim);
+        velocityVar = File.addVar("velocity",ncDouble,{recDim,dofDim});
     if(force)
-        forceVar = File.add_var("force",ncDouble,recDim,dofDim);
+        forceVar = File.addVar("force",ncDouble,{recDim,dofDim});
     if(type)
-        typeVar = File.add_var("type",ncInt,recDim,dofDim);
+        typeVar = File.addVar("type",ncInt,{recDim,dofDim});
     }
 
 void simpleModelDatabase::GetDimVar()
     {
     //Get the dimensions
-    recDim = File.get_dim("record");
-    nDim = File.get_dim("numberOfParticles");
-    dofDim = File.get_dim("spatialDegreesOfFreedom");
-    unitDim = File.get_dim("unit");
+    recDim = File.getDim("record");
+    nDim = File.getDim("numberOfParticles");
+    dofDim = File.getDim("spatialDegreesOfFreedom");
+    unitDim = File.getDim("unit");
 
     //Get the variables
-    timeVar = File.get_var("time");
-    positionVar = File.get_var("R3position");
-    barycentricPositionVar = File.get_var("barycentricPosition");
-    faceIndexVar = File.get_var("faceIndex");
+    timeVar = File.getVar("time");
+    positionVar = File.getVar("R3position");
+    barycentricPositionVar = File.getVar("barycentricPosition");
+    faceIndexVar = File.getVar("faceIndex");
 
     if(velocity)
-        velocityVar = File.get_var("velocity");
+        velocityVar = File.getVar("velocity");
     if(force)
-        forceVar = File.get_var("force");
+        forceVar = File.getVar("force");
     if(type)
-        typeVar = File.get_var("type");
+        typeVar = File.getVar("type");
     }
 
 /*!
@@ -92,7 +92,7 @@ void simpleModelDatabase::writeState(STATE s, double time, int rec)
     {
     int record = rec;
     if(record<0)
-        record = recDim->size();
+        record = recDim.getSize();
     std::vector<double> r3pos(dof);
     std::vector<double> baryPos(dof);
     std::vector<double> vel(dof);
@@ -132,16 +132,16 @@ void simpleModelDatabase::writeState(STATE s, double time, int rec)
         };
 
 
-    timeVar  -> put_rec(&time, record);
-    positionVar             ->put_rec(&r3pos[0],record);
-    barycentricPositionVar  ->put_rec(&baryPos[0],record);
-    faceIndexVar            ->put_rec(&faceIdx[0],record);
+    timeVar.putVar({record},&time);
+    positionVar             .putVar({record,dofDim.getSize()},{1,dofDim.getSize()}, &r3pos[0]);
+    barycentricPositionVar  .putVar({record,dofDim.getSize()},{1,dofDim.getSize()}, &baryPos[0]);
+    faceIndexVar            .putVar({record,nDim.getSize()},{1,nDim.getSize()},&faceIdx[0]);
     if(velocity)
-        velocityVar         ->put_rec(&vel[0],record);
+        velocityVar         .putVar({record,dofDim.getSize()},{1,dofDim.getSize()},&vel[0]);
     if(force)
-        forceVar            ->put_rec(&forceVector[0],record);
+        forceVar            .putVar({record,dofDim.getSize()},{1,dofDim.getSize()},&forceVector[0]);
     if(type)
-        typeVar             ->put_rec(&typeVector[0],record);
+        typeVar             .putVar({record,nDim.getSize()},{1,nDim.getSize()},&typeVector[0]);
 
     File.sync();
     };
@@ -169,21 +169,15 @@ void simpleModelDatabase::readState(STATE s, int rec)
     std::vector<int> typeVector(N,0);
     std::vector<int> faceIdx(N,0);
 
-    barycentricPositionVar->set_cur(rec);
-    barycentricPositionVar -> get(&baryPos[0],1,dofDim->size());
+    barycentricPositionVar.getVar({rec,dofDim.getSize()},{1,dofDim.getSize()},&baryPos[0]);
 
-    faceIndexVar->set_cur(rec);
-    faceIndexVar-> get(&faceIdx[0],1,nDim->size());
+    faceIndexVar.getVar({rec,nDim.getSize()},{1,nDim.getSize()},&faceIdx[0]);
     if(velocity)
-        {
-        velocityVar ->set_cur(rec);
-        velocityVar ->get(&vel[0],1,dofDim->size());
-        };
+        velocityVar.getVar({rec,dofDim.getSize()},{1,dofDim.getSize()},&vel[0]);
     if(type)
         {
         s->types.resize(N);
-        typeVar ->set_cur(rec);
-        typeVar-> get(&typeVector[0],1,nDim->size());
+        typeVar.getVar({rec,nDim.getSize()},{1,nDim.getSize()},&typeVector[0]);
         };
 
 
