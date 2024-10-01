@@ -30,6 +30,7 @@ class fireMinimization : public velocityVerletNVE
         double power;
         double forceNorm;
         double velocityNorm;
+        double alpha;
     protected:
         int maximumIterations = 1000;
         double alphaStart=0.99;
@@ -40,7 +41,6 @@ class fireMinimization : public velocityVerletNVE
         double alphaDec = 0.9;
         double forceCutoff = 1e-12;
         double alphaMin = 0.0;
-        double alpha;
         int nMin =4;
         int nSinceNegativePower=0;
 

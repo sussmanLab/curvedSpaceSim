@@ -131,17 +131,16 @@ void simpleModelDatabase::writeState(STATE s, double time, int rec)
             typeVector[ii] = s->types[ii];
         };
 
-
     timeVar.putVar({record},&time);
-    positionVar             .putVar({record,dofDim.getSize()},{1,dofDim.getSize()}, &r3pos[0]);
-    barycentricPositionVar  .putVar({record,dofDim.getSize()},{1,dofDim.getSize()}, &baryPos[0]);
-    faceIndexVar            .putVar({record,nDim.getSize()},{1,nDim.getSize()},&faceIdx[0]);
+    positionVar             .putVar({record,0},{1,dofDim.getSize()}, &r3pos[0]);
+    barycentricPositionVar  .putVar({record,0},{1,dofDim.getSize()}, &baryPos[0]);
+    faceIndexVar            .putVar({record,0},{1,nDim.getSize()},&faceIdx[0]);
     if(velocity)
-        velocityVar         .putVar({record,dofDim.getSize()},{1,dofDim.getSize()},&vel[0]);
+        velocityVar         .putVar({record,0},{1,dofDim.getSize()},&vel[0]);
     if(force)
-        forceVar            .putVar({record,dofDim.getSize()},{1,dofDim.getSize()},&forceVector[0]);
+        forceVar            .putVar({record,0},{1,dofDim.getSize()},&forceVector[0]);
     if(type)
-        typeVar             .putVar({record,nDim.getSize()},{1,nDim.getSize()},&typeVector[0]);
+        typeVar             .putVar({record,0},{1,nDim.getSize()},&typeVector[0]);
 
     File.sync();
     };

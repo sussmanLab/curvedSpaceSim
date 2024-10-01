@@ -52,8 +52,8 @@ void vectorValueDatabase::GetDimVar()
 void vectorValueDatabase::writeState(vector<double> &_vec,double _val)
     {
     int rec = recDim.getSize();
-    valVar.putVar({rec},{1},&_val);
-    vecVar.putVar({rec,dofDim.getSize()},{1,dofDim.getSize()},&_vec[0]);
+    valVar.putVar({rec},&_val);
+    vecVar.putVar({rec,0},{1,dofDim.getSize()},&_vec[0]);
     File.sync();
     };
 
