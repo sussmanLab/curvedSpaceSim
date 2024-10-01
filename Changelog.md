@@ -2,8 +2,11 @@
 
 ### Changes in progress
 
-* documentation
-* simulations on open surfaces
+### version 0.9.1
+
+* better documentation!
+* simulations on open surfaces!
+* update netcdf-cxx to 4.3 (i.e., non-legacy) version
 
 ### version 0.9
 
