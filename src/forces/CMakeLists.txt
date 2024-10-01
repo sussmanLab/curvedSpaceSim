@@ -7,5 +7,6 @@ include_directories(incDirs)
 add_library(forces
     baseForce.cpp
     harmonicRepulsion.cpp
+    softRepulsion.cpp
     gaussianRepulsion.cpp
     )
