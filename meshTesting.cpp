@@ -50,6 +50,7 @@ int main(int argc, char*argv[])
         printf("%i %f %i\n",N,dt,maximumIterations);
     noiseSource noise(reproducible);
 
+    vector3 nullForce = vector3(0,0,0);
     cout << "program branch " << programBranch <<endl;
 
 if(programBranch ==1)
@@ -135,7 +136,7 @@ if(programBranch ==0)
                 testPoint.x = point3(randomLocationOnRandomFace.second[0],randomLocationOnRandomFace.second[1],randomLocationOnRandomFace.second[2]);
                 testPoint.faceIndex = fdTest;
                 p2.start();
-                meshSpace->displaceParticle(testPoint, displacementVector);
+                meshSpace->displaceParticle(testPoint, displacementVector, nullForce);
                 p2.end();
                 pos2.push_back(testPoint);
                 targetFL.first=(faceIndex) testPoint.faceIndex;
@@ -235,7 +236,7 @@ if(programBranch ==0)
 
 
     std::cout << source.faceIndex << ", " << source.x << std::endl;
-    meshSpace->displaceParticle(source, displacement);
+    meshSpace->displaceParticle(source, displacement, nullForce);
     std::cout << source.faceIndex << ", " << source.x << std::endl;
     };
 

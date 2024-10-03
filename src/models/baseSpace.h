@@ -25,10 +25,10 @@ class baseSpace
     public:
         virtual ~baseSpace() = default;
         //!displace the position of a particle
-        virtual void displaceParticle(meshPosition &pos, vector3 &displacementVector) = 0;
+        virtual void displaceParticle(meshPosition &pos, vector3 &displacementVector, vector3 &forceVector) = 0;
 
         //!move a particle and, if necessary, update the associated velocity vector
-        virtual void transportParticleAndVelocity(meshPosition &pos, vector3 &v, vector3 &displacementVector) = 0;
+        virtual void transportParticleAndVelocity(meshPosition &pos, vector3 &v, vector3 &displacementVector, vector3& forceVector) = 0;
 
         //!Given a source particle and a vector of target points, determine the geodesic distance and store the start and end path tangents along the paths. The tangents are stored as NORMALIZED vectors
         virtual void distance(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent, double distanceThreshold) = 0;

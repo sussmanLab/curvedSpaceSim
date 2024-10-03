@@ -13,9 +13,9 @@ class euclideanSpace : public baseSpace
     {
     public:
         //!Simple vector addition of particle displacements
-        virtual void displaceParticle(meshPosition &pos, vector3 &displacementVector);
+        virtual void displaceParticle(meshPosition &pos, vector3 &displacementVector, vector3 &force);
         //! in euclideanSpace, velocity vectors are unchanged by particle shifts...this just calls displace particle
-        virtual void transportParticleAndVelocity(meshPosition &pos, vector3 &v, vector3 &displacementVector);
+        virtual void transportParticleAndVelocity(meshPosition &pos, vector3 &v, vector3 &displacementVector, vector3 &force);
 
         //!Simple vector subtraction for particle separation vectors
         virtual void distance(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent, double distanceThreshold = VERYLARGEDOUBLE);

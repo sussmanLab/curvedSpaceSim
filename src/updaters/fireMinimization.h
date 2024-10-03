@@ -38,11 +38,11 @@ class fireMinimization : public velocityVerletNVE
         double alphaStart=0.99;
         double deltaTMax=0.1;
         double deltaTInc = 1.1;
-        double deltaTMin = 1e-12;
+        double deltaTMin = 1e-5;
         double deltaTDec = 0.95;
         double alphaDec = 0.9;
         double forceCutoff = 1e-12;
-        double alphaMin = 0.0;
+        double alphaMin = 0.00;
         double alpha;
         int nMin =4;
         int nSinceNegativePower=0;

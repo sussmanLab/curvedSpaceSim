@@ -4,11 +4,11 @@
 #include "std_include.h"
 #include "pointDataType.h"
 #include "baseSpace.h"
-#include "triangulatedMeshSpace.h"
 #include "baseNeighborStructure.h"
 #include "noiseSource.h"
 #include "pointDataType.h" //for point 3 and related
 #include "meshUtilities.h" //purely for the r3 position conversions
+#include "triangulatedMeshSpace.h"
 
 /*! \file simpleModel.h
  */

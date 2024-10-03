@@ -14,7 +14,7 @@ class simpleModelDatabase : public BaseDatabaseNetCDF
     {
     public:
         simpleModelDatabase(int numberOfParticles, string fn="temp.nc", NcFile::FileMode mode=NcFile::ReadOnly,
-                            bool saveVelocities = true, bool saveTypes = false, bool saveForces = false);
+                            bool saveVelocities = true, bool saveTypes = false, bool saveForces = true);
         ~simpleModelDatabase(){File.close();};
 
         //! NcDims we'll use

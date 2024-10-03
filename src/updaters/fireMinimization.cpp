@@ -20,7 +20,7 @@ void fireMinimization::minimizeByFire()
         velocityVerletSecondHalfStep();
 
         fireStep();
-        if (useFWithExclusions)
+	if (useFWithExclusions)
             {
             vector<int> exclusions2;
             model->findBoundaryParticles(exclusions2);

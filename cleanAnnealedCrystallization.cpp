@@ -128,6 +128,19 @@ vector<int> findExclusions(vector<meshPosition> &positions, triangleMesh &theMes
     return exclusions;
     }
 
+void writeVoronoiPositions(vector<meshPosition> meshPositions, vector<double3> R3Positions, string filename, int N)
+    {
+    std::ofstream voronoiPosFile(filename);
+
+    for (int ii = 0; ii < N; ++ii)
+        {
+        int fIndex = meshPositions[ii].faceIndex;
+        double3 p = R3Positions[ii];
+        voronoiPosFile << fIndex << ", " << p.x << ", " << p.y << ", " << p.z << "\n";
+        }
+    };
+
+
 using namespace TCLAP;
 int main(int argc, char*argv[])
     {
@@ -143,7 +156,6 @@ int main(int argc, char*argv[])
     ValueArg<int> chainLengthArg("l", "M", "length of N-H chain", false, 2, "int", cmd);
     ValueArg<int> programBranchArg("z", "branch", "program branch", false, 0, "int", cmd);
     ValueArg<string> meshSwitchArg("m","meshSwitch","filename of the mesh you want to load",false,"../exampleMeshes/torus_isotropic_remesh.off","string",cmd);
-    ValueArg<string> positionsFileArg("f", "positionsFile", "filename for xyz positions you want to load", false, "none", "string", cmd); 
     ValueArg<double> densityArg("d","density","packing fraction if every particle takes up circular space",false,1.,"double",cmd);
     ValueArg<double> temperatureArg("t","T","temperature to set",false,1.0,"double",cmd);
     ValueArg<double> stiffnessArg("q", "stiffness", "harmonic stiffness", false, 1.0, "double", cmd); 
@@ -163,7 +175,6 @@ int main(int argc, char*argv[])
     int saveFrequency = saveFrequencyArg.getValue();
     int programBranch = programBranchArg.getValue();
     string meshName = meshSwitchArg.getValue();
-    string positionsFile = positionsFileArg.getValue();
     double density = densityArg.getValue();
     double temperature = temperatureArg.getValue();
     double stiffness = stiffnessArg.getValue();  
@@ -176,6 +187,7 @@ int main(int argc, char*argv[])
 
     shared_ptr<triangulatedMeshSpace> meshSpace=make_shared<triangulatedMeshSpace>();
     meshSpace->loadMeshFromFile(meshName,verbose);
+
     double area = totalArea(meshSpace->surface);
     double maximumInteractionRange = 2*sqrt(density*area/(N*M_PI));
 
@@ -192,11 +204,12 @@ int main(int argc, char*argv[])
 
     //for testing, just initialize particles randomly in a small space. Similarly, set random velocities in the tangent plane
     noiseSource noise(reproducible);
-    
+   
+    /* 
     if (positionsFile != "none") {        
        configuration->setMeshPositionsFromR3File(positionsFile, meshSpace->surface);
-    }
-    else configuration->setRandomParticlePositions(noise);
+    }*/
+    configuration->setRandomParticlePositions(noise);
 
  
     //riesz potential order is scale, stiffness exponent
@@ -224,7 +237,7 @@ int main(int argc, char*argv[])
     fNorm=1;
     int heatingLength = 1000; 
     double runningMinimum = 2*(pairwiseForce->computeEnergy()); 
-    string minimumFilename = "../bulk_silo_data/siloMinimization_" + to_string(N) + "_" + inputMeshName + "_minconfig.nc"; 
+    string minimumFilename = "../bulk_silo_data/minimals/siloMinimization_" + to_string(N) + "_" + inputMeshName + "_minconfig.nc"; 
     int step = 1;//purely for printouts
     double forceNormCutoff = 1e-9;
     cout << "starting annealing loop" << endl;
@@ -232,7 +245,7 @@ int main(int argc, char*argv[])
     vector<meshPosition> minMeshPositions;  
     int maxDescentSteps = 100000; //number of fire steps to take at most, each 100 long  
     
-    ofstream forceFile("forces_"+to_string(N)+"_"+inputMeshName+".csv");
+    //ofstream forceFile("forces_"+to_string(N)+"_"+inputMeshName+".csv");
 
     for (int annealStep = 0; annealStep < totalAnneals; annealStep++) 
 	{
@@ -280,7 +293,7 @@ int main(int argc, char*argv[])
                 else fMax = energyMinimizer->getMaxForceWithExclusions(exclusions);
 		printf("step %i fN %.4g fM %.4g E %.4g\n",step,fNorm,fMax, energyState);
 		saveState.writeState(configuration,step); 
-		forceFile << fNorm << ", " << fMax << endl;
+		//forceFile << fNorm << ", " << fMax << endl;
 		break; 
 		}
 
@@ -290,7 +303,7 @@ int main(int argc, char*argv[])
                 if (programBranch == 1) fMax = fireEnergyMinimizer->getMaxForceWithExclusions(exclusions);
                 else fMax = energyMinimizer->getMaxForceWithExclusions(exclusions);
 		printf("step %i fN %.4g fM %.4g E %.4g\n",step,fNorm,fMax, energyState);
-                forceFile << fNorm << ", " << fMax << endl;
+                //forceFile << fNorm << ", " << fMax << endl;
 		}
 	    step++;
 	    if (ii == maxDescentSteps-1) printf("Reached max cooling length; stopping."); 
@@ -379,12 +392,12 @@ int main(int argc, char*argv[])
     cout << "R over d = " << RoverD << endl;
      
     ofstream plotPointsFile;
-    plotPointsFile.open("../bulk_silo_data/clean_omegaR_Rdivd.csv", ios::app);
+    plotPointsFile.open("../bulk_silo_data/clean_omegaR_Rdivd" + to_string(N) + ".csv", ios::app);
     if (!plotPointsFile)
         {
         plotPointsFile = ofstream("../bulk_silo_data/clean_omegaR_Rdivd.csv"); 
         }
-    plotPointsFile << omegaR << ", " << RoverD << ", " << minimumFilename << "\n";  
+    plotPointsFile << omega << ", " <<omegaR << ", " << RoverD << ", " << minimumFilename << "\n";  
     plotPointsFile.close();  
 
     return 0;

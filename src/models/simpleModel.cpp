@@ -47,12 +47,20 @@ void simpleModel::moveParticles(vector<vector3> &disp)
         for(int ii = 0; ii < N; ++ii)
 	    {
 	    //cout << "displacing particle " << ii << endl; //debug statement to make sure shifts are finishing
-            space->displaceParticle(positions[ii],disp[ii]);
+            vector3 fModify = forces[ii];
+            space->displaceParticle(positions[ii],disp[ii], fModify);
+	    forces[ii] = fModify;
 	    }
         }
-    else
+    else 
+	{
         for(int ii = 0; ii < N; ++ii)
-            space->transportParticleAndVelocity(positions[ii],velocities[ii],disp[ii]);
+	    {
+	    vector3 fModify = forces[ii];
+	    space->transportParticleAndVelocity(positions[ii],velocities[ii],disp[ii], forces[ii]);
+            forces[ii] = fModify;
+	    }
+	}
     };
 
 void simpleModel::findNeighbors(double maximumInteractionRange)
