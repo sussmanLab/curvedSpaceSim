@@ -78,6 +78,7 @@ foreach(ARG
         computationalTiming
 	curvedSpaceNVTSim
 	manyFIREAnneals
+        EvOmegaR	
 	#annealedCrystallization
 	#cleanAnnealedCrystallization
 	#meshTesting

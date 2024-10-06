@@ -42,25 +42,25 @@ void simpleModel::fillEuclideanLocations()
 
 void simpleModel::moveParticles(vector<vector3> &disp)
     {
-    if(!particleShiftsRequireVelocityTransport)
-        {
         for(int ii = 0; ii < N; ++ii)
 	    {
 	    //cout << "displacing particle " << ii << endl; //debug statement to make sure shifts are finishing
-            vector3 fModify = forces[ii];
-            space->displaceParticle(positions[ii],disp[ii], fModify);
-	    forces[ii] = fModify;
+	    vector<vector3> transports;
+	    if(particleShiftsRequireForceTransport) transports.push_back(forces[ii]);
+            if(particleShiftsRequireVelocityTransport) transports.push_back(velocities[ii]); 
+            space->transportParticleAndVectors(positions[ii],disp[ii], transports);
+	    int transportCounter = 0;
+	    if (particleShiftsRequireForceTransport) 
+	        {
+		forces[ii] = transports[transportCounter];
+		transportCounter++;
+		}
+	    if(particleShiftsRequireVelocityTransport)
+		{
+                velocities[ii] = transports[transportCounter];
+		transportCounter++;
+		}
 	    }
-        }
-    else 
-	{
-        for(int ii = 0; ii < N; ++ii)
-	    {
-	    vector3 fModify = forces[ii];
-	    space->transportParticleAndVelocity(positions[ii],velocities[ii],disp[ii], forces[ii]);
-            forces[ii] = fModify;
-	    }
-	}
     };
 
 void simpleModel::findNeighbors(double maximumInteractionRange)

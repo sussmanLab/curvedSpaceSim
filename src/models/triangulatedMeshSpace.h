@@ -24,10 +24,16 @@ class triangulatedMeshSpace : public baseSpace
         //!load data from an off file and initialize all mesh data structures
         void loadMeshFromFile(std::string filename, bool verbose = false);
 
+	//legacy declarations:
+	/* 
         //!Given a particle somewhere on the mesh, displace it in the direction of the vector, wrapping around faces to make it a geodesic displacement
-        virtual void displaceParticle(meshPosition &pos, vector3 &displacementVector, vector3 &force);
+        virtual void displaceParticle(meshPosition &pos, vector3 &displacementVector, vector3 &force) = 0;
         //!On a mesh, if a particle goes across an edge the velocity vector gets rotated along with it
-        virtual void transportParticleAndVelocity(meshPosition &pos, vector3 &v, vector3 &displacementVector, vector3 &force);
+        virtual void transportParticleAndVelocity(meshPosition &pos, vector3 &v, vector3 &displacementVector, vector3 &force) = 0;
+        */
+	//!Given a particle somewhere on the mesh, displace it in the direction of the vector, wrapping around faces; any vectors given to the function are transported along with it
+	virtual void transportParticleAndVectors(meshPosition &pos, vector3 & displacementVector, vector<vector3> &transportVectors); 
+
 
         //!Given a source particle and a vector of target points, determine the geodesic distance and store the start and end path tangents along the paths
         virtual void distance(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent, double distanceThreshold= VERYLARGEDOUBLE);

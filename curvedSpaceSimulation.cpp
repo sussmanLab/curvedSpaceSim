@@ -145,12 +145,12 @@ int main(int argc, char*argv[])
     string minimizerName = "null"; 
     if (programBranch == 0) minimizerName = "FIRE"; 
     if (programBranch == 1) minimizerName = "GD"; 
-    simpleModelDatabase saveState(N,"./testModelDatabase_" + to_string(N) +"_fsaved" + minimizerName+to_string(areaFraction)+".nc",NcFile::Replace, true, false, true);
+    simpleModelDatabase saveState(N,"./testModelDatabase_" + to_string(N) +"_fsaved" + minimizerName+to_string(areaFraction)+"TEST.nc",NcFile::Replace, true, false, true);
     saveState.writeState(configuration,0.0); 
-    ofstream forceFile("./forces_"+to_string(N)+minimizerName+to_string(areaFraction)+".csv");
+    ofstream forceFile("./forces_"+to_string(N)+minimizerName+to_string(areaFraction)+"TEST.csv");
     
-    ofstream neighborsFile("./neighbors_"+to_string(N)+minimizerName+to_string(areaFraction)+".csv"); 
-    ofstream distanceFile("./distances_"+to_string(N)+minimizerName+to_string(areaFraction)+".csv");
+    ofstream neighborsFile("./neighbors_"+to_string(N)+minimizerName+to_string(areaFraction)+"TEST.csv"); 
+    ofstream distanceFile("./distances_"+to_string(N)+minimizerName+to_string(areaFraction)+"TEST.csv");
     cout << "Using exclusions? " << excludeBoundary << endl;
 
     for (int ii = 0; ii < maximumIterations; ++ii)
@@ -166,6 +166,8 @@ int main(int argc, char*argv[])
 	
 	if (ii > maximumIterations-100) 
 	    {
+        //neighborsFile << "STEP: " << ii << "\n";
+	//distanceFile  << "STEP: " << ii << "\n"; 
             for (int i = 0; i < N; i++) {
 		if (neighbors[i].size() > 0) 
 	            {

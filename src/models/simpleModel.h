@@ -107,8 +107,10 @@ class simpleModel
 
         //!optionally turn on some print statements
         void setVerbose(bool v){verbose = v;};
-        //!some updaters require parallel transport of velocity vectors
-        bool particleShiftsRequireVelocityTransport = false;
+        //!some updaters require parallel transport of force or velocity vectors
+        bool particleShiftsRequireForceTransport = true;
+	bool particleShiftsRequireVelocityTransport = false;
+        
 
         //!tolerance used for barycentricCoordinate clamping    :with
         double clampTolerance = 0.00000000000001;//10^-14 as a current threshold for numerical tolerance. 
