@@ -431,6 +431,23 @@ void triangulatedMeshSpace::projectOff(vector3 &v, vector3 &direction)
     v = v - (v*dhat)*dhat;
     }
 
+void triangulatedMeshSpace::projectVectorsIfOverBoundary(vector<vector3> &vectors, vector3 orthogonal, vector3 inward)
+    {  
+    double inOutDot = orthogonal*inward;
+    bool pointsOut = (inOutDot < 0);
+    int nVectors = vectors.size();    
+
+    for (int i = 0; i < nVectors; i++) 
+        {
+	vector3 v = vectors[i];
+        double vAndPerpDot = v*orthogonal;
+        bool vAlongPerp = (vAndPerpDot > 0); 
+        if (pointsOut && vAlongPerp) projectOff(v,orthogonal); 
+        if (!pointsOut && !vAlongPerp) projectOff(v,orthogonal);
+	vectors[i] = v;  
+        }
+    }
+
 /*
 Core displacement routine. Takes a degree of freedom and a direction + distance to move in, and moves 
 it around the mesh, always remaining in the tangent plane of a mesh face. Any vectors passed in as transportVectors 
@@ -549,11 +566,12 @@ void triangulatedMeshSpace::transportParticleAndVectors(meshPosition &pos, vecto
 		
 		//below serves the rule that the next heading will be along the edge that maximally 
 		//overlaps with the present heading. 
-		double maxOverlap = -1; //dummy value, should always be overwritten 
+		double maxOverlap = -1; //dummy value, should always be overwritten
 		double currentOverlap = 0; 
 		vector3 boundaryHeading = vector3(0,0,0); 
 		faceIndex nextFace = currentSourceFace;
-		
+                vertexIndex boundaryVertex = involvedVertex[0]; 
+
 		for (auto vi: neighborsAndFaces) 
 	            {
 		    vector3 outwardVector(surface.point(involvedVertex[0]),surface.point(vi.first));
@@ -564,18 +582,13 @@ void triangulatedMeshSpace::transportParticleAndVectors(meshPosition &pos, vecto
 			boundaryHeading = outwardVector; 
 			maxOverlap = currentOverlap;
 			nextFace = vi.second;
+			boundaryVertex = vi.first;
 			}
                     }
 
 		if (nextFace == currentSourceFace) ERRORERROR("New face not found for boundary vertex crossing.");
-       
-		//check for vectors pointing over the boundary and adjust if so 
-        	for (int i = 0; i < transportVectors.size(); i++)
-                            {
-			    vector3 vTr = transportVectors[i];
-                            if (normalize(vTr)*normalize(displacementVector) > 0) projectOn(transportVectors[i], boundaryHeading);
-                            }
-
+                if (boundaryVertex == involvedVertex[0]) ERRORERROR("vertex not updated in throughvertex boundary crossing"); 
+	        	
                 //now update the displacement vector to be along the boundary if tangential bcs
 		if (useTangentialBCs) 
 		    {
@@ -587,12 +600,33 @@ void triangulatedMeshSpace::transportParticleAndVectors(meshPosition &pos, vecto
                     continueShifting = false;
 		    targetBarycentricLocation = sourceBarycentricLocation;
 		    } 
-
 		currentSourceFace = nextFace;
-	        getVertexPositionsFromFace(surface,currentSourceFace, vertexPositions);
+
+		getVertexPositionsFromFace(surface,currentSourceFace, vertexPositions);
                 sourceBarycentricLocation = PMP::barycentric_coordinates(vertexPositions[0], vertexPositions[1], vertexPositions[2], sourcePoint);	
 	        currentSourceNormal = PMP::compute_face_normal(currentSourceFace,surface);
+
+		//now project vectors iff they are pointing over the new boundary 		
+                vector3 orthogonalToEdge = normalize(CGAL::cross_product(currentSourceNormal, boundaryHeading));
+	        
+		vector<vertexIndex> sourceVertexIndices;
+		sourceVertexIndices.push_back(vertexIndex(0));
+		sourceVertexIndices.push_back(vertexIndex(0));
+		sourceVertexIndices.push_back(vertexIndex(0));
+		getVertexIndicesFromFace(surface,currentSourceFace,sourceVertexIndices); 
+
+		point3 insideVertex;
+		for (int i = 0; i < 3; i ++) 
+		    {
+	            vertexIndex sourceV = sourceVertexIndices[i];
+		    if ((sourceV == involvedVertex[0]) || (sourceV == boundaryVertex)) continue;
+		    insideVertex = surface.point(sourceV);  
+		    }
 		
+		vector3 inwardVector(surface.point(involvedVertex[0]), insideVertex); 
+	        
+		projectVectorsIfOverBoundary(transportVectors, orthogonalToEdge, inwardVector);	
+
 		lastUsedHalfedge = nullHalfedge;	
 		checkBaryNan(sourceBarycentricLocation); //purely for debugging
                 continue; //this statement ensures that this through boundary vertex branch is isolated from the below
@@ -675,14 +709,14 @@ void triangulatedMeshSpace::transportParticleAndVectors(meshPosition &pos, vecto
 		    double forwardDot = normalize(displacementVector)*edgeVectorForward;
 		    double backwardDot = normalize(displacementVector)*edgeVectorBackward; 
 		    double displacementLength = vectorMagnitude(displacementVector);
-		    //check to see if any of our transported vectors were pointing over a boundary along with the displacement, 
-		    //and correct them if so -- important to do this *before* we change the displacement vector
+		   
+		    //check to see if any of our transported vectors were pointing over a boundary along with the displacement & project if so 
 		    vector3 orthogonalToEdge = normalize(CGAL::cross_product(currentSourceNormal, vector3(ev1,ev2)));
-                    for (int i = 0; i < transportVectors.size(); i++)
-                        {
-	                vector3 vTr = transportVectors[i];
-                        if (normalize(vTr)*normalize(displacementVector) > 0) projectOff(transportVectors[i], orthogonalToEdge);
-                        }
+                    //if orthogonal is pointing out, then we want to project only if the overlap with the orthogonal vector is positive; 
+		    //if orthogonal is pointing in, then we want to project only if the overlap with the orthogonal vector is negative. 
+		    point3 innerVertex = vertexPositions[uninvolvedVertex[0]];
+                    vector3 inwardVector(edgeIntersectionPoint, innerVertex); 
+		    projectVectorsIfOverBoundary(transportVectors, orthogonalToEdge, inwardVector);
 		    
 		    //now we can change the displacement vector.  
 		    if ((forwardDot <= 0) && (backwardDot <= 0))

@@ -48,10 +48,13 @@ class triangulatedMeshSpace : public baseSpace
         //!Get a random unit vector in the tangent space of the targget position
         virtual void randomVectorAtPosition(meshPosition &p, vector3 &v, noiseSource &noise);
 
-	//!Functions to perform simple projections component of force orthogonal to a given direction (actual functionality is set force to component aligned with that direction)
+	//!Functions to perform simple projections 'on' (align with) or 'off' (make perpendicular to) a given vector
 	virtual void projectOn(vector3 &v, vector3 &direction);
 	virtual void projectOff(vector3 &v, vector3 &direction);
 
+	virtual void projectVectorsIfOverBoundary(vector<vector3> &vectors, vector3 orthogonal, vector3 inward);
+
+	//!specialized function 
         //!Get the area of the mesh
         virtual double getArea(); 
 

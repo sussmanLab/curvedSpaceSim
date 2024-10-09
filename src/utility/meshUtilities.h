@@ -68,6 +68,12 @@ double meanTriangleArea(triangleMesh mesh);
 //! Return the total surface area of a mesh
 double totalArea(triangleMesh mesh); 
 
+//! special clamps for shift functions. belowZero clamp uses a stricter tolerance because it 
+//acts on source points within shift -- source points error out in testing when allowed to be within 1e-12
+//of a boundary, so belowZeroClamp guarantees a source point is never within that range or over the boundary.
+//Because it acts on any bary coord < 0, it is used very sparingly -- essentially only for source points. 
+//The near zero clamp is less broadly acting, and keeps bary coords from being within 1e-13 of a boundary 
+//because within that distance (either positive or negative), the intersection routine is liable to make errors. 
 void belowZeroClamp(pmpBarycentricCoordinates &baryPoint, double tol = 1e-11);
 void nearZeroClamp(pmpBarycentricCoordinates &baryPoint, double tol = 1e-13); 
 

@@ -111,8 +111,7 @@ class simpleModel
         bool particleShiftsRequireForceTransport = true;
 	bool particleShiftsRequireVelocityTransport = false;
         
-
-        //!tolerance used for barycentricCoordinate clamping    :with
+        //!tolerance used for barycentricCoordinate clamping 
         double clampTolerance = 0.00000000000001;//10^-14 as a current threshold for numerical tolerance. 
     protected:
         //! a pointer to a data structure that can be used to accelerate finding nearby neighbors
