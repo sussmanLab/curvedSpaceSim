@@ -21,7 +21,11 @@ Additionally, use the observation in the Mol Phys paper to set the masses of the
 */
 void noseHooverNVT::setBathVariables()
     {
-    bathVariables[0].w = 2.0*(Ndof-2)*temperature*tau*tau;
+    //proper mass setting for conserved energy and momentum
+    if (bathVariables.size()==1)
+        bathVariables[0].w = 2.0*(Ndof-2)*temperature*tau*tau;
+    else
+        bathVariables[0].w = 2.0*(Ndof)*temperature*tau*tau;
     for (int ii = 1; ii < bathVariables.size(); ++ii)
         bathVariables[ii].w = temperature*tau*tau;
 
