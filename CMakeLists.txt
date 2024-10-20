@@ -78,12 +78,15 @@ foreach(ARG
         computationalTiming
 	curvedSpaceNVTSim
 	manyFIREAnneals
-        EvOmegaR	
+        EvOmegaR
+	testAnneal	
 	#annealedCrystallization
 	#cleanAnnealedCrystallization
-	#meshTesting
+	meshTesting
+	makeConformalData
+	confFIREAnneals
 	#siloEnergyChecker
-	#clusterRadiusChecker
+	clusterRadiusChecker
 	)
 
 add_executable("${ARG}.out" "${ARG}.cpp" )

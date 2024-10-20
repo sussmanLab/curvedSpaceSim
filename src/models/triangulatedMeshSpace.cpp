@@ -395,12 +395,14 @@ std::pair<faceIndex,vector3> triangulatedMeshSpace::throughVertex(vertexIndex &i
     }  
 
 
-void triangulatedMeshSpace::checkBaryNan(pmpBarycentricCoordinates bcoords) 
+void triangulatedMeshSpace::checkBaryNan(pmpBarycentricCoordinates bcoords, string message, int step)
     { 
-    if(!(bcoords[0] >= -100)) 
+    if(bcoords[0] != bcoords[0]) 
          {
          cout << endl;
 	 cout << "SHIFT HAS FAILED, TARGET BARY" << endl;
+	 cout << "message: " << message << endl;
+	 cout << "step: " << step << endl;
 	 cout << bcoords[0] << ", " << bcoords[1] << ", " << bcoords[2] << endl;
 	 ERRORERROR("Illegal coordinates"); 
          }
@@ -499,7 +501,7 @@ void triangulatedMeshSpace::transportParticleAndVectors(meshPosition &pos, vecto
         clampAndUpdatePosition(sourceBarycentricLocation, sourcePoint, currentSourceFace, useBelowZero);
 	displacementVector = vector3(sourcePoint,target);
 
-        checkBaryNan(targetBarycentricLocation); 
+        checkBaryNan(targetBarycentricLocation, "start of step check", iter); 
         //if the targetBarycentricLocation is in the face, we have found our destination, so check this before implementing all of the intersection locating and vector rotating logic
         bool intersectionWithEdge = false;
         for (int cc = 0; cc <3; ++cc)
@@ -615,7 +617,7 @@ void triangulatedMeshSpace::transportParticleAndVectors(meshPosition &pos, vecto
 		sourceVertexIndices.push_back(vertexIndex(0));
 		getVertexIndicesFromFace(surface,currentSourceFace,sourceVertexIndices); 
 
-		point3 insideVertex;
+		point3 insideVertex(0,0,0);
 		for (int i = 0; i < 3; i ++) 
 		    {
 	            vertexIndex sourceV = sourceVertexIndices[i];
@@ -628,7 +630,7 @@ void triangulatedMeshSpace::transportParticleAndVectors(meshPosition &pos, vecto
 		projectVectorsIfOverBoundary(transportVectors, orthogonalToEdge, inwardVector);	
 
 		lastUsedHalfedge = nullHalfedge;	
-		checkBaryNan(sourceBarycentricLocation); //purely for debugging
+		checkBaryNan(sourceBarycentricLocation, "post vertex routine check", iter); //purely for debugging
                 continue; //this statement ensures that this through boundary vertex branch is isolated from the below
 		}
 	    
@@ -695,7 +697,7 @@ void triangulatedMeshSpace::transportParticleAndVectors(meshPosition &pos, vecto
 	        edgeIntersectionPoint = globalSMSP->point(currentSourceFace,intersectionPoint);
 	        sourceBarycentricLocation = intersectionPoint; //we have now 'walked' to this intersection point, and will update our heading
                 sourcePoint = edgeIntersectionPoint;
-	        checkBaryNan(sourceBarycentricLocation);
+	        checkBaryNan(sourceBarycentricLocation, "boundary edge check", iter);
 
                 point3 ev1 = surface.point(involvedVertex[0]);
                 point3 ev2 = surface.point(involvedVertex[1]);
@@ -819,7 +821,7 @@ void triangulatedMeshSpace::transportParticleAndVectors(meshPosition &pos, vecto
 
     pos.faceIndex = currentSourceFace;
     pos.x = point3(targetBarycentricLocation[0],targetBarycentricLocation[1],targetBarycentricLocation[2]);   
-    checkBaryNan(targetBarycentricLocation);
+    checkBaryNan(targetBarycentricLocation, "end of shift check" );
     }
 
 

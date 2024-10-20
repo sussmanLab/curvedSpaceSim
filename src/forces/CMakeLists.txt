@@ -8,4 +8,5 @@ add_library(forces
     baseForce.cpp
     harmonicRepulsion.cpp
     gaussianRepulsion.cpp
+    lennardJones.cpp
     )

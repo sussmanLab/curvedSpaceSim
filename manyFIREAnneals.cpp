@@ -228,18 +228,18 @@ int main(int argc, char*argv[])
     cout << "creating input mesh name" << endl;    
     string inputMeshName = meshName.substr(14,15);
     cout << "input mesh name " << inputMeshName << endl; 
-    string trajectoryFilename = "../bulk_silo_data/FIRE_"+to_string(N)+"_trajectories/siloFIRE_" + to_string(N) + "_" + inputMeshName + ".nc"; 
+    string trajectoryFilename = "../bulk_silo_data/FIRE_"+to_string(N)+"_trajectories/" + inputMeshName + "_N_"+to_string(N) + "_trajectory.nc"; 
     simpleModelDatabase saveState(N,trajectoryFilename,NcFile::Replace);
     saveState.writeState(configuration,0.0);
 
     double fNorm, fMax, energyState; 
     fNorm=1;
-    int heatingLength = 250; 
+    int heatingLength = 200; 
     int step = 1;//purely for printouts
     double forceNormCutoff = 1e-9;
     cout << "starting annealing loop" << endl;
-    int maxDescentSteps = 5000; //number of fire steps to take at most, each 1 long  
-    
+    int maxDescentSteps = 2000; //number of fire steps to take at most, each 1 long  
+    int maxGDSteps = 100; 
     //ofstream forceFile("forces_"+to_string(N)+"_"+inputMeshName+".csv");
 
     for (int annealStep = 0; annealStep < totalAnneals; annealStep++) 
@@ -328,8 +328,31 @@ int main(int argc, char*argv[])
 	    step++;
 	    if (ii == maxDescentSteps-1) printf("Reached max cooling length; stopping."); 
             };
-       
-        string minimumFilename = "../bulk_silo_data/FIRE_"+to_string(N)+"_minimals/"+ inputMeshName + to_string(N) + "minimal_anneal"+to_string(annealStep)+".nc";
+        //do gradient descent final cooling step to avoid inertial effects 
+        simulator->clearUpdaters();
+	energyMinimizer->setModel(configuration);
+	simulator->addUpdater(energyMinimizer, configuration);
+        printf("GD Cooling initiated\n"); 
+
+	for (int ii = 0; ii < maxGDSteps; ii++) 
+	    {
+
+	    timer.start();
+	    simulator->performTimestep();
+	    timer.end();
+	    
+	    if(step%10 == 9)
+                {
+                vector<int> exclusions = findExclusions(configuration->positions, meshSpace->surface);
+                saveState.writeState(configuration,step);
+                if (programBranch == 1) fMax = fireEnergyMinimizer->getMaxForceWithExclusions(exclusions);
+                else fMax = energyMinimizer->getMaxForceWithExclusions(exclusions);
+                printf("GD step %i fN %.4g fM %.4g E %.4g\n",step,fNorm,fMax, energyState);
+                }
+            step++;     
+	    }    
+
+        string minimumFilename = "../bulk_silo_data/FIRE_"+to_string(N)+"_minimals/" + inputMeshName + "_" + to_string(N) + "_minimal_anneal"+to_string(annealStep)+".nc";
 	//save the configuration & its voronoi positions at the end of the relaxation	    
         simpleModelDatabase minState(N, minimumFilename, NcFile::Replace); //don't use posToSave.size(), it's three times as large as it should be 
         minState.writeState(configuration,step); 

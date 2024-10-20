@@ -296,6 +296,11 @@ void computePathDistanceAndTangents(surfaceMeshShortestPath *smsp, smspFaceLocat
     if(distance < 0)
         return;
     int pathSize = pathPoints.size();
+    
+    //debug statement only
+    //cout << "path points:\n" <<endl;
+    //for (point3 p: pathPoints) cout << p << "\n" << endl;
+
     startPathTangent = -vector3(pathPoints[pathSize-2],pathPoints[pathSize-1]);
     endPathTangent = -vector3(pathPoints[0],pathPoints[1]);
     //normalize path tangents

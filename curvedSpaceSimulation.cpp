@@ -12,6 +12,7 @@
 #include "simpleModel.h"
 #include "gaussianRepulsion.h"
 #include "harmonicRepulsion.h"
+#include "lennardJones.h"
 #include "vectorValueDatabase.h"
 #include "simpleModelDatabase.h"
 #include "cellListNeighborStructure.h"
@@ -82,8 +83,7 @@ int main(int argc, char*argv[])
     if(programBranch >=0)
         meshSpace->useSubmeshingRoutines(true,maximumInteractionRange,dangerous);
     meshSpace->useTangentialBCs = true;
-
-    
+ 
     shared_ptr<simpleModel> configuration=make_shared<simpleModel>(N);
     configuration->setVerbose(verbose);
     configuration->setSpaceAndTMeshSpace(meshSpace);
@@ -101,6 +101,8 @@ int main(int argc, char*argv[])
     //shared_ptr<gaussianRepulsion> pairwiseForce = make_shared<gaussianRepulsion>(1.0,.5);
     shared_ptr<harmonicRepulsion> pairwiseForce = make_shared<harmonicRepulsion>(1.0,maximumInteractionRange);//stiffness and sigma. this is a monodisperse setting
     pairwiseForce->setModel(configuration);
+    double ljEnergyScale = 0.01;
+    shared_ptr<lennardJones> LJForce = make_shared<lennardJones>(ljEnergyScale, maximumInteractionRange, true); 
 
     shared_ptr<simulation> simulator=make_shared<simulation>();
     simulator->setConfiguration(configuration);
@@ -133,31 +135,36 @@ int main(int argc, char*argv[])
         }
     profiler timer("various parts of the code");
 
-    /*
-    vector<double> posToSave;
-    getFlatVectorOfPositions(configuration,posToSave);
-
-    vectorValueDatabase vvdat(posToSave.size(),"./testTrajectory.nc",NcFile::Replace);
-    vvdat.writeState(posToSave,0);
-    */
-
     //by default, the simpleModelDatabase will save euclidean positions, mesh positions (barycentric + faceIdx), and particle velocities. See constructor for saving forces and/or particle types as well
     string minimizerName = "null"; 
     if (programBranch == 0) minimizerName = "FIRE"; 
     if (programBranch == 1) minimizerName = "GD"; 
-    simpleModelDatabase saveState(N,"./testModelDatabase_" + to_string(N) +"_fsaved" + minimizerName+to_string(areaFraction)+"TEST.nc",NcFile::Replace, true, false, true);
+    simpleModelDatabase saveState(N,"./testModelDatabase_" + to_string(N) +"_fsaved" + minimizerName+to_string(areaFraction)+".nc",NcFile::Replace, true, false, true);
     saveState.writeState(configuration,0.0); 
-    ofstream forceFile("./forces_"+to_string(N)+minimizerName+to_string(areaFraction)+"TEST.csv");
+    ofstream forceFile("./forces_"+to_string(N)+minimizerName+to_string(areaFraction)+".csv");
     
-    ofstream neighborsFile("./neighbors_"+to_string(N)+minimizerName+to_string(areaFraction)+"TEST.csv"); 
-    ofstream distanceFile("./distances_"+to_string(N)+minimizerName+to_string(areaFraction)+"TEST.csv");
+    ofstream neighborsFile("./neighbors_"+to_string(N)+minimizerName+to_string(areaFraction)+".csv"); 
+    ofstream distanceFile("./distances_"+to_string(N)+minimizerName+to_string(areaFraction)+".csv");
     cout << "Using exclusions? " << excludeBoundary << endl;
 
     for (int ii = 0; ii < maximumIterations; ++ii)
         {
         
 	timer.start();
-        simulator->performTimestep();
+	if (ii == 10000) 
+	    {
+	    //need to reset cell list to use double the maximum interaction range here so that neighbors are allowed to exist within 2sigma, rather than just 1sigma 
+	    simulator->clearForceComputers(); 
+	    LJForce->setModel(configuration);
+	    shared_ptr<cellListNeighborStructure> cellListTwo = make_shared<cellListNeighborStructure>(meshSpace->minVertexPosition,meshSpace->maxVertexPosition,2*maximumInteractionRange);
+	    configuration->setNeighborStructure(cellListTwo);
+            meshSpace->setNewSubmeshCutoff(2*maximumInteractionRange); 
+	    simulator->addForce(LJForce);
+            simulator->computeForces(); 
+	    cout << "printing first lj forces" << endl;
+	    for (auto f: configuration->forces) cout << f << "\n"; 
+	    }
+	simulator->performTimestep();
         timer.end();
         double energy = pairwiseForce->computeEnergy();
         vector<vector<int>> neighbors = configuration->neighbors;
@@ -166,8 +173,6 @@ int main(int argc, char*argv[])
 	
 	if (ii > maximumIterations-100) 
 	    {
-        //neighborsFile << "STEP: " << ii << "\n";
-	//distanceFile  << "STEP: " << ii << "\n"; 
             for (int i = 0; i < N; i++) {
 		if (neighbors[i].size() > 0) 
 	            {

@@ -93,7 +93,7 @@ class triangulatedMeshSpace : public baseSpace
 	bool useTangentialBCs = false;
 
     protected:
-	void checkBaryNan(pmpBarycentricCoordinates bcoords);
+	void checkBaryNan(pmpBarycentricCoordinates bcoords, string message = "", int step = 0);
         void clampAndUpdatePosition(pmpBarycentricCoordinates &baryLoc, point3 &r3Loc, faceIndex &sFace, bool belowZero = false);
         //!Update some internal datastructures used in finding shortest paths
         void updateMeshSpanAndTree();

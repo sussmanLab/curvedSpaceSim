@@ -52,7 +52,7 @@ int main(int argc, char*argv[])
 
     vector3 nullForce = vector3(0,0,0);
     cout << "program branch " << programBranch <<endl;
-
+/*
 if(programBranch ==1)
 {
     //meshSpace might use dangerous submeshing, meshSpace2 won't
@@ -101,12 +101,13 @@ if(programBranch ==1)
             }
         }
 }
-
+*/
+/*
 if(programBranch ==0)
 {
         shared_ptr<triangulatedMeshSpace> meshSpace=make_shared<triangulatedMeshSpace>();
         meshSpace->loadMeshFromFile(meshName,verbose);
-
+        
         int nFaces = meshSpace->surface.number_of_faces();
         printf("%i\n",meshSpace->surface.number_of_vertices());
         int randomFace = noise.getInt(0,nFaces-1);
@@ -147,7 +148,7 @@ if(programBranch ==0)
 
                 faceTargets.push_back(targetFL);
         }
-
+        
         vector<double> distances;
         vector<vector3> startPath;
         vector<vector3> endPath;
@@ -203,6 +204,9 @@ if(programBranch ==0)
                 jj += distances[ii] - distancesSubmesh[ii];
         printf("total difference in computed distances between full and submesh routines: %f\n", jj);
 }
+*/
+
+/*
 //test the throughVertex routine with a known case
     if(programBranch == -1)
     {
@@ -213,7 +217,7 @@ if(programBranch ==0)
     //this pair goes directly through a vertex! which vertex? does it matter? it's a test!
 
     point3 weights1(0.4,0.3,0.3);
-    point3 weights2(0.7,0.3,0);
+    point3 weights2(1.0,0.0,0.0);
     meshPosition source(weights1, 1);
     meshPosition target(weights2, 1);
 
@@ -236,10 +240,77 @@ if(programBranch ==0)
 
 
     std::cout << source.faceIndex << ", " << source.x << std::endl;
-    meshSpace->displaceParticle(source, displacement, nullForce);
+    //meshSpace->displaceParticle(source, displacement, nullForce);
     std::cout << source.faceIndex << ", " << source.x << std::endl;
     };
+*/
 
+if (programBranch == 4)
+{
+shared_ptr<triangulatedMeshSpace> meshSpace = make_shared<triangulatedMeshSpace>();
+meshSpace->loadMeshFromFile("../exampleMeshes/torus_isotropic_remesh.off",true);
+
+vector<point3> neighborWeights1 = {
+        point3(0.171481, 0.126652, 0.701867),
+        point3(0.281902, 0.514481, 0.203617),
+        point3(0.622438, 0.0421172, 0.335445),
+        point3(0.385958, 0.0621603, 0.551881),
+        point3(0.677447, 0.165681, 0.156872)
+    };
+
+vector<int> neighborIndices1 = {2466, 2151, 1922, 3320, 2261};
+
+vector<point3> neighborWeights2 = {
+        point3(0.171481, 0.126652, 0.701867),
+        point3(0.281902, 0.514481, 0.203617),
+        point3(0.622438, 0.0421172, 0.335445),
+        point3(0.385964, 0.0621555, 0.551881),
+        point3(0.677447, 0.165681, 0.156873)
+    };
+
+vector<int> neighborIndices2 = {2466, 2151, 1922, 3320, 2261};
+
+vector<meshPosition> neighborLocations1;
+vector<meshPosition> neighborLocations2; 
+neighborLocations1.reserve(5); 
+neighborLocations2.reserve(5); 
+
+for (int i = 0; i < neighborIndices1.size(); i++) 
+    {
+    neighborLocations1.push_back(meshPosition(neighborWeights1[i],neighborIndices1[i]));    
+    neighborLocations2.push_back(meshPosition(neighborWeights2[i],neighborIndices2[i])); 
+    }
+
+meshPosition source1(point3(0.486226, 0.218903, 0.294871), 2007);
+meshPosition source2(point3(0.486212, 0.218904, 0.294884), 2007);
+
+vector<double> distances1;
+vector<vector3> startPath1;
+vector<vector3> endPath1;
+vector<double> distances2;
+vector<vector3> startPath2;
+vector<vector3> endPath2;
+
+cout << "first set of path points:\n"; 
+meshSpace->distance(source1,neighborLocations1,distances1,startPath1,endPath1);
+cout << "second set: \n";
+meshSpace->distance(source2,neighborLocations2,distances2,startPath2,endPath2);
+
+cout << "neighbor distances and tangents, 1" << endl;
+for (int i = 0; i < neighborLocations1.size(); i++)
+    {
+    cout << i << ", " << distances1[i] << ", " << startPath1[i] << "\n";  
+    }
+cout << "neighbor distances and tangents, 2" << endl;
+for (int i = 0; i < neighborLocations2.size(); i++)
+    {
+    cout << i << ", " << distances2[i] << ", " << startPath2[i] << "\n";
+    }
+
+
+}
+
+/*
 if (programBranch == 3) 
 {
 //spot test of edge intersection detection
@@ -309,6 +380,7 @@ else printf("no intersection.");
 
 printf("}\n");
 }
+*/
 
 /*
    smspFaceLocation smspRL = randomLocationOnRandomFace;
