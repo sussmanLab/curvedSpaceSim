@@ -21,7 +21,7 @@ IF(APPLE)
 ENDIF()
 
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_MATH_DISABLE_FLOAT128 -fopenmp -frounding-math -Wall -Wshadow -Wno-unused-function -Wno-sign-compare")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_MATH_DISABLE_FLOAT128 -fopenmp -frounding-math -Wall -Wshadow -Wno-unused-function -Wno-sign-compare -Wno-overloaded-virtual -Wno-catch-value -Wno-narrowing -Wno-maybe-uninitialized")
 
 if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
     add_definitions(-DDEBUGFLAGUP)
