@@ -65,7 +65,9 @@ class simpleModel
         virtual void setMeshPositionsFromR3File(string filename, triangleMesh &mesh);
         //!uses the space to randomly set particle positions...hence, requires that a space is already set
         virtual void setRandomParticlePositions(noiseSource &noise);
-        //!Set particle velocities to be drawn from a maxwell-boltzmann distribution
+        //!uses specifically an already loaded *tMeshSpace* to randomly set particle positions in faces within (range) of zero.  
+	virtual void setRandomMeshPositionsNearZero(noiseSource &noise, double range);
+	//!Set particle velocities to be drawn from a maxwell-boltzmann distribution
         virtual void setMaxwellBoltzmannVelocities(noiseSource &noise, double T);
  
         //!The space the model lives in

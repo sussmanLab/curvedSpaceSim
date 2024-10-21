@@ -45,6 +45,9 @@ class triangulatedMeshSpace : public baseSpace
 	//!Get a random face and a random barycentric location within that face
         virtual void randomPosition(meshPosition &p, noiseSource &noise);
 
+	//!Get a random face restricted to those included in a vector of faces and a random bary location within that face
+	virtual void randomPositionWithinFaces(meshPosition &p, noiseSource &noise, vector<faceIndex> faces);
+
         //!Get a random unit vector in the tangent space of the targget position
         virtual void randomVectorAtPosition(meshPosition &p, vector3 &v, noiseSource &noise);
 

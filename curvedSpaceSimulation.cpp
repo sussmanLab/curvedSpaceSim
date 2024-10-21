@@ -45,7 +45,7 @@ int main(int argc, char*argv[])
     ValueArg<int> iterationsArg("i","iterations","number of performTimestep calls to make",false,1000,"int",cmd);
     ValueArg<int> saveFrequencyArg("s","saveFrequency","how often a file gets updated",false,100,"int",cmd);
     ValueArg<string> meshSwitchArg("m","meshSwitch","filename of the mesh you want to load",false,"../exampleMeshes/torus_isotropic_remesh.off","string",cmd);
-    ValueArg<double> interactionRangeArg("a","interactionRange","range ofthe interaction to set for both potential and cell list",false,1.,"double",cmd);
+    ValueArg<double> initializationRangeArg("a","initializationRange","distance from origin to allow particles to initialize",false,1.,"double",cmd);
     ValueArg<double> deltaTArg("e","dt","timestep size",false,.01,"double",cmd);
     ValueArg<double> temperatureArg("t","T","temperature to set",false,.2,"double",cmd);
     ValueArg<double> afArg("f","areaFraction","area fraction for disks on the surface",false,1.0,"double",cmd);
@@ -63,8 +63,8 @@ int main(int argc, char*argv[])
     int maximumIterations = iterationsArg.getValue();
     int saveFrequency = saveFrequencyArg.getValue();
     string meshName = meshSwitchArg.getValue();
+    double initializationRange = initializationRangeArg.getValue();
     double dt = deltaTArg.getValue();
-    double maximumInteractionRange= interactionRangeArg.getValue();
     double temperature = temperatureArg.getValue();
     double areaFraction = afArg.getValue();
     bool verbose= verboseSwitch.getValue();
@@ -77,7 +77,7 @@ int main(int argc, char*argv[])
     meshSpace->useSubmeshingRoutines(false);
     
     double area = totalArea(meshSpace->surface);
-    maximumInteractionRange = 2*sqrt(areaFraction*area/(N*M_PI));
+    double maximumInteractionRange = 2*sqrt(areaFraction*area/(N*M_PI));
     cout << "max interaction range " << maximumInteractionRange << endl;
    
     if(programBranch >=0)
@@ -95,7 +95,8 @@ int main(int argc, char*argv[])
 
     //for testing, just initialize particles randomly in a small space. Similarly, set random velocities in the tangent plane
     noiseSource noise(reproducible);
-    configuration->setRandomParticlePositions(noise);
+    //configuration->setRandomParticlePositions(noise);
+    configuration->setRandomMeshPositionsNearZero(noise, initializationRange);
     configuration->setMaxwellBoltzmannVelocities(noise,temperature);
 
     //shared_ptr<gaussianRepulsion> pairwiseForce = make_shared<gaussianRepulsion>(1.0,.5);
@@ -151,7 +152,7 @@ int main(int argc, char*argv[])
         {
         
 	timer.start();
-	if (ii == 10000) 
+	if (ii == maximumIterations/2) 
 	    {
 	    //need to reset cell list to use double the maximum interaction range here so that neighbors are allowed to exist within 2sigma, rather than just 1sigma 
 	    simulator->clearForceComputers(); 

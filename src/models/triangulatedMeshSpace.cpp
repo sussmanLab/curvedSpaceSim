@@ -108,6 +108,16 @@ void triangulatedMeshSpace::randomPosition(meshPosition &p, noiseSource &noise)
     p.faceIndex = noise.getInt(0,surface.number_of_faces()-1);
     }
 
+void triangulatedMeshSpace::randomPositionWithinFaces(meshPosition &p, noiseSource &noise, vector<faceIndex> faces)
+    {
+    double3 baryPoint;
+    baryPoint.x=noise.getRealUniform();
+    baryPoint.y=noise.getRealUniform(0,1-baryPoint.x);
+    baryPoint.z=1-baryPoint.x-baryPoint.y;
+    p.x = point3(baryPoint.x,baryPoint.y,baryPoint.z);
+    p.faceIndex = faces[noise.getInt(0,faces.size())];
+    }
+
 void triangulatedMeshSpace::randomVectorAtPosition(meshPosition &p, vector3 &v, noiseSource &noise)
     {
     //compute the normal to the face containing point p

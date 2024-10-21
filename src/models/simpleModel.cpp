@@ -229,6 +229,31 @@ void simpleModel::setRandomParticlePositions(noiseSource &noise)
         space->randomPosition(positions[pp], noise);
     }
 
+void simpleModel::setRandomMeshPositionsNearZero(noiseSource &noise, double range)
+    {
+    vector<faceIndex> permittedFaces;
+    auto facelist = tMeshSpace->surface.faces(); 
+    //go through all faces, and for faces with centers with euclidean range, add them to the allowed faces list
+    for (faceIndex fi: facelist)
+        {
+        vector<point3> vs;
+        vs.reserve(3);
+        getVertexPositionsFromFace(tMeshSpace->surface,fi,vs);
+        //arithmetic isn't possible on point3 with point3, so use a vec until end
+        vector3 centerVec(0,0,0);
+	for (int i = 0; i < 3; i++)
+            {
+            centerVec += vector3(point3(0,0,0), vs[i])/3;
+            }
+        //distance *to the origin* is implicit here -- assuming origin is point3(0,0,0)
+        if (vectorMagnitude(centerVec) < range) permittedFaces.push_back(fi);
+        }
+
+    for (int pp = 0; pp < N; ++pp) 
+        tMeshSpace->randomPositionWithinFaces(positions[pp], noise, permittedFaces);
+
+    }
+
 /*!
 Assumes all particles have unit mass (for now)
 */
