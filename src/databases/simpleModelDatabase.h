@@ -13,14 +13,14 @@ The database always saves position information; flags on the constructor control
 class simpleModelDatabase : public BaseDatabaseNetCDF
     {
     public:
-        simpleModelDatabase(int numberOfParticles, string fn="temp.nc", NcFile::FileMode mode=NcFile::ReadOnly,
+        simpleModelDatabase(int numberOfParticles, string fn="temp.nc", NcFile::FileMode mode=NcFile::read,
                             bool saveVelocities = true, bool saveTypes = false, bool saveForces = false);
         ~simpleModelDatabase(){File.close();};
 
         //! NcDims we'll use
-        NcDim *recDim, *nDim,*dofDim, *unitDim;
+        NcDim recDim, nDim,  dofDim, unitDim;
         //! NcVars
-        NcVar *timeVar, *positionVar, *barycentricPositionVar,*faceIndexVar, *velocityVar, *typeVar, *forceVar;
+        NcVar timeVar, positionVar, barycentricPositionVar,faceIndexVar, velocityVar, typeVar, forceVar;
         //!read values in a new value and vector
         virtual void readState(STATE s, int rec);
         //!write a new value and vector

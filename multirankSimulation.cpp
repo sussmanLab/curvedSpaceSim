@@ -143,7 +143,7 @@ int main(int argc, char*argv[])
     getFlatVectorOfPositions(configuration,posToSave);
     char dataname[256];
     sprintf(dataname,"parallelTestTrajectory%i.nc",worldSize);
-    vectorValueDatabase vvdat(posToSave.size(),dataname,NcFile::Replace);
+    vectorValueDatabase vvdat(posToSave.size(),dataname,NcFile::replace);
     vvdat.writeState(posToSave,0);
     if(verbose)
         printf("preparing to run for %i steps\n",maximumIterations);

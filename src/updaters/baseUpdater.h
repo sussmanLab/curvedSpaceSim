@@ -82,6 +82,8 @@ class updater
 
         double squaredTotalForceNorm;
         double maximumForceNorm;
+        //!The internal time step size
+        double deltaT;
 
     protected:
         //!number of threads to use TODO
@@ -94,8 +96,6 @@ class updater
         int Ndof;
         //!whether the RNGs give reproducible results
         bool reproducible;
-        //!The internal time step size
-        double deltaT;
         //!The maximum number of iterations allowed...perhaps useful for energy minimizers, for instance
         int maxIterations = -1;
     };
