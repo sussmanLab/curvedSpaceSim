@@ -1,5 +1,15 @@
 #include "lennardJones.h"
 
+double lennardJones::potential(double distance)
+    {
+    return 4*eps*(pow(sigma/distance,12) - pow(sigma/distance, 6));
+    }
+
+double lennardJones::potentialDerivative(double distance)
+    {
+    return 4*eps*(6*pow(sigma/distance, 6)/distance - 12*pow(sigma/distance, 12)/distance); 
+    }	    
+
 double lennardJones::pairwiseEnergy(vector3 separation,double distance)
     {
     double ans = 0;
@@ -7,11 +17,9 @@ double lennardJones::pairwiseEnergy(vector3 separation,double distance)
         {
 	//implementing truncated + shifted lennard jones energy/force 
 	//so that submesh cutoffs make sense
-        if(distance < 2*sigma)
+        if(distance < cutoffCoefficient*sigma)
 	    {
-            //subtracting u_lj(r=2*sigma) here
-	    double uOfTwoSigma = -63.0/4096.0; 
-	    ans = 4*eps*((pow(sigma/distance,12) - pow(sigma/distance, 6))  - uOfTwoSigma );
+	    ans = potential(distance) - potential(cutoffCoefficient*sigma);
             }
 	}
     else
@@ -27,12 +35,9 @@ vector3 lennardJones::pairwiseForce(vector3 separation,double distance)
     vector3 ans = vector3(0.0,0.0,0.0);
     if(monodisperse)
         {
-        if(distance <= 2*sigma)
+        if(distance < cutoffCoefficient*sigma)
             {
-            //f = -grad(U), but the negative is in the updater rather than here
-	    //also -- still truncating and shifting force so that it's zero at the cutoff
-	    double FofTwoSigma = -(93.0/2048.0)*(1/sigma);
-            ans = 4*eps*(6*pow(sigma/distance,6)/distance - 12*pow(sigma/distance,12)/distance - FofTwoSigma)*separation;
+            ans = (potentialDerivative(distance))*separation;
             }
         }
     else
@@ -47,7 +52,7 @@ void lennardJones::computeForces(vector<vector3> &forces,bool zeroOutForce, int 
     {
     if(forces.size() != model->N)
         forces.resize(model->N);
-    model->findNeighbors(2*maximumInteractionRange);
+    model->findNeighbors(cutoffCoefficient*maximumInteractionRange);
 
     for (int ii = 0; ii < model->N; ++ii)
         {
@@ -59,4 +64,17 @@ void lennardJones::computeForces(vector<vector3> &forces,bool zeroOutForce, int 
             forces[ii] += pairwiseForce(model->neighborVectors[ii][jj],model->neighborDistances[ii][jj]);
             }
         }
+    };
+
+double lennardJones::computeEnergy(bool verbose)
+    {
+    model->findNeighbors(cutoffCoefficient*maximumInteractionRange);
+    energy = 0;
+    for (int ii = 0; ii < model->N; ++ii)
+        {
+        int neighborNumber = model->neighbors[ii].size();
+        for (int jj = 0; jj < neighborNumber; ++jj)
+            energy += pairwiseEnergy(model->neighborVectors[ii][jj],model->neighborDistances[ii][jj]);
+        }
+    return energy;
     };

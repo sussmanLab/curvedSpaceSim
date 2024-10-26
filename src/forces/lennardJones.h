@@ -13,10 +13,16 @@ class lennardJones : public force
             monodisperse = _monodisperse;
             sigma = monodisperseRange;
             };
+        
+	double potential(double distance);
+	double potentialDerivative(double distance); 
 
         virtual double pairwiseEnergy(vector3 separation,double distance);
         virtual vector3 pairwiseForce(vector3 separation,double distance);
 	virtual void computeForces(vector<vector3> &forces, bool zeroOutForce, int type);
+        virtual double computeEnergy(bool verbose = false);
+
+	double cutoffCoefficient = 2;
     protected:
         double eps=1;
         double sigma = 1;

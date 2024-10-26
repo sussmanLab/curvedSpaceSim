@@ -80,8 +80,7 @@ int main(int argc, char*argv[])
     double maximumInteractionRange = 2*sqrt(areaFraction*area/(N*M_PI));
     cout << "max interaction range " << maximumInteractionRange << endl;
    
-    if(programBranch >=0)
-        meshSpace->useSubmeshingRoutines(true,maximumInteractionRange,dangerous);
+    if(programBranch >=0) meshSpace->useSubmeshingRoutines(true,maximumInteractionRange,dangerous);
     meshSpace->useTangentialBCs = true;
  
     shared_ptr<simpleModel> configuration=make_shared<simpleModel>(N);
@@ -102,8 +101,10 @@ int main(int argc, char*argv[])
     //shared_ptr<gaussianRepulsion> pairwiseForce = make_shared<gaussianRepulsion>(1.0,.5);
     shared_ptr<harmonicRepulsion> pairwiseForce = make_shared<harmonicRepulsion>(1.0,maximumInteractionRange);//stiffness and sigma. this is a monodisperse setting
     pairwiseForce->setModel(configuration);
-    double ljEnergyScale = 0.01;
+    double ljEnergyScale = 1.00;
     shared_ptr<lennardJones> LJForce = make_shared<lennardJones>(ljEnergyScale, maximumInteractionRange, true); 
+    double cutoffSigma = 2.5;
+    LJForce->cutoffCoefficient = cutoffSigma;
 
     shared_ptr<simulation> simulator=make_shared<simulation>();
     simulator->setConfiguration(configuration);
@@ -114,7 +115,7 @@ int main(int argc, char*argv[])
     shared_ptr<velocityVerletNVE> nve=make_shared<velocityVerletNVE>(dt);
      
    //void setFIREParameters(int _maximumIterations,double _deltaT, double _alphaStart, double _deltaTMax, double _deltaTMin, double _deltaTInc, double _deltaTDec, double _alphaDec, int _nMin, double _forceCutoff, double _alphaMin = 0.75);
-    energyMinimizerFire->setFIREParameters(1, dt, 0.99, 10*dt, 1e-7, 1.1, 0.9, 0.9, 4, 1e-10,0.00); 
+    energyMinimizerFire->setFIREParameters(1, dt, 0.99, dt/10, 1e-10, 1.1, 0.9, 0.9, 4, 1e-10,0.00); 
     energyMinimizerFire->useFWithExclusions = excludeBoundary;
     if(programBranch >=2)
         {
@@ -147,33 +148,61 @@ int main(int argc, char*argv[])
     ofstream neighborsFile("./neighbors_"+to_string(N)+minimizerName+to_string(areaFraction)+".csv"); 
     ofstream distanceFile("./distances_"+to_string(N)+minimizerName+to_string(areaFraction)+".csv");
     cout << "Using exclusions? " << excludeBoundary << endl;
-
+    
+    int stopGD = 4000;
+    /*comment here start
+    for (int jj = 0; jj < 100; ++jj) 
+    {
+    configuration->setRandomMeshPositionsNearZero(noise, initializationRange); 
+    configuration->setMaxwellBoltzmannVelocities(noise, 0);
+    configuration->particleShiftsRequireVelocityTransport = false; 
+    simulator->clearForceComputers();
+    simulator->clearUpdaters(); 
+    simulator->addUpdater(energyMinimizer); 
+    simulator->addForce(pairwiseForce);
+    meshSpace->useSubmeshingRoutines(true,maximumInteractionRange,dangerous);
+    configuration->setNeighborStructure(cellList);
+    cout << "neighbor structure set" << endl;
+    */ //comment here stop 
     for (int ii = 0; ii < maximumIterations; ++ii)
         {
-        
-	timer.start();
-	if (ii == maximumIterations/2) 
+        if (ii == stopGD) 
 	    {
 	    //need to reset cell list to use double the maximum interaction range here so that neighbors are allowed to exist within 2sigma, rather than just 1sigma 
+	    simulator->clearUpdaters();
 	    simulator->clearForceComputers(); 
+	    
+	    energyMinimizerFire->setModel(configuration);
+            simulator->addUpdater(energyMinimizerFire,configuration);
 	    LJForce->setModel(configuration);
-	    shared_ptr<cellListNeighborStructure> cellListTwo = make_shared<cellListNeighborStructure>(meshSpace->minVertexPosition,meshSpace->maxVertexPosition,2*maximumInteractionRange);
-	    configuration->setNeighborStructure(cellListTwo);
-            meshSpace->setNewSubmeshCutoff(2*maximumInteractionRange); 
+	    
+	    //shared_ptr<cellListNeighborStructure> cellListTwo = make_shared<cellListNeighborStructure>(meshSpace->minVertexPosition,meshSpace->maxVertexPosition,cutoffSigma*maximumInteractionRange);
+	    //configuration->setNeighborStructure(cellListTwo);
+            
+	    meshSpace->setNewSubmeshCutoff(cutoffSigma*maximumInteractionRange); 
 	    simulator->addForce(LJForce);
-            simulator->computeForces(); 
+            simulator->computeForces();
+	    programBranch = 0;
+
 	    cout << "printing first lj forces" << endl;
 	    for (auto f: configuration->forces) cout << f << "\n"; 
 	    }
+
+	timer.start();
 	simulator->performTimestep();
         timer.end();
-        double energy = pairwiseForce->computeEnergy();
-        vector<vector<int>> neighbors = configuration->neighbors;
-	vector<vector<double>> neighborDistances = configuration->neighborDistances;
         
-	
-	if (ii > maximumIterations-100) 
+	double energy; 
+	if (ii < stopGD) energy = pairwiseForce->computeEnergy();
+	if (ii >= stopGD) energy = LJForce->computeEnergy(); 
+            
+		
+	if (ii > maximumIterations-1000) 
 	    {
+	    configuration->findNeighbors(cutoffSigma*maximumInteractionRange);
+	    vector<vector<int>> neighbors = configuration->neighbors;
+	    vector<vector<double>> neighborDistances = configuration->neighborDistances; 
+
             for (int i = 0; i < N; i++) {
 		if (neighbors[i].size() > 0) 
 	            {
@@ -189,12 +218,12 @@ int main(int argc, char*argv[])
 	        }
 	    }
 
-        if(ii%saveFrequency == saveFrequency-1 || ii > maximumIterations-100)
+        if(ii%saveFrequency == saveFrequency-1 || ii > maximumIterations-1000)
             {
             saveState.writeState(configuration,dt*ii);
 	    vector<int> exclusions;
 	    configuration->findBoundaryParticles(exclusions);
-            if(programBranch ==1)
+            if(programBranch == 1)
                 {
                 double fNorm,fMax;
 		if (excludeBoundary)
@@ -207,30 +236,29 @@ int main(int argc, char*argv[])
 		    fNorm = energyMinimizer->getForceNorm();
                     fMax = energyMinimizer->getMaxForce();
                     }
-		printf("step %i fN %g fM %g E %g\n",ii,fNorm,fMax, energy);
+		printf("step %i fN %g fM %g E %.16g\n",ii,fNorm,fMax, energy);
 	        forceFile << ii << ", " << fNorm << ", " << fMax << "\n";	
 		}
-            else {
-              if(programBranch ==0)
-                  {
-                  double fNorm,fMax;
-		  if (excludeBoundary)
+            else 
+	        { 
+                double fNorm,fMax;
+		if (excludeBoundary)
                     {
                     fNorm = energyMinimizerFire->getForceNormWithExclusions(exclusions);
                     fMax = energyMinimizerFire->getMaxForceWithExclusions(exclusions);
                     }
-                  else
+                else
                     {
                     fNorm = energyMinimizerFire->getForceNorm();
                     fMax = energyMinimizerFire->getMaxForce();
                     }
-                  printf("step %i fN %g fM %g E %g\n",ii, fNorm,fMax, energy);
-                  forceFile << ii << ", " << fNorm << ", " << fMax << "\n";
-                  }
+                printf("step %i fN %g fM %g E %.16g\n",ii, fNorm,fMax, energy);
+                forceFile << ii << ", " << fNorm << ", " << fMax << "\n";
+                  
               }
             }
-        } 
-
+        //} 
+        }
     timer.print();
 
     return 0;

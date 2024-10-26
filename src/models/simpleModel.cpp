@@ -249,8 +249,7 @@ void simpleModel::setRandomMeshPositionsNearZero(noiseSource &noise, double rang
         if (vectorMagnitude(centerVec) < range) permittedFaces.push_back(fi);
         }
 
-    for (int pp = 0; pp < N; ++pp) 
-        tMeshSpace->randomPositionWithinFaces(positions[pp], noise, permittedFaces);
+    for (int pp = 0; pp < N; ++pp) tMeshSpace->randomPositionWithinFaces(positions[pp], noise, permittedFaces);
 
     }
 

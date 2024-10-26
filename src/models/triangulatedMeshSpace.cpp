@@ -115,7 +115,7 @@ void triangulatedMeshSpace::randomPositionWithinFaces(meshPosition &p, noiseSour
     baryPoint.y=noise.getRealUniform(0,1-baryPoint.x);
     baryPoint.z=1-baryPoint.x-baryPoint.y;
     p.x = point3(baryPoint.x,baryPoint.y,baryPoint.z);
-    p.faceIndex = faces[noise.getInt(0,faces.size())];
+    p.faceIndex = faces[noise.getInt(0,faces.size()-1)];
     }
 
 void triangulatedMeshSpace::randomVectorAtPosition(meshPosition &p, vector3 &v, noiseSource &noise)
