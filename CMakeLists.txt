@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.11.0)
 
 project(curvedSpaceSimulation LANGUAGES CXX)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 #note: CGAL (which I will get rid of someday) needs at least c++14; some advanced gcc compilers will throw errors if you don't set the cpp standard to 17, though
 set(CMAKE_CXX_STANDARD 17)
 
@@ -85,3 +87,10 @@ target_link_libraries("${ARG}.out"
     ${MPI_LIBRARIES}
     )
 endforeach()
+
+add_custom_command(
+        TARGET curvedSpaceSimulation.out POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json
+                ${CMAKE_SOURCE_DIR}/compile_commands.json
+)
