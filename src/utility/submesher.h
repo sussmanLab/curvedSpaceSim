@@ -2,7 +2,6 @@
 #define submesher_H
 
 #include "meshUtilities.h"
-#include <set>
 typedef PMP::Face_location<triangleMesh, FT>                            faceLocation;
 
 /*! \file submesher.h */

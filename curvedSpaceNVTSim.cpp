@@ -1,7 +1,6 @@
 #include "std_include.h"
 #include <tclap/CmdLine.h>
 
-
 #include "profiler.h"
 #include "noiseSource.h"
 #include "triangulatedMeshSpace.h"

@@ -4,6 +4,9 @@
 #include "cgalIncludesAndTypedefs.h"
 #include "pointDataType.h"
 #include "functionUtilities.h"
+#include <memory>
+#include <set>
+#include <unordered_set>
 
 #include <CGAL/Surface_mesh.h>
 #include <CGAL/Surface_mesh_shortest_path.h>
@@ -20,7 +23,6 @@
 #include <CGAL/Dynamic_property_map.h>
 #include <CGAL/boost/graph/iterator.h>
 #include <CGAL/boost/graph/Face_filtered_graph.h>
-#include <memory>
 
 typedef CGAL::Surface_mesh<point3>                                      triangleMesh;
 typedef triangleMesh::Face_index                                        faceIndex;
