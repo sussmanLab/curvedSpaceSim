@@ -1,8 +1,8 @@
 #ifndef noiseSource_H
 #define noiseSource_H
 
-#include "std_include.h"
 #include "dataTypes.h"
+#include <random>
 
 /*! \file noiseSource.h */
 //!A class that gives access to a RNG on the cpu
@@ -11,6 +11,7 @@ Provides features to some psuedo-rng functions.  One can call for a random
 integer (in a specified range), a random real with a uniform distribution, or a
 random real from a normal distribution.
 */
+using namespace std;
 class noiseSource
     {
     public:
