@@ -72,7 +72,7 @@ void noseHooverNVT::propagateChain()
         bathVariables[ii].y += bathVariables[ii].z*dt4;
         bathVariables[ii].y *= exponentialFactor;
         }
-    bathVariables[0].z = (2.0*kineticEnergy - 2.0*(Ndof-1)*temperature)/bathVariables[0].w;
+    bathVariables[0].z = (2.0*kineticEnergy/bathVariables[0].w - 1.0);
     exponentialFactor = exp(-dt8*bathVariables[1].y);
     bathVariables[0].y *= exponentialFactor;
     bathVariables[0].y += bathVariables[0].z*dt4;
@@ -87,7 +87,7 @@ void noseHooverNVT::propagateChain()
     kineticEnergy = kineticEnergyScaleFactor*kineticEnergyScaleFactor*kineticEnergy;
 
     //update the other quarter-timestep for the bath velocities and accelerations
-    bathVariables[0].z = (2.0*kineticEnergy - 2.0*(Ndof-1)*temperature)/bathVariables[0].w;
+    bathVariables[0].z = (2.0*kineticEnergy/bathVariables[0].w - 1.0);
     exponentialFactor = exp(-dt8*bathVariables[1].y);
     bathVariables[0].y *= exponentialFactor;
     bathVariables[0].y += bathVariables[0].z*dt4;
