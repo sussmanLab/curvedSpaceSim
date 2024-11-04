@@ -27,7 +27,6 @@ class simpleModelDatabase : public BaseDatabaseNetCDF
         virtual void writeState(STATE s, double time = -1, int rec = -1);
 
 
-
     protected:
         //! Set all of the netcdf dimensions and variables in the file (for creating or writing new files)
         void SetDimVar();

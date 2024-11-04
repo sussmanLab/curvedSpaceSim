@@ -471,7 +471,7 @@ coordinates of that point in the corresponding faceIndex (i.e., p1.faceIndex).
 
 pos: a meshPosition object (three doubles representing barycentric coordinates and a face index) 
      representing the position of a degree of freedom. 
-displacementVector: The direction and magnitude to displace the degree of freedom in. Starts in the 
+displacementVector: The (euclidean) direction and magnitude to displace the degree of freedom in. Starts in the 
 	            tangent plane, but can bend around edges if required. 
 */
 void triangulatedMeshSpace::transportParticleAndVectors(meshPosition &pos, vector3 &displacementVector, vector<vector3> &transportVectors)

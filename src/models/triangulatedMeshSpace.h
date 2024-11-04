@@ -32,7 +32,7 @@ class triangulatedMeshSpace : public baseSpace
         virtual void transportParticleAndVelocity(meshPosition &pos, vector3 &v, vector3 &displacementVector, vector3 &force) = 0;
         */
 	//!Given a particle somewhere on the mesh, displace it in the direction of the vector, wrapping around faces; any vectors given to the function are transported along with it
-	virtual void transportParticleAndVectors(meshPosition &pos, vector3 & displacementVector, vector<vector3> &transportVectors); 
+	virtual void transportParticleAndVectors(meshPosition &pos, vector3 &displacementVector, vector<vector3> &transportVectors); 
 
 
         //!Given a source particle and a vector of target points, determine the geodesic distance and store the start and end path tangents along the paths

@@ -69,13 +69,14 @@ set(HEADERS
 
 # list the names of cpp files corresponding to linked executables you'd like...
 foreach(ARG
-	#flatSpaceSimulation
+	flatSpaceSimulation
 	curvedSpaceSimulation
-	#multirankSimulation
-	#torusCrystallization
-	#t_v_n
-	#t_v_complexity
-        computationalTiming
+	multirankSimulation
+	torusCrystallization
+	t_v_n
+	t_v_complexity
+	err_v_complexity
+	computationalTiming
 	curvedSpaceNVTSim
 	manyFIREAnneals
         EvOmegaR
@@ -87,7 +88,7 @@ foreach(ARG
 	#confFIREAnneals
 	#siloEnergyChecker
 	#clusterRadiusChecker
-	ljFIREAnneals
+	#ljFIREAnneals
 	)
 
 add_executable("${ARG}.out" "${ARG}.cpp" )

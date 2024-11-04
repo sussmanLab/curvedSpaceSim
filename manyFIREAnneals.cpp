@@ -159,7 +159,7 @@ int main(int argc, char*argv[])
     ValueArg<double> densityArg("d","areaFraction","packing fraction if every particle takes up circular space",false,1.,"double",cmd);
     ValueArg<double> temperatureArg("t","T","temperature to set",false,1.0,"double",cmd);
     ValueArg<double> stiffnessArg("q", "stiffness", "harmonic stiffness", false, 1.0, "double", cmd); 
-    ValueArg<double> omegaArg("w", "helicity", "helicity of mesh surface", false, 1.0, "double", cmd);  
+    ValueArg<string> omegaArg("w", "helicity", "helicity of mesh surface", false, "0.020", "string", cmd);  
     ValueArg<double> timestepArg("e", "timestepSize", "size of a timestep (not applicable for FIRE)", false, 0.1, "double", cmd);
 
     SwitchArg reproducibleSwitch("r","reproducible","reproducible random number generation", cmd, true);
@@ -178,7 +178,7 @@ int main(int argc, char*argv[])
     double density = densityArg.getValue();
     double temperature = temperatureArg.getValue();
     double stiffness = stiffnessArg.getValue();  
-    double omega = omegaArg.getValue();
+    string omega = omegaArg.getValue();
     double dt = timestepArg.getValue(); 
     bool verbose= verboseSwitch.getValue();
     bool reproducible = reproducibleSwitch.getValue();
@@ -229,9 +229,34 @@ int main(int argc, char*argv[])
     string inputMeshName = meshName.substr(14,15);
     cout << "input mesh name " << inputMeshName << endl; 
     string trajectoryFilename = "../bulk_silo_data/FIRE_"+to_string(N)+"_trajectories/" + inputMeshName + "_N_"+to_string(N) + "_trajectory.nc"; 
-    simpleModelDatabase saveState(N,trajectoryFilename,NcFile::Replace);
-    saveState.writeState(configuration,0.0);
 
+    vector<string> origOmegas = {
+    "0.020", "0.024", "0.028", "0.032", "0.040", "0.044",
+    "0.048", "0.052", "0.056", "0.060", "0.064", "0.068",
+    "0.072", "0.076", "0.080", "0.084", "0.088", "0.092",
+    "0.100", "0.104", "0.108", "0.112", "0.116", "0.120",
+    "0.124", "0.128", "0.132", "0.136", "0.140", "0.144",
+    "0.148", "0.152", "0.156", "0.160", "0.164", "0.168",
+    "0.172", "0.176", "0.180", "0.184", "0.188", "0.192",
+    "0.196", "0.200", "0.204", "0.208", "0.212", "0.216",
+    "0.220", "0.224", "0.228", "0.232", "0.236", "0.240"
+    };
+    bool prevStateExists = false;
+    cout << "omega: " << omega << endl;
+    if(find(origOmegas.begin(), origOmegas.end(), omega) != origOmegas.end()) prevStateExists = true;
+
+    shared_ptr<simpleModelDatabase> saveState; 
+    cout << "prev state exists?" << prevStateExists << endl;
+    if (prevStateExists) 
+        { 
+	saveState = make_shared<simpleModelDatabase>(N, trajectoryFilename, NcFile::Write);
+	saveState->readState(configuration, saveState->GetNumRecs()-1);
+	}
+    else 
+        { 
+        saveState = make_shared<simpleModelDatabase>(N, trajectoryFilename, NcFile::Replace); 
+	saveState->writeState(configuration,0.0); //if a traj exists this will double-write a state in the trajectory, but nothing else weird 
+        }
     double fNorm, fMax, energyState; 
     fNorm=1;
     int heatingLength = 200; 
@@ -241,10 +266,14 @@ int main(int argc, char*argv[])
     int maxDescentSteps = 2000; //number of fire steps to take at most, each 1 long  
     int maxGDSteps = 100; 
     //ofstream forceFile("forces_"+to_string(N)+"_"+inputMeshName+".csv");
-
-    for (int annealStep = 0; annealStep < totalAnneals; annealStep++) 
+ 
+    int start = 0; 
+    if (prevStateExists) start = 100;
+    for (int annealStep = start; annealStep < totalAnneals; annealStep++) 
 	{
         //heating step, which we do here so that we have a minimal configuration at the end
+        cout << "anneal step?" << annealStep << endl;
+
 	shared_ptr<noseHooverNVT> NVTUpdater=make_shared<noseHooverNVT>(dt, temperature, 1.0, M);
         NVTUpdater->setModel(configuration); 
 	simulator->clearUpdaters();
@@ -263,7 +292,7 @@ int main(int argc, char*argv[])
 	    step++;
 	    if(step%saveFrequency == saveFrequency-1)
                 {
-                saveState.writeState(configuration,step);
+                saveState->writeState(configuration,step);
 		double nowTemp = NVTUpdater->getTemperatureFromKE();
                 printf("step %i T %f \n",step,nowTemp);
                 }
@@ -312,17 +341,17 @@ int main(int argc, char*argv[])
 		printf("Reached force norm threshold.\n"); 
 		if (programBranch == 1) fMax = fireEnergyMinimizer->getMaxForceWithExclusions(exclusions);
                 else fMax = energyMinimizer->getMaxForceWithExclusions(exclusions);
-		printf("step %i fN %.4g fM %.4g E %.4g\n",step,fNorm,fMax, energyState);
-		saveState.writeState(configuration,step); 
+		printf("step %i fN %.10g fM %.10g E %.10g\n",step,fNorm,fMax, energyState);
+		saveState->writeState(configuration,step); 
 		break; 
 		}
 
             if(step%saveFrequency == saveFrequency-1)
                 {
-                saveState.writeState(configuration,step); 
+                saveState->writeState(configuration,step); 
                 if (programBranch == 1) fMax = fireEnergyMinimizer->getMaxForceWithExclusions(exclusions);
                 else fMax = energyMinimizer->getMaxForceWithExclusions(exclusions);
-		printf("step %i fN %.4g fM %.4g E %.4g\n",step,fNorm,fMax, energyState);
+		printf("step %i fN %.10g fM %.10g E %.10g\n",step,fNorm,fMax, energyState);
 		}
 
 	    step++;
@@ -344,10 +373,10 @@ int main(int argc, char*argv[])
 	    if(step%10 == 9)
                 {
                 vector<int> exclusions = findExclusions(configuration->positions, meshSpace->surface);
-                saveState.writeState(configuration,step);
+                saveState->writeState(configuration,step);
                 if (programBranch == 1) fMax = fireEnergyMinimizer->getMaxForceWithExclusions(exclusions);
                 else fMax = energyMinimizer->getMaxForceWithExclusions(exclusions);
-                printf("GD step %i fN %.4g fM %.4g E %.4g\n",step,fNorm,fMax, energyState);
+                printf("GD step %i fN %.10g fM %.10g E %.10g\n",step,fNorm,fMax, energyState);
                 }
             step++;     
 	    }    
@@ -390,8 +419,9 @@ int main(int argc, char*argv[])
 	cout << allDists[i] << endl;
         }
     double R = sum/nToSum; // we could average instead from e.g. 5 maximum distances or n/50 maximum distances
-
-    double omegaR = omega*R;
+  
+    double omegaNum = stod(omega); 
+    double omegaR = omegaNum*R;
     double RoverD = R/maximumInteractionRange;
     cout << "R: " << R << ", d: " << maximumInteractionRange << endl; 
     cout << "omegaR = " << omegaR << endl;

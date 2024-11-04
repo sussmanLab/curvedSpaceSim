@@ -19,7 +19,7 @@ class baseDatabase
         string filename;
         //!The desired mode (integer representation of replace, new, write, readonly, etc)
         const int Mode;
-        //!The number of saved records in the database
+	//!The number of saved records in the database
         int Records;
 
         //!Write the current state; if the default value of rec=-1 is used, add a new entry
