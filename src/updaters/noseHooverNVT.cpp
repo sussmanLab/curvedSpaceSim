@@ -17,11 +17,12 @@ noseHooverNVT::noseHooverNVT(double _dt, double _T, double _tau, int _M)
     };
 
 /*!
-Additionally, use the observation in the Mol Phys paper to set the masses of the chain of thermostats
+A careful reading of the "Non-Hamiltonian molecular dynamics: Generalizing Hamiltonian phase
+space principles to non-Hamiltonian systems" paper (jcp 2001) suggests the correct setting of the first thermostat chain mass to guarantee conservation of energy in the context of a total momentum=0 setting
 */
 void noseHooverNVT::setBathVariables()
     {
-    bathVariables[0].w = 2.0*(Ndof-2)*temperature*tau*tau;
+    bathVariables[0].w = 2.0*(Ndof-1)*temperature*tau*tau;
     for (int ii = 1; ii < bathVariables.size(); ++ii)
         bathVariables[ii].w = temperature*tau*tau;
 
@@ -71,7 +72,7 @@ void noseHooverNVT::propagateChain()
         bathVariables[ii].y += bathVariables[ii].z*dt4;
         bathVariables[ii].y *= exponentialFactor;
         }
-    bathVariables[0].z = (2.0*kineticEnergy - 2.0*(Ndof-2)*temperature)/bathVariables[0].w;
+    bathVariables[0].z = (2.0*kineticEnergy - 2.0*(Ndof-1)*temperature)/bathVariables[0].w;
     exponentialFactor = exp(-dt8*bathVariables[1].y);
     bathVariables[0].y *= exponentialFactor;
     bathVariables[0].y += bathVariables[0].z*dt4;
@@ -86,7 +87,7 @@ void noseHooverNVT::propagateChain()
     kineticEnergy = kineticEnergyScaleFactor*kineticEnergyScaleFactor*kineticEnergy;
 
     //update the other quarter-timestep for the bath velocities and accelerations
-    bathVariables[0].z = (2.0*kineticEnergy - 2.0*(Ndof-2)*temperature)/bathVariables[0].w;
+    bathVariables[0].z = (2.0*kineticEnergy - 2.0*(Ndof-1)*temperature)/bathVariables[0].w;
     exponentialFactor = exp(-dt8*bathVariables[1].y);
     bathVariables[0].y *= exponentialFactor;
     bathVariables[0].y += bathVariables[0].z*dt4;
