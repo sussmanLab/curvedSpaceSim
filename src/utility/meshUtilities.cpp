@@ -109,24 +109,49 @@ double totalArea(triangleMesh mesh)
     return area;
     };
 
-
-/*simple clamp function to take barycentric coordinate near the boundary of a face
- *and place it firmly within the face in question. Be careful this is not used when 
- *the barycentric coordinates are/might be very negative, as it can obscure meaningful errors. 
- */
-void clampToThreshold(pmpBarycentricCoordinates &baryPoint)
+void projectOn(vector3 &v, vector3 &direction) 
     {
+    //should only work if force is rotated along with all the other vectors
+    vector3 dhat = normalize(direction);
+    v = (v*dhat)*dhat;
+    }
+
+void projectOrthogonalTo(vector3 &v, vector3 &direction)
+    {
+    vector3 dhat = normalize(direction); 
+    v = v - (v*dhat)*dhat;
+    }
+
+void belowZeroClamp(pmpBarycentricCoordinates &baryPoint, double tol)
+    {
+    double clampedBarySum = 0;
     for (int i = 0; i < 3; i++)
         {
-        baryPoint[i] = max(baryPoint[i],THRESHOLD);
+        baryPoint[i] = max(baryPoint[i], tol);
+	clampedBarySum += baryPoint[i]; 
         }
-    double clampedBarySum = baryPoint[0]+baryPoint[1]+baryPoint[2];
     for (int i = 0; i < 3; i++)
         {
         baryPoint[i] = baryPoint[i]/clampedBarySum;
         }
     }
 
+void nearZeroClamp(pmpBarycentricCoordinates &baryPoint, double tol) 
+    {
+    double clampedBarySum = 0;
+    for (int i = 0; i < 3; i++)
+        {
+        if (baryPoint[i] > -tol && baryPoint[i] < tol) 
+	    {
+	    baryPoint[i] = tol;
+	    }
+	clampedBarySum += baryPoint[i]; 
+        }
+    for (int i = 0; i < 3; i++)
+        {
+        baryPoint[i] = baryPoint[i]/clampedBarySum;
+        }
+    } 
 
 /*
 Let a line in barycentric coordinates be 
@@ -290,12 +315,14 @@ void computePathDistanceAndTangents(surfaceMeshShortestPath *smsp, smspFaceLocat
     endPathTangent /= normalization;
     }
 
-
-void printPoint(point3 a)
+void printPoint(point3 a, bool precise)
     {
-    printf("{%f,%f,%f}",a[0],a[1],a[2]);
+    if (precise) printf("{%.16g,%.16g,%.16g}",a[0],a[1],a[2]);
+    else printf("{%f,%f,%f}",a[0],a[1],a[2]);
     };
-void printBary(smspBarycentricCoordinates a)
+
+void printBary(smspBarycentricCoordinates a, bool precise)
     {
-    printf("{%f,%f,%f}",a[0],a[1],a[2]);
+    if (precise) printf("{%.32g,%.32g,%.32g}",a[0],a[1],a[2]);
+    else printf("{%f,%f,%f}",a[0],a[1],a[2]);
     };

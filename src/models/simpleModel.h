@@ -98,6 +98,8 @@ class simpleModel
         void setVerbose(bool v){verbose = v;};
         //!some updaters require parallel transport of velocity vectors
         bool particleShiftsRequireVelocityTransport = false;
+        //!some updaters require parallel transport of force vectors
+	bool particleShiftsRequireForceTransport = false; 
 
         //!tolerance used for barycentricCoordinate clamping    :with
         double clampTolerance = 0.00000000000001;//10^-14 as a current threshold for numerical tolerance. 

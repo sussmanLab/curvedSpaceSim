@@ -24,10 +24,8 @@ class triangulatedMeshSpace : public baseSpace
         //!load data from an off file and initialize all mesh data structures
         void loadMeshFromFile(std::string filename, bool verbose = false);
 
-        //!Given a particle somewhere on the mesh, displace it in the direction of the vector, wrapping around faces to make it a geodesic displacement
-        virtual void displaceParticle(meshPosition &pos, vector3 &displacementVector);
-        //!On a mesh, if a particle goes across an edge the velocity vector gets rotated along with it
-        virtual void transportParticleAndVelocity(meshPosition &pos, vector3 &v, vector3 &displacementVector);
+        //!Given a particle somewhere on the mesh, displace it in the direction of the vector, wrapping around faces; any vectors given to the function are transported along with it
+	virtual void transportParticleAndVectors(meshPosition &pos, vector3 &displacementVector, vector<vector3> &transportVectors);
 
         //!Given a source particle and a vector of target points, determine the geodesic distance and store the start and end path tangents along the paths
         virtual void distance(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent, double distanceThreshold= VERYLARGEDOUBLE);
@@ -39,7 +37,7 @@ class triangulatedMeshSpace : public baseSpace
         virtual void randomVectorAtPosition(meshPosition &p, vector3 &v, noiseSource &noise);
 
         //!Get the area of the mesh
-        virtual double getArea(); 
+        virtual double getArea();        
 
         //!specialize the calculation of distances to use submeshes
         void distanceWithSubmeshing(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent,double distanceThreshold);
@@ -70,10 +68,15 @@ class triangulatedMeshSpace : public baseSpace
 
         //!The actual meshed surface itself
         triangleMesh surface;
-        //! The lower-bottom-left position of the rectilinear domain containing the surface
+        //!The lower-bottom-left position of the rectilinear domain containing the surface
         double3 minVertexPosition;
-        //! The upper-top-right position of the rectilinear domain containing the surface
+        //!The upper-top-right position of the rectilinear domain containing the surface
         double3 maxVertexPosition;
+  	//!Currently, the code always considers boundary conditions -- for closed surfaces, they just aren't called. If useTangentialBCs is on, 
+	//transportParticleAndVectors will slide particles along the boundary rather than stop them. Future versions of the code will differentiate
+	//routines that use boundary conditions at all with routines that don't (for solely closed surfaces) in a modular way. 
+	bool useTangentialBCs = false;
+
     protected:
         //!Update some internal datastructures used in finding shortest paths
         void updateMeshSpanAndTree();
@@ -83,7 +86,13 @@ class triangulatedMeshSpace : public baseSpace
         shared_ptr<surfaceMeshShortestPath> globalSMSP;
         AABB_tree globalTree;
         bool submeshingActivated = false;
-        //!A data structure for helping with submeshing routines
+	//!specialized function to assist with boundary conditions -- this is an outcome subfunction for boundary behaviors
+        virtual void projectVectorsIfOverBoundary(vector<vector3> &vectors, vector3 orthogonal, vector3 inward);
+	//!specalized functions for spot checks within the shift routine as well as simple wrappers around controlled clamps
+        void checkBaryNan(pmpBarycentricCoordinates bcoords, string message = "", int step = 0);
+        void clampAndUpdatePosition(pmpBarycentricCoordinates &baryLoc, point3 &r3Loc, faceIndex &sFace, bool belowZero = false);
+	
+	//!A data structure for helping with submeshing routines
         submesher submeshAssistant;
         double maximumDistance = 0;
         //data structures associated with the potential for "dangerous" submeshes -- these can occur when submeshing routine is capable of returning a submesh with multiple connected components (e.g., when dealing with a surface that looks like an elephant's ear)
