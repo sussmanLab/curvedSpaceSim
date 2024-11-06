@@ -105,4 +105,9 @@ void printPoint(point3 a, bool precise=false);
 //! print to screen a set of barycentric coordinates, with full precision allowed using precise=true
 void printBary(smspBarycentricCoordinates a, bool precise=false);
 
+//! specialized function to test for NaN in barycentric coordinates, with debugging output
+void checkBaryNan(pmpBarycentricCoordinates bcoords, string message = "", int step = 0);
+//! As simple wrappers around controlled clamps
+void clampAndUpdatePosition(pmpBarycentricCoordinates &baryLoc, point3 &r3Loc, faceIndex &sFace, bool belowZero = false);
+	
 #endif

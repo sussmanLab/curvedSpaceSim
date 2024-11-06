@@ -160,6 +160,33 @@ void nearZeroClamp(pmpBarycentricCoordinates &baryPoint, double tol)
         baryPoint[i] = baryPoint[i]/clampedBarySum;
     } 
 
+void clampAndUpdatePosition(pmpBarycentricCoordinates &baryLoc, point3 &r3Loc, faceIndex &sFace, bool belowZero)
+    {
+    if (belowZero) 
+        belowZeroClamp(baryLoc);
+    else 
+        nearZeroClamp(baryLoc);
+    //update the original point for self-consistency
+    meshPosition updatedMeshPos;
+    updatedMeshPos.x = point3(baryLoc[0], baryLoc[1], baryLoc[2]);
+    updatedMeshPos.faceIndex = sFace;
+    pmpFaceLocation updatedMeshLocation = meshPositionToFaceLocation(updatedMeshPos);
+    r3Loc = PMP::construct_point(updatedMeshLocation, surface);
+    }
+
+void checkBaryNan(pmpBarycentricCoordinates bcoords, string message, int step)
+    {
+    if(bcoords[0] != bcoords[0])
+        {
+        cout << endl;
+        cout << "SHIFT HAS FAILED, TARGET BARY" << endl;
+        cout << "message: " << message << endl;
+        cout << "step: " << step << endl;
+        cout << bcoords[0] << ", " << bcoords[1] << ", " << bcoords[2] << endl;
+        ERRORERROR("Illegal coordinates");
+        }
+    }
+
 /*
 Let a line in barycentric coordinates be 
 l(t,start,end) = start + t(end-start),

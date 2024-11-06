@@ -411,30 +411,6 @@ void triangulatedMeshSpace::projectVectorsIfOverBoundary(vector<vector3> &vector
         }
     }
 
-void triangulatedMeshSpace::clampAndUpdatePosition(pmpBarycentricCoordinates &baryLoc, point3 &r3Loc, faceIndex &sFace, bool belowZero)
-    {
-    if (belowZero) belowZeroClamp(baryLoc);
-    else nearZeroClamp(baryLoc);
-    //redefinitions ncessary after above clamp
-    meshPosition updatedMeshPos;
-    updatedMeshPos.x = point3(baryLoc[0], baryLoc[1], baryLoc[2]);
-    updatedMeshPos.faceIndex = sFace;
-    pmpFaceLocation updatedMeshLocation = meshPositionToFaceLocation(updatedMeshPos);
-    r3Loc = PMP::construct_point(updatedMeshLocation, surface);
-    }
-
-void triangulatedMeshSpace::checkBaryNan(pmpBarycentricCoordinates bcoords, string message, int step)
-    {
-    if(bcoords[0] != bcoords[0])
-         {
-         cout << endl;
-	 cout << "SHIFT HAS FAILED, TARGET BARY" << endl;
-	 cout << "message: " << message << endl;
-	 cout << "step: " << step << endl;
-	 cout << bcoords[0] << ", " << bcoords[1] << ", " << bcoords[2] << endl;
-	 ERRORERROR("Illegal coordinates");
-         }
-    }
 
 void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displacementVector)
     {

@@ -40,7 +40,7 @@ class triangulatedMeshSpace : public baseSpace
         virtual void randomVectorAtPosition(meshPosition &p, vector3 &v, noiseSource &noise);
 
         //!Get the area of the mesh
-        virtual double getArea();        
+        virtual double getArea();
 
         //!specialize the calculation of distances to use submeshes
         void distanceWithSubmeshing(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent,double distanceThreshold);
@@ -89,13 +89,9 @@ class triangulatedMeshSpace : public baseSpace
         shared_ptr<surfaceMeshShortestPath> globalSMSP;
         AABB_tree globalTree;
         bool submeshingActivated = false;
-	//!specialized function to assist with boundary conditions -- this is an outcome subfunction for boundary behaviors
+        //!specialized function to assist with boundary conditions -- this is an outcome subfunction for boundary behaviors
         virtual void projectVectorsIfOverBoundary(vector<vector3> &vectors, vector3 orthogonal, vector3 inward);
-	//!specalized functions for spot checks within the shift routine as well as simple wrappers around controlled clamps
-        void checkBaryNan(pmpBarycentricCoordinates bcoords, string message = "", int step = 0);
-        void clampAndUpdatePosition(pmpBarycentricCoordinates &baryLoc, point3 &r3Loc, faceIndex &sFace, bool belowZero = false);
-	
-	//!A data structure for helping with submeshing routines
+        //!A data structure for helping with submeshing routines
         submesher submeshAssistant;
         double maximumDistance = 0;
         //data structures associated with the potential for "dangerous" submeshes -- these can occur when submeshing routine is capable of returning a submesh with multiple connected components (e.g., when dealing with a surface that looks like an elephant's ear)
