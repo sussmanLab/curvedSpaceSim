@@ -160,7 +160,7 @@ void nearZeroClamp(pmpBarycentricCoordinates &baryPoint, double tol)
         baryPoint[i] = baryPoint[i]/clampedBarySum;
     } 
 
-void clampAndUpdatePosition(pmpBarycentricCoordinates &baryLoc, point3 &r3Loc, faceIndex &sFace, bool belowZero)
+void clampAndUpdatePosition(pmpBarycentricCoordinates &baryLoc, point3 &r3Loc, faceIndex &sFace, triangleMesh &surface, bool belowZero)
     {
     if (belowZero) 
         belowZeroClamp(baryLoc);

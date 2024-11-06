@@ -106,8 +106,8 @@ void printPoint(point3 a, bool precise=false);
 void printBary(smspBarycentricCoordinates a, bool precise=false);
 
 //! specialized function to test for NaN in barycentric coordinates, with debugging output
-void checkBaryNan(pmpBarycentricCoordinates bcoords, string message = "", int step = 0);
+void checkBaryNan(pmpBarycentricCoordinates bcoords, std::string message = "", int step = 0);
 //! As simple wrappers around controlled clamps
-void clampAndUpdatePosition(pmpBarycentricCoordinates &baryLoc, point3 &r3Loc, faceIndex &sFace, bool belowZero = false);
+void clampAndUpdatePosition(pmpBarycentricCoordinates &baryLoc, point3 &r3Loc, faceIndex &sFace, triangleMesh &surface, bool belowZero = false);
 	
 #endif

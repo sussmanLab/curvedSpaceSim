@@ -460,11 +460,11 @@ void triangulatedMeshSpace::transportParticleAndVectors(meshPosition &pos, vecto
         iter+=1;
         //get the current barycentric coordinates of the target, clamping to the edge if they're very close 
         targetBarycentricLocation = PMP::barycentric_coordinates(vertexPositions[0],vertexPositions[1],vertexPositions[2],target);
-        clampAndUpdatePosition(targetBarycentricLocation, target, currentSourceFace);  
+        clampAndUpdatePosition(targetBarycentricLocation, target, currentSourceFace,surface);
         //while we don't want to eliminate negatives from the target, the source point should strictly lie within the source face, 
         //so we can use the stricter belowZeroClamp. This does not exclude the use of controls during the other parts of the loop to 
         //ensure that the source point is actually in or nearly in the face
-        clampAndUpdatePosition(sourceBarycentricLocation, sourcePoint, currentSourceFace, useBelowZero);
+        clampAndUpdatePosition(sourceBarycentricLocation, sourcePoint, currentSourceFace, surface,useBelowZero);
         displacementVector = vector3(sourcePoint,target);
 
         checkBaryNan(targetBarycentricLocation, "start of step check", iter); 
