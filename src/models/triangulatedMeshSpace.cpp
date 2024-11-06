@@ -405,7 +405,8 @@ void triangulatedMeshSpace::projectVectorsIfOverBoundary(vector<vector3> &vector
         vector3 v = vectors[i];
         double vAndPerpDot = v*orthogonal;
         bool vAlongPerp = (vAndPerpDot > 0);
-        if ((pointsOut && vAlongPerp) || (!pointsOut && !vAlongPerp)) projectOrthogonalTo(v,orthogonal);
+        if ((pointsOut && vAlongPerp) || (!pointsOut && !vAlongPerp)) 
+            projectVectorOrthongonalToDirection(v,orthogonal);
         vectors[i] = v;
         }
     }
@@ -585,7 +586,7 @@ void triangulatedMeshSpace::transportParticleAndVectors(meshPosition &pos, vecto
                 //now update the displacement vector to be along the boundary if tangential bcs
 		if (useTangentialBCs) 
 		    {
-		    projectOn(displacementVector,boundaryHeading);
+		    projectVectorOntoDirection(displacementVector,boundaryHeading);
 		    target = edgeIntersectionPoint+displacementVector;	
 		    }
 		else 

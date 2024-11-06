@@ -109,26 +109,32 @@ double totalArea(triangleMesh mesh)
     return area;
     };
 
-void projectOn(vector3 &v, vector3 &direction) 
+void projectVectorOntoDirection(vector3 &v, vector3 &direction) 
     {
-    //should only work if force is rotated along with all the other vectors
     vector3 dhat = normalize(direction);
     v = (v*dhat)*dhat;
     }
 
-void projectOrthogonalTo(vector3 &v, vector3 &direction)
+void projectVectorOrthongonalToDirection(vector3 &v, vector3 &direction)
     {
     vector3 dhat = normalize(direction); 
     v = v - (v*dhat)*dhat;
     }
 
+/*!
+Clamp a barycentric coordinate below zero to within the tolerance value, and then make sure the barycentric coordinates sum to one. 
+By default, belowZero clamp uses a stricter tolerance because it 
+acts on source points within shift -- source points error out in testing when allowed to be within 1e-12
+of a boundary, so belowZeroClamp guarantees a source point is never within that range or over the boundary.
+Because it acts on any bary coord < 0, it is used very sparingly -- essentially only for source points. 
+ */
 void belowZeroClamp(pmpBarycentricCoordinates &baryPoint, double tol)
     {
     double clampedBarySum = 0;
     for (int i = 0; i < 3; i++)
         {
         baryPoint[i] = max(baryPoint[i], tol);
-	clampedBarySum += baryPoint[i]; 
+        clampedBarySum += baryPoint[i]; 
         }
     for (int i = 0; i < 3; i++)
         {
@@ -136,21 +142,22 @@ void belowZeroClamp(pmpBarycentricCoordinates &baryPoint, double tol)
         }
     }
 
+/*!
+Clamp a barycentric coordinate near zero to the tolerance value, and then make sure the barycentric coordinates sum to one. 
+By default, The near zero clamp is less broadly acting, and keeps bary coords from being within 1e-13 of a boundary 
+because within that distance (either positive or negative), the intersection routine is liable to make errors. 
+ */
 void nearZeroClamp(pmpBarycentricCoordinates &baryPoint, double tol) 
     {
     double clampedBarySum = 0;
     for (int i = 0; i < 3; i++)
         {
         if (baryPoint[i] > -tol && baryPoint[i] < tol) 
-	    {
-	    baryPoint[i] = tol;
-	    }
-	clampedBarySum += baryPoint[i]; 
+            baryPoint[i] = tol;
+        clampedBarySum += baryPoint[i]; 
         }
     for (int i = 0; i < 3; i++)
-        {
         baryPoint[i] = baryPoint[i]/clampedBarySum;
-        }
     } 
 
 /*

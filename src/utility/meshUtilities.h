@@ -68,17 +68,14 @@ double meanTriangleArea(triangleMesh mesh);
 //! Return the total surface area of a mesh
 double totalArea(triangleMesh mesh); 
 
-//!Functions to perform simple projections 'on' (align with) or 'off' (make perpendicular to) a given vector
-void projectOn(vector3 &v, vector3 &direction);
-void projectOrthogonalTo(vector3 &v, vector3 &direction);
+//! Transform v by removing any component orthogonal to the direction
+void projectVectorOntoDirection(vector3 &v, vector3 &direction);
+//! Transform v by removing any component parallel to the direction
+void projectVectorOrthongonalToDirection(vector3 &v, vector3 &direction);
 
-//!Special clamps for shift functions. belowZero clamp uses a stricter tolerance because it 
-//acts on source points within shift -- source points error out in testing when allowed to be within 1e-12
-//of a boundary, so belowZeroClamp guarantees a source point is never within that range or over the boundary.
-//Because it acts on any bary coord < 0, it is used very sparingly -- essentially only for source points. 
-//The near zero clamp is less broadly acting, and keeps bary coords from being within 1e-13 of a boundary 
-//because within that distance (either positive or negative), the intersection routine is liable to make errors. 
+//!clamp negative barycentric points to within the tolerance
 void belowZeroClamp(pmpBarycentricCoordinates &baryPoint, double tol = 1e-11);
+//!clamp barycentric points near zero to the tolerance
 void nearZeroClamp(pmpBarycentricCoordinates &baryPoint, double tol = 1e-13);
 
 
