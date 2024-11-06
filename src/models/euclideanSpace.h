@@ -15,7 +15,7 @@ class euclideanSpace : public baseSpace
         //!Simple vector addition of particle displacements
         virtual void displaceParticle(meshPosition &pos, vector3 &displacementVector);
         //!this function is useful in triangulatedMeshSpaces, but meaningless here where transport is trivial
-	virtual void transportParticleAndVectors(meshPosition &pos, vector3 &displacementVector, vector<vector3> &transportVectors); 
+        virtual void transportParticleAndVectors(meshPosition &pos, vector3 &displacementVector, vector<vector3> &transportVectors); 
 	
 
         //!Simple vector subtraction for particle separation vectors

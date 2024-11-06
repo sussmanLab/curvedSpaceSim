@@ -435,6 +435,12 @@ void triangulatedMeshSpace::checkBaryNan(pmpBarycentricCoordinates bcoords, stri
          }
     }
 
+void triangulatedMeshSpace::displaceParticle(meshPosition &pos, vector3 &displacementVector)
+    {
+    vector<vector3> emptyTransportQuantities;
+    transportParticleAndVectors(pos,displacementVector,emptyTransportQuantities);
+    };
+
 /*
 Core displacement routine. Takes a degree of freedom and a direction + distance to move in, and moves 
 it around the mesh, always remaining in the tangent plane of a mesh face. Any vectors passed in as transportVectors 

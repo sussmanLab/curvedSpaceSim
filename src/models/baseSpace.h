@@ -24,6 +24,9 @@ class baseSpace
     {
     public:
         virtual ~baseSpace() = default;
+        //!displace the position of a particle
+        virtual void displaceParticle(meshPosition &pos, vector3 &displacementVector) = 0;
+
         //!all-in-one to move a particle and any accompanying vectors
         virtual void transportParticleAndVectors(meshPosition &pos, vector3 &displacementVector, vector<vector3> &transportVectors) = 0;
 	

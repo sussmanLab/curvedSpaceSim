@@ -7,7 +7,7 @@ void euclideanSpace::displaceParticle(meshPosition &pos, vector3 &displacementVe
 
 void euclideanSpace::transportParticleAndVectors(meshPosition &pos, vector3 &displacementVector, vector<vector3> &transportVectors)
     {
-    pos.x += displacementVector;
+    displaceParticle(pos,displacementVector);
     } 
  
 void euclideanSpace::meshPositionToEuclideanLocation(std::vector<meshPosition> &p1, std::vector<meshPosition> &result)
