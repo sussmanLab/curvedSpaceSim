@@ -40,25 +40,32 @@ void simpleModel::fillEuclideanLocations()
     space->meshPositionToEuclideanLocation(positions,euclideanLocations);
     }
 
+/*!
+ moveParticles currently loops through possible parallel transport flags and fills 
+ a vector of vector3s... if we write more potential quantities to be transported in this way,
+ we should update this structure to something a bit cleaner.
+ */
 void simpleModel::moveParticles(vector<vector3> &disp)
     {
-        for(int ii = 0; ii < N; ++ii)
+    for(int ii = 0; ii < N; ++ii)
 	    {
 	    vector<vector3> transports;
-	    if(particleShiftsRequireForceTransport) transports.push_back(forces[ii]);
-            if(particleShiftsRequireVelocityTransport) transports.push_back(velocities[ii]); 
-            space->transportParticleAndVectors(positions[ii],disp[ii], transports);
+	    if(particleShiftsRequireForceTransport)
+            transports.push_back(forces[ii]);
+        if(particleShiftsRequireVelocityTransport)
+            transports.push_back(velocities[ii]); 
+        space->transportParticleAndVectors(positions[ii],disp[ii], transports);
 	    int transportCounter = 0;
 	    if (particleShiftsRequireForceTransport) 
 	        {
-		forces[ii] = transports[transportCounter];
-		transportCounter++;
-		}
+            forces[ii] = transports[transportCounter];
+            transportCounter++;
+            }
 	    if(particleShiftsRequireVelocityTransport)
-		{
-                velocities[ii] = transports[transportCounter];
-		transportCounter++;
-		}
+            {
+            velocities[ii] = transports[transportCounter];
+            transportCounter++;
+            }
 	    }
     };
 
