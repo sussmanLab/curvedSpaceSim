@@ -109,24 +109,83 @@ double totalArea(triangleMesh mesh)
     return area;
     };
 
-
-/*simple clamp function to take barycentric coordinate near the boundary of a face
- *and place it firmly within the face in question. Be careful this is not used when 
- *the barycentric coordinates are/might be very negative, as it can obscure meaningful errors. 
- */
-void clampToThreshold(pmpBarycentricCoordinates &baryPoint)
+void projectVectorOntoDirection(vector3 &v, vector3 &direction) 
     {
+    vector3 dhat = normalize(direction);
+    v = (v*dhat)*dhat;
+    }
+
+void projectVectorOrthongonalToDirection(vector3 &v, vector3 &direction)
+    {
+    vector3 dhat = normalize(direction); 
+    v = v - (v*dhat)*dhat;
+    }
+
+/*!
+Clamp a barycentric coordinate below zero to within the tolerance value, and then make sure the barycentric coordinates sum to one. 
+By default, belowZero clamp uses a stricter tolerance because it 
+acts on source points within shift -- source points error out in testing when allowed to be within 1e-12
+of a boundary, so belowZeroClamp guarantees a source point is never within that range or over the boundary.
+Because it acts on any bary coord < 0, it is used very sparingly -- essentially only for source points. 
+ */
+void belowZeroClamp(pmpBarycentricCoordinates &baryPoint, double tol)
+    {
+    double clampedBarySum = 0;
     for (int i = 0; i < 3; i++)
         {
-        baryPoint[i] = max(baryPoint[i],THRESHOLD);
+        baryPoint[i] = max(baryPoint[i], tol);
+        clampedBarySum += baryPoint[i]; 
         }
-    double clampedBarySum = baryPoint[0]+baryPoint[1]+baryPoint[2];
     for (int i = 0; i < 3; i++)
         {
         baryPoint[i] = baryPoint[i]/clampedBarySum;
         }
     }
 
+/*!
+Clamp a barycentric coordinate near zero to the tolerance value, and then make sure the barycentric coordinates sum to one. 
+By default, The near zero clamp is less broadly acting, and keeps bary coords from being within 1e-13 of a boundary 
+because within that distance (either positive or negative), the intersection routine is liable to make errors. 
+ */
+void nearZeroClamp(pmpBarycentricCoordinates &baryPoint, double tol) 
+    {
+    double clampedBarySum = 0;
+    for (int i = 0; i < 3; i++)
+        {
+        if (baryPoint[i] > -tol && baryPoint[i] < tol) 
+            baryPoint[i] = tol;
+        clampedBarySum += baryPoint[i]; 
+        }
+    for (int i = 0; i < 3; i++)
+        baryPoint[i] = baryPoint[i]/clampedBarySum;
+    } 
+
+void clampAndUpdatePosition(pmpBarycentricCoordinates &baryLoc, point3 &r3Loc, faceIndex &sFace, triangleMesh &surface, bool belowZero)
+    {
+    if (belowZero) 
+        belowZeroClamp(baryLoc);
+    else 
+        nearZeroClamp(baryLoc);
+    //update the original point for self-consistency
+    meshPosition updatedMeshPos;
+    updatedMeshPos.x = point3(baryLoc[0], baryLoc[1], baryLoc[2]);
+    updatedMeshPos.faceIndex = sFace;
+    pmpFaceLocation updatedMeshLocation = meshPositionToFaceLocation(updatedMeshPos);
+    r3Loc = PMP::construct_point(updatedMeshLocation, surface);
+    }
+
+void checkBaryNan(pmpBarycentricCoordinates bcoords, string message, int step)
+    {
+    if(bcoords[0] != bcoords[0])
+        {
+        cout << endl;
+        cout << "SHIFT HAS FAILED, TARGET BARY" << endl;
+        cout << "message: " << message << endl;
+        cout << "step: " << step << endl;
+        cout << bcoords[0] << ", " << bcoords[1] << ", " << bcoords[2] << endl;
+        ERRORERROR("Illegal coordinates");
+        }
+    }
 
 /*
 Let a line in barycentric coordinates be 
@@ -290,12 +349,14 @@ void computePathDistanceAndTangents(surfaceMeshShortestPath *smsp, smspFaceLocat
     endPathTangent /= normalization;
     }
 
-
-void printPoint(point3 a)
+void printPoint(point3 a, bool precise)
     {
-    printf("{%f,%f,%f}",a[0],a[1],a[2]);
+    if (precise) printf("{%.16g,%.16g,%.16g}",a[0],a[1],a[2]);
+    else printf("{%f,%f,%f}",a[0],a[1],a[2]);
     };
-void printBary(smspBarycentricCoordinates a)
+
+void printBary(smspBarycentricCoordinates a, bool precise)
     {
-    printf("{%f,%f,%f}",a[0],a[1],a[2]);
+    if (precise) printf("{%.32g,%.32g,%.32g}",a[0],a[1],a[2]);
+    else printf("{%f,%f,%f}",a[0],a[1],a[2]);
     };

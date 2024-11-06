@@ -68,8 +68,16 @@ double meanTriangleArea(triangleMesh mesh);
 //! Return the total surface area of a mesh
 double totalArea(triangleMesh mesh); 
 
-//! avoid finite-numerical-precision artifacts by clamping points near an edge to have a zero barycentric coordinate
-void clampToThreshold(pmpBarycentricCoordinates &baryPoint);
+//! Transform v by removing any component orthogonal to the direction
+void projectVectorOntoDirection(vector3 &v, vector3 &direction);
+//! Transform v by removing any component parallel to the direction
+void projectVectorOrthongonalToDirection(vector3 &v, vector3 &direction);
+
+//!clamp negative barycentric points to within the tolerance
+void belowZeroClamp(pmpBarycentricCoordinates &baryPoint, double tol = 1e-11);
+//!clamp barycentric points near zero to the tolerance
+void nearZeroClamp(pmpBarycentricCoordinates &baryPoint, double tol = 1e-13);
+
 
 //!return true if the two lines which pass through the given endpoints intersect between the specified points on both lines. fill in the barycentric location of the intersection point
 bool intersectionOfLinesInBarycentricCoordinates(pmpBarycentricCoordinates line1Start, pmpBarycentricCoordinates line1End, pmpBarycentricCoordinates line2Start, pmpBarycentricCoordinates line2End, pmpBarycentricCoordinates &intersectionPoint);
@@ -91,9 +99,15 @@ void convertBarycentricCoordinates(triangleMesh &mesh1, triangleMesh &mesh2, std
 //! Given the right data structures, compute the geodesic path and start/end tangent vectors between points
 void computePathDistanceAndTangents(surfaceMeshShortestPath *smsp, smspFaceLocation &targetPoint, double &distance, vector3 &startPathTangent, vector3 &endPathTangent);
 
-//!Print to screen the coordinates of a point.
-void printPoint(point3 a);
-//! print to screen a set of barycentric coordinates
-void printBary(smspBarycentricCoordinates a);
+//!Print to screen the coordinates of a point, with full precision allowed using precise=true
+void printPoint(point3 a, bool precise=false);
 
+//! print to screen a set of barycentric coordinates, with full precision allowed using precise=true
+void printBary(smspBarycentricCoordinates a, bool precise=false);
+
+//! specialized function to test for NaN in barycentric coordinates, with debugging output
+void checkBaryNan(pmpBarycentricCoordinates bcoords, std::string message = "", int step = 0);
+//! As simple wrappers around controlled clamps
+void clampAndUpdatePosition(pmpBarycentricCoordinates &baryLoc, point3 &r3Loc, faceIndex &sFace, triangleMesh &surface, bool belowZero = false);
+	
 #endif

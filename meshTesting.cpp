@@ -134,7 +134,8 @@ if(programBranch ==0)
                 testPoint.x = point3(randomLocationOnRandomFace.second[0],randomLocationOnRandomFace.second[1],randomLocationOnRandomFace.second[2]);
                 testPoint.faceIndex = fdTest;
                 p2.start();
-                meshSpace->displaceParticle(testPoint, displacementVector);
+		vector<vector3> emptyVectors;
+                meshSpace->transportParticleAndVectors(testPoint, displacementVector, emptyVectors);
                 p2.end();
                 pos2.push_back(testPoint);
                 targetFL.first=(faceIndex) testPoint.faceIndex;
@@ -234,7 +235,8 @@ if(programBranch ==0)
 
 
     std::cout << source.faceIndex << ", " << source.x << std::endl;
-    meshSpace->displaceParticle(source, displacement);
+    vector<vector3> emptyVectors;
+    meshSpace->transportParticleAndVectors(source, displacement, emptyVectors);
     std::cout << source.faceIndex << ", " << source.x << std::endl;
     };
 /*
