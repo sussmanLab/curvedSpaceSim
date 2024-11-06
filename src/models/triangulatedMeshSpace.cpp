@@ -484,7 +484,7 @@ void triangulatedMeshSpace::transportParticleAndVectors(meshPosition &pos, vecto
         std::vector<int> uninvolvedVertex;
         std::vector<vertexIndex> involvedVertex;
 
-        bool ifIntersection = findTriangleEdgeIntersectionInformation(sourceBarycentricLocation,targetBarycentricLocation,intersectionPoint, vertexList,lastUsedHalfedge,surface, involvedVertex,uninvolvedVertex);
+        findTriangleEdgeIntersectionInformation(sourceBarycentricLocation,targetBarycentricLocation,intersectionPoint, vertexList,lastUsedHalfedge,surface, involvedVertex,uninvolvedVertex);
         /* after above, the following are written to:
          * involvedVertex (vertex index)
          * uninvolvedVertex (integer)
