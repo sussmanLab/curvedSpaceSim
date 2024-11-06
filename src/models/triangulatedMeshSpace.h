@@ -15,6 +15,9 @@
 //! A class that interfaces with CGAL functionality for working with triangulated meshes
 /*!
 Note that this class interfaces tightly with some of the function in the meshUtilities files
+Currently, the code always considers boundary conditions -- for closed surfaces, they just aren't called. If useTangentialBCs is on, 
+transportParticleAndVectors will slide particles along the boundary rather than stop them. Future versions of the code will differentiate
+routines that use boundary conditions at all with routines that don't (for solely closed surfaces) in a modular way. 
 */
 class triangulatedMeshSpace : public baseSpace
     {
@@ -62,7 +65,7 @@ class triangulatedMeshSpace : public baseSpace
         //!given a vector of meshPositions that represent barycentric coordinates, fill a second vector of meshPositions that represent the corresponding R3 positions
         void convertToEuclideanPositions(std::vector<meshPosition> &a, std::vector<meshPosition> &b);
 
-	//!given a goal edge length, remesh the surface isotropically to have that edge length on average and set the new surface
+        //!given a goal edge length, remesh the surface isotropically to have that edge length on average and set the new surface
         void isotropicallyRemeshSurface(double targetEdgeLength);
 
         virtual void meshPositionToEuclideanLocation(std::vector<meshPosition> &p1, std::vector<double3> &result);
@@ -75,10 +78,9 @@ class triangulatedMeshSpace : public baseSpace
         double3 minVertexPosition;
         //!The upper-top-right position of the rectilinear domain containing the surface
         double3 maxVertexPosition;
-  	//!Currently, the code always considers boundary conditions -- for closed surfaces, they just aren't called. If useTangentialBCs is on, 
-	//transportParticleAndVectors will slide particles along the boundary rather than stop them. Future versions of the code will differentiate
-	//routines that use boundary conditions at all with routines that don't (for solely closed surfaces) in a modular way. 
-	bool useTangentialBCs = false;
+
+        //!A flag that sets boundary conditions. child classes may implement more sophisticated BCs
+        bool useTangentialBCs = false;
 
     protected:
         //!Update some internal datastructures used in finding shortest paths
