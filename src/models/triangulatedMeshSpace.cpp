@@ -573,7 +573,8 @@ void triangulatedMeshSpace::transportParticleAndVectors(meshPosition &pos, vecto
                     continueShifting = false;
                     targetBarycentricLocation = sourceBarycentricLocation;
                     } 
-                currentSourceFace = nextFace;
+        
+		currentSourceFace = nextFace;
 
                 getVertexPositionsFromFace(surface,currentSourceFace, vertexPositions);
                 sourceBarycentricLocation = PMP::barycentric_coordinates(vertexPositions[0], vertexPositions[1], vertexPositions[2], sourcePoint);	
@@ -663,31 +664,36 @@ void triangulatedMeshSpace::transportParticleAndVectors(meshPosition &pos, vecto
                 sourcePoint = edgeIntersectionPoint;
                 checkBaryNan(sourceBarycentricLocation, "boundary edge check", iter);
 
+		//below handles just tangential BCs and/or nonzero transport vectors size -- later
+		//iterations will avoid always executing it 
                 point3 ev1 = surface.point(involvedVertex[0]);
                 point3 ev2 = surface.point(involvedVertex[1]);
+                     
+                //rotate heading to be tangential to the edge in the direction most aligned with its current heading. 
+                vector3 edgeVectorForward(ev1,ev2); 
+                vector3 edgeVectorBackward(ev2,ev1); 
+                edgeVectorForward = normalize(edgeVectorForward);
+                edgeVectorBackward = normalize(edgeVectorBackward); 
+                double forwardDot = normalize(displacementVector)*edgeVectorForward;
+                double backwardDot = normalize(displacementVector)*edgeVectorBackward; 
+                double displacementLength = vectorMagnitude(displacementVector);
+
+                //check to see if any of our transported vectors were pointing over a boundary along with the displacement & project if so 
+                vector3 orthogonalToEdge = normalize(CGAL::cross_product(currentSourceNormal, vector3(ev1,ev2)));
+                //if orthogonal is pointing out, then we want to project only if the overlap with the orthogonal vector is positive; 
+                //if orthogonal is pointing in, then we want to project only if the overlap with the orthogonal vector is negative. 
+                point3 innerVertex = vertexPositions[uninvolvedVertex[0]];
+                vector3 inwardVector(edgeIntersectionPoint, innerVertex); 
+                projectVectorsIfOverBoundary(transportVectors, orthogonalToEdge, inwardVector);
                 if (useTangentialBCs) 
-                    { 
-                    //rotate heading to be tangential to the edge in the direction most aligned with its current heading. 
-                    vector3 edgeVectorForward(ev1,ev2); 
-                    vector3 edgeVectorBackward(ev2,ev1); 
-                    edgeVectorForward = normalize(edgeVectorForward);
-                    edgeVectorBackward = normalize(edgeVectorBackward); 
-                    double forwardDot = normalize(displacementVector)*edgeVectorForward;
-                    double backwardDot = normalize(displacementVector)*edgeVectorBackward; 
-                    double displacementLength = vectorMagnitude(displacementVector);
-
-                    //check to see if any of our transported vectors were pointing over a boundary along with the displacement & project if so 
-                    vector3 orthogonalToEdge = normalize(CGAL::cross_product(currentSourceNormal, vector3(ev1,ev2)));
-                    //if orthogonal is pointing out, then we want to project only if the overlap with the orthogonal vector is positive; 
-                    //if orthogonal is pointing in, then we want to project only if the overlap with the orthogonal vector is negative. 
-                    point3 innerVertex = vertexPositions[uninvolvedVertex[0]];
-                    vector3 inwardVector(edgeIntersectionPoint, innerVertex); 
-                    projectVectorsIfOverBoundary(transportVectors, orthogonalToEdge, inwardVector);
-
+		    {
                     //now we can change the displacement vector.  
                     if ((forwardDot <= 0) && (backwardDot <= 0))
-                        continueShifting = false;
-                    if (forwardDot > backwardDot) 
+		        {
+		        displacementVector = vector3(0,0,0);
+			continueShifting = false;
+                        }
+		    if (forwardDot > backwardDot) 
                         displacementVector = forwardDot*displacementLength*edgeVectorForward;
                     else 
                         displacementVector = backwardDot*displacementLength*edgeVectorBackward; 
