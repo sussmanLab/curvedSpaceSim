@@ -46,6 +46,7 @@ std::string loadMeshName;
 bool configPopup = false;
 bool dynPopup = false;
 bool visPopup = false;
+std::string basePathName = "geodesicPath";
 
 std::unique_ptr<ManifoldSurfaceMesh> mesh;
 std::unique_ptr<VertexPositionGeometry> geometry;
@@ -158,6 +159,7 @@ void loadNewMesh()
     psMesh->setSmoothShade(true);
     setParticlesAndVelocities();
     };
+
 void drawGeodesic()
     {
     shared_ptr<surfaceMeshShortestPath> smsp = make_shared<surfaceMeshShortestPath>(meshSpace->surface);
@@ -172,6 +174,31 @@ void drawGeodesic()
     std::vector<point3> pathPoints;
     shortestPathResult geodesic = smsp->shortest_path_points_to_source_points(targetPoint.first, targetPoint.second,  std::back_inserter(pathPoints));
     psCurve = polyscope::registerCurveNetworkLine("geodesicPath", pathPoints);
+    };
+
+void drawGeodesics()
+    {
+    shared_ptr<surfaceMeshShortestPath> smsp = make_shared<surfaceMeshShortestPath>(meshSpace->surface);
+    int N = configuration->getNumberOfParticles();
+    for (int ii= 0; ii < N; ++ii)
+        {
+        meshPosition p1 = configuration->positions[ii];
+        smspFaceLocation sourcePoint = meshPositionToFaceLocation(p1);
+        AABB_tree localTree;
+        smsp->build_aabb_tree(localTree);
+        smsp->add_source_point(sourcePoint.first,sourcePoint.second);
+        smsp->build_sequence_tree();
+        int numberOfNeighbors = configuration->neighbors[ii].size();
+        for (int jj =0; jj < numberOfNeighbors; ++jj)
+            {
+            int idx2 = configuration->neighbors[ii][jj];
+            meshPosition p2 = configuration->positions[idx2];
+            smspFaceLocation targetPoint = meshPositionToFaceLocation(p2);
+            std::vector<point3> pathPoints;
+            shortestPathResult geodesic = smsp->shortest_path_points_to_source_points(targetPoint.first, targetPoint.second,  std::back_inserter(pathPoints));
+            psCurve = polyscope::registerCurveNetworkLine(basePathName+std::to_string(ii), pathPoints);
+            }
+        }
     };
 
 // A user-defined callback, for creating control panels (etc)
@@ -246,19 +273,20 @@ void myCallback()
         {
         if (ImGui::Begin("visualization"))
             {
-            ImGui::PushItemWidth(100);
-            ImGui::InputInt("particle a", &index1);
-            ImGui::SameLine();
-            ImGui::InputInt("particle b", &index2);
-            ImGui::PopItemWidth();
-            if (ImGui::Button("draw geodesic"))
+            // ImGui::PushItemWidth(100);
+            // ImGui::InputInt("particle a", &index1);
+            // ImGui::SameLine();
+            // ImGui::InputInt("particle b", &index2);
+            // ImGui::PopItemWidth();
+            if (ImGui::Button("draw interactions"))
                 {
-                drawGeodesic();
+                drawGeodesics();
                 }
             ImGui::SameLine();
-            if (ImGui::Button("hide geodesic"))
+            if (ImGui::Button("hide interactions"))
                 {
-                polyscope::removeStructure("geodesicPath");
+                for (int ii = 0; ii < configuration->getNumberOfParticles(); ++ii)
+                    polyscope::removeStructure(basePathName + std::to_string(ii));
                 }
 
             if(ImGui::Button("finished visualization of paths",ImVec2(200, 0)))
