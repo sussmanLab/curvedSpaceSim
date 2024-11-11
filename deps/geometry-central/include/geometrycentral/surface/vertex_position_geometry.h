@@ -3,7 +3,7 @@
 #include "geometrycentral/surface/embedded_geometry_interface.h"
 #include "geometrycentral/surface/surface_mesh.h"
 
-#include <Eigen/SparseCore>
+#include <eigen3/Eigen/SparseCore>
 
 namespace geometrycentral {
 namespace surface {

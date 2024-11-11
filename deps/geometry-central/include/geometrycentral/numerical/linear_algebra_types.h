@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Eigen/Core>
-#include <Eigen/Sparse>
+#include <eigen3/Eigen/Core>
+#include <eigen3/Eigen/Sparse>
 
 namespace geometrycentral {
 

@@ -4,7 +4,7 @@
 #include "geometrycentral/surface/surface_mesh.h"
 #include "geometrycentral/utilities/vector2.h"
 
-#include <Eigen/SparseCore>
+#include <eigen3/Eigen/SparseCore>
 
 #include <complex>
 

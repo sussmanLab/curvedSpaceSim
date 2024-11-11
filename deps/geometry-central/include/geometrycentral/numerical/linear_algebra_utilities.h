@@ -3,10 +3,10 @@
 #include "geometrycentral/numerical/linear_algebra_types.h"
 #include "geometrycentral/utilities/utilities.h"
 
-#include <Eigen/Core>
-#include <Eigen/Dense>
-#include <Eigen/Sparse>
-#include <Eigen/StdVector>
+#include <eigen3/Eigen/Core>
+#include <eigen3/Eigen/Dense>
+#include <eigen3/Eigen/Sparse>
+#include <eigen3/Eigen/StdVector>
 
 #include <complex>
 #include <fstream> // ofsteam, ifstream

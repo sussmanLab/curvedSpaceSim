@@ -26,7 +26,7 @@ Other dependencies can be install via  apt-get. We need netcdf-cxx (for which we
 
     $ sudo add-apt-repository universe
     $ sudo apt-get update
-    $ sudo apt-get install zlib1g-dev libhdf5-dev libnetcdf-dev  netcdf-bin libnetcdf-c++4-dev libgmp-dev libmpfr-dev mpich
+    $ sudo apt-get install zlib1g-dev libhdf5-dev libnetcdf-dev  netcdf-bin libnetcdf-c++4-dev libgmp-dev libmpfr-dev mpich libeigen3-dev
 
 ## Compiling the curvedSpaceSimulation executables
 

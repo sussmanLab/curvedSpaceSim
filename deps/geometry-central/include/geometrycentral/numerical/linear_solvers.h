@@ -2,7 +2,7 @@
 
 #include "geometrycentral/numerical/linear_algebra_utilities.h"
 
-#include "Eigen/Sparse"
+#include <eigen3/Eigen/Sparse>
 
 #include <iostream>
 #include <memory>

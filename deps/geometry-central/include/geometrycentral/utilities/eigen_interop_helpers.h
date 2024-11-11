@@ -5,7 +5,7 @@
  */
 #pragma once
 
-#include <Eigen/Core>
+#include <eigen3/Eigen/Core>
 
 #include "geometrycentral/numerical/linear_algebra_types.h"
 #include "geometrycentral/surface/surface_mesh.h"

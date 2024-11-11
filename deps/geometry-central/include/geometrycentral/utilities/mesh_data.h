@@ -6,7 +6,7 @@
 // are used below.
 #include "geometrycentral/surface/halfedge_element_types.h"
 
-#include <Eigen/Core>
+#include <eigen3/Eigen/Core>
 #include <cassert>
 
 // === Datatypes which hold data stored on the mesh

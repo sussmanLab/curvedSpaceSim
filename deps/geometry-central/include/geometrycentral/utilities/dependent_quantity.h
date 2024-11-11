@@ -2,7 +2,7 @@
 
 // Would be great not to include Eigen here, but seems necessary to specialize clearBuffer() in the .ipp. Suggestions
 // for an easy workaround are welcome.
-#include <Eigen/SparseCore>
+#include <eigen3/Eigen/SparseCore>
 
 #include <functional>
 #include <iostream>

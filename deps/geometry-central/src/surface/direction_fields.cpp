@@ -2,11 +2,11 @@
 
 #include "geometrycentral/numerical/linear_solvers.h"
 
-#include <Eigen/Core>
-#include <Eigen/Dense>
-#include <Eigen/Sparse>
-#include <Eigen/SparseLU>
-#include <Eigen/SparseQR>
+#include <eigen3/Eigen/Core>
+#include <eigen3/Eigen/Dense>
+#include <eigen3/Eigen/Sparse>
+#include <eigen3/Eigen/SparseLU>
+#include <eigen3/Eigen/SparseQR>
 
 using std::cout;
 using std::endl;
