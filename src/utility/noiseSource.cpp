@@ -34,7 +34,9 @@ double noiseSource::getRealNormal(double mean, double std)
         answer = normal(genrd);
     return answer;
     };
-
+/*!
+To be within a triangle, we choose u from [0,1], v from [0,1-u], and then set w = 1-u-v
+*/
 double3 noiseSource::getRandomBarycentricSet()
     {
     double3 ans;
@@ -46,6 +48,7 @@ double3 noiseSource::getRandomBarycentricSet()
     ans.z=1-u-v;
     return ans;
     };
+
 void noiseSource::setReproducibleSeed(int _seed)
     {
     RNGSeed = _seed;

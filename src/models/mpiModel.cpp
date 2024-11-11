@@ -26,7 +26,8 @@ void mpiModel::determineIndexBounds()
     if(localRank == totalRanks-1)
         maxIdx = NTotal;
     N = maxIdx-minIdx;
-    //printf("rank %i, largestP %i, min %i, max %i, N %i\n",localRank, largestNumberOfParticlesPerRank, minIdx, maxIdx, N);
+    if(verbose)
+        printf("rank %i, largestP %i, min %i, max %i, N %i\n", localRank, largestNumberOfParticlesPerRank, minIdx, maxIdx, N);
     }
 /*!
  * actually set the array sizes. positions, velocities, forces are zero
@@ -57,7 +58,7 @@ void mpiModel::setRandomParticlePositions(noiseSource &noise)
     }
 
 /*!
-Assumes all particles have unit mass (for now)
+Assumes all particles have unit mass (for now)TODO
 */
 void mpiModel::setMaxwellBoltzmannVelocities(noiseSource &noise, double T)
     {

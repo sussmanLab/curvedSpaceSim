@@ -8,26 +8,19 @@
 /*! \file baseUpdater.h */
 //!A base class for implementing simple updaters
 /*!
-An updater is some class object that can update something about the
-underlying state of the system. An example might be an equation of motion, or an updater that periodically subtracts off
-any center-of-mass motion of a system as it evolves, etc.. A simulation will call all updaters in a loop,
-e.g. for(each updater i in list) updater[i].Update(Timestep)
-To facilitate this structure, but acknowledge that any given updater might only need to be called
-occasionally, the Update function is passed a timestep, and each updaters has a period that should be set.
+An updater is some class object that can update something about the underlying state of the system. An example might be an equation of motion, or an updater that periodically subtracts off
+any center-of-mass motion of a system as it evolves, etc.. A simulation will call all updaters in a loop, e.g. for(each updater i in list) updater[i].Update(Timestep) To facilitate this structure, but acknowledge that any given updater might only need to be called occasionally, the Update function is passed a timestep, and each updaters has a period that should be set.
 */
 class updater
     {
     public:
         //! by default, updaters are called every timestep with no offset
         updater(){Period = -1;Phase = 0;reproducible = true;};
+        //! construct an updater with a specific period
         updater(int _p){Period = _p; Phase = 0;};
         virtual ~updater() = default;
         //! The fundamental function that a controlling Simulation can call
-        virtual void Update(int timestep)
-            {
-            if(Period <= 0 || (Period >0 && (timestep+Phase) % Period == 0))
-                performUpdate();
-            };
+        virtual void Update(int timestep);
         //! The function which performs the update
         virtual void performUpdate();
         //! A pointer to the governing simulation
@@ -44,7 +37,7 @@ class updater
             initializeFromModel();
             };
 
-        //!by default, set Ndof
+        //!by default, set Ndof from the number of particles in the model
         virtual void initializeFromModel(){Ndof = model->getNumberOfParticles();};
 
         //! set the period
@@ -68,15 +61,17 @@ class updater
 
         //!allow for setting multiple threads
         virtual void setNThreads(int n){nThreads = n;};
+        //!A sample function, mostly to show how to use manipulateUpdaterData
+        virtual double getMaxForce();
+        //!A sample function, mostly to show how to use manipulateUpdaterData
+        virtual double getForceNorm();
 
-        virtual double getMaxForce(){return 0.0;};
-
-        //!Set the maximum number of iterations before terminating (or set to -1 to ignore)
-        void setMaximumIterations(int maxIt){maxIterations = maxIt;};
+        //!Set the maximum number of iterations before terminating
+        void setMaximumIterations(int maxIt=-1){maxIterations = maxIt;};
         int getCurrentIterations(){return iterations;};
         int getMaxIterations(){return maxIterations;};
         void setCurrentIterations(int newIterations){iterations=newIterations;};
-
+        //! TODO
         virtual double getClassSize()
             {
             return 0.000000001*(6*sizeof(int) + 2*sizeof(bool) + sizeof(double));
@@ -85,8 +80,13 @@ class updater
         //!The number of iterations performed
         int iterations;
 
+        double squaredTotalForceNorm;
+        double maximumForceNorm;
+        //!The internal time step size
+        double deltaT;
+
     protected:
-        //!number of threads to use
+        //!number of threads to use TODO
         int nThreads=1;
         //!The period of the updater... the updater will work every Period timesteps
         int Period;
@@ -96,10 +96,8 @@ class updater
         int Ndof;
         //!whether the RNGs give reproducible results
         bool reproducible;
-        //!The internal time step size
-        double deltaT;
-        //!The maximum number of iterations allowed
-        int maxIterations;
+        //!The maximum number of iterations allowed...perhaps useful for energy minimizers, for instance
+        int maxIterations = -1;
     };
 
 typedef shared_ptr<updater> UpdaterPtr;

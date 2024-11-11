@@ -7,18 +7,18 @@ vectorValueDatabase::vectorValueDatabase(int vectorLength, string fn, NcFile::Fi
     N=vectorLength;
     val=0.0;
     vec.resize(N);
-    switch(Mode)
+    switch(mode)
         {
-        case NcFile::ReadOnly:
+        case NcFile::read:
             GetDimVar();
             break;
-        case NcFile::Write:
+        case NcFile::write:
             GetDimVar();
             break;
-        case NcFile::Replace:
+        case NcFile::replace:
             SetDimVar();
             break;
-        case NcFile::New:
+        case NcFile::newFile:
             SetDimVar();
             break;
         default:
@@ -29,31 +29,31 @@ vectorValueDatabase::vectorValueDatabase(int vectorLength, string fn, NcFile::Fi
 void vectorValueDatabase::SetDimVar()
     {
     //Set the dimensions
-    recDim = File.add_dim("rec");
-    dofDim = File.add_dim("dof", N);
-    unitDim = File.add_dim("unit",1);
+    recDim = File.addDim("record");
+    dofDim = File.addDim("dof", N);
+    unitDim = File.addDim("unit",1);
 
     //Set the variables
-    vecVar = File.add_var("vector", ncDouble,recDim, dofDim);
-    valVar = File.add_var("value",ncDouble,recDim);
+    vecVar = File.addVar("vector", ncDouble,{recDim, dofDim});
+    valVar = File.addVar("value",ncDouble,recDim);
     }
 
 void vectorValueDatabase::GetDimVar()
     {
     //Get the dimensions
-    recDim = File.get_dim("rec");
-    dofDim = File.get_dim("dof");
-    unitDim = File.get_dim("unit");
+    recDim = File.getDim("record");
+    dofDim = File.getDim("dof");
+    unitDim = File.getDim("unit");
     //Get the variables
-    vecVar = File.get_var("vector");
-    valVar = File.get_var("value");
+    vecVar = File.getVar("vector");
+    valVar = File.getVar("value");
     }
 
 void vectorValueDatabase::writeState(vector<double> &_vec,double _val)
     {
-    int rec = recDim->size();
-    valVar->put_rec(&_val,rec);
-    vecVar->put_rec(&_vec[0],rec);
+    int rec = recDim.getSize();
+    valVar.putVar({rec},&_val);
+    vecVar.putVar({rec,0},{1,dofDim.getSize()},&_vec[0]);
     File.sync();
     };
 
@@ -65,8 +65,6 @@ void vectorValueDatabase::readState(int rec)
         printf("Trying to read a database entry that does not exist\n");
         throw std::exception();
         };
-        vecVar->set_cur(rec);
-        vecVar->get(&vec[0],1,dofDim->size());
-        valVar->set_cur(rec);
-        valVar->get(&val,1,1);
+        vecVar.getVar({rec,N},{1,dofDim.getSize()},&vec[0]);
+        valVar.getVar({rec},{1}, &val);
     };

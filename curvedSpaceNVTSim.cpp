@@ -6,13 +6,11 @@
 #include "noiseSource.h"
 #include "triangulatedMeshSpace.h"
 #include "simulation.h"
-#include "gradientDescent.h"
-#include "fireMinimization.h"
+#include "noseHooverNVT.h"
 #include "velocityVerletNVE.h"
 #include "simpleModel.h"
 #include "gaussianRepulsion.h"
 #include "harmonicRepulsion.h"
-#include "softRepulsion.h"
 #include "vectorValueDatabase.h"
 #include "simpleModelDatabase.h"
 #include "cellListNeighborStructure.h"
@@ -44,6 +42,7 @@ int main(int argc, char*argv[])
     ValueArg<int> particleNumberSwitchArg("n","number","number of particles to simulate",false,20,"int",cmd);
     ValueArg<int> iterationsArg("i","iterations","number of performTimestep calls to make",false,1000,"int",cmd);
     ValueArg<int> saveFrequencyArg("s","saveFrequency","how often a file gets updated",false,100,"int",cmd);
+    ValueArg<int> chainLengthArg("l", "M", "length of N-H chain", false, 2, "int", cmd); 
     ValueArg<string> meshSwitchArg("m","meshSwitch","filename of the mesh you want to load",false,"../exampleMeshes/torus_isotropic_remesh.off","string",cmd);
     ValueArg<double> interactionRangeArg("a","interactionRange","range ofthe interaction to set for both potential and cell list",false,1.,"double",cmd);
     ValueArg<double> deltaTArg("e","dt","timestep size",false,.01,"double",cmd);
@@ -60,6 +59,7 @@ int main(int argc, char*argv[])
     int N = particleNumberSwitchArg.getValue();
     int maximumIterations = iterationsArg.getValue();
     int saveFrequency = saveFrequencyArg.getValue();
+    int M = chainLengthArg.getValue(); 
     string meshName = meshSwitchArg.getValue();
     double dt = deltaTArg.getValue();
     double maximumInteractionRange= interactionRangeArg.getValue();
@@ -71,7 +71,7 @@ int main(int argc, char*argv[])
     shared_ptr<triangulatedMeshSpace> meshSpace=make_shared<triangulatedMeshSpace>();
     meshSpace->loadMeshFromFile(meshName,verbose);
     meshSpace->useSubmeshingRoutines(false);
-    if(programBranch >=0)
+    if(programBranch >0)
         meshSpace->useSubmeshingRoutines(true,maximumInteractionRange,dangerous);
 
     shared_ptr<simpleModel> configuration=make_shared<simpleModel>(N);
@@ -80,7 +80,7 @@ int main(int argc, char*argv[])
 
     //set up the cellListNeighborStructure, which needs to know how large the mesh is
     shared_ptr<cellListNeighborStructure> cellList = make_shared<cellListNeighborStructure>(meshSpace->minVertexPosition,meshSpace->maxVertexPosition,maximumInteractionRange);
-    if(programBranch >= 0)
+    if(programBranch >= 1)
         configuration->setNeighborStructure(cellList);
 
     //for testing, just initialize particles randomly in a small space. Similarly, set random velocities in the tangent plane
@@ -90,50 +90,37 @@ int main(int argc, char*argv[])
 
     //shared_ptr<gaussianRepulsion> pairwiseForce = make_shared<gaussianRepulsion>(1.0,.5);
     shared_ptr<harmonicRepulsion> pairwiseForce = make_shared<harmonicRepulsion>(1.0,maximumInteractionRange);//stiffness and sigma. this is a monodisperse setting
-    // shared_ptr<softRepulsion> pairwiseForce = make_shared<softRepulsion>(3.0,1.0,maximumInteractionRange);//stiffness and sigma. this is a monodisperse setting
     pairwiseForce->setModel(configuration);
 
     shared_ptr<simulation> simulator=make_shared<simulation>();
     simulator->setConfiguration(configuration);
     simulator->addForce(pairwiseForce);
 
-    shared_ptr<gradientDescent> energyMinimizer=make_shared<gradientDescent>(dt);
-    shared_ptr<fireMinimization> energyMinimizerFire=make_shared<fireMinimization>();
-    shared_ptr<velocityVerletNVE> nve=make_shared<velocityVerletNVE>(dt);
-    if(programBranch >=2)
-        {
-        cout <<"running nve" << endl;
-        nve->setModel(configuration);
-        simulator->addUpdater(nve,configuration);
-        }
-    else if (programBranch >=1)
-        {
-        cout <<"running gradient descent" << endl;
-        energyMinimizer->setModel(configuration);
-        simulator->addUpdater(energyMinimizer,configuration);
-        }
-    else
-        {
-        cout <<"running FIRE minimization" << endl;
-        energyMinimizerFire->setFIREParameters(1,dt,.99,10*dt,0.01*dt,1.05,.95,.95,3,1e-12,0.);
-        energyMinimizerFire->setModel(configuration);
-        simulator->addUpdater(energyMinimizerFire,configuration);
-        }
+    //for now we fix timescale (tau) at 1.0
+    cout << "number of N-H masses: " << M << endl; 
+    shared_ptr<noseHooverNVT> NVTUpdater=make_shared<noseHooverNVT>(dt, temperature, 1.0, M);
+    NVTUpdater->setModel(configuration);
+    simulator->addUpdater(NVTUpdater,configuration);
+    
     profiler timer("various parts of the code");
 
-    /*
-    vector<double> posToSave;
-    getFlatVectorOfPositions(configuration,posToSave);
-
-    vectorValueDatabase vvdat(posToSave.size(),"./testTrajectory.nc",NcFile::replace);
-    vvdat.writeState(posToSave,0);
-    */
-
     //by default, the simpleModelDatabase will save euclidean positions, mesh positions (barycentric + faceIdx), and particle velocities. See constructor for saving forces and/or particle types as well
-    //
-    simpleModelDatabase saveState(N,"./testModelDatabase.nc",NcFile::replace,true,false,true);
+    simpleModelDatabase saveState(N,"./testModelDatabase.nc",NcFile::replace);
     saveState.writeState(configuration,0.0);
-    for (int ii = 0; ii < maximumIterations; ++ii)
+    cout << "intended starting temp: " << temperature << endl;
+    cout << "starting temp: " << NVTUpdater->getTemperatureFromKE() << endl; 
+    
+    ofstream temperatureFile("nvtTemperatures.csv"); 
+ 
+    double area = meshSpace->getArea(); 
+    double density = N/area; 
+    double rhoSigma2 = density*maximumInteractionRange*maximumInteractionRange; 
+    
+    int breakpoint = maximumIterations/100;  
+    double sumBPoR = 0;
+    int counter = 1; 
+
+    for (int ii = 0; ii < 2*maximumIterations; ++ii)
         {
         timer.start();
         simulator->performTimestep();
@@ -145,32 +132,29 @@ int main(int argc, char*argv[])
             vvdat.writeState(posToSave,dt*ii);
             */
             saveState.writeState(configuration,dt*ii);
-            if(programBranch ==1)
-                {
-                double fNorm,fMax;
-                fNorm = energyMinimizer->getForceNorm();
-                fMax = energyMinimizer->getMaxForce();
-                printf("step %i fN %.2g fM %.2g\n",ii,fNorm,fMax);
-                }
-            else if(programBranch ==0)
-                {
-                double fNorm,fMax;
-                fNorm = energyMinimizerFire->getForceNorm();
-                fMax = energyMinimizerFire->getMaxForce();
-                printf("step %i fN %.2g fM %.2g dt %.2g power %.2g alpha %.2g\n",ii,fNorm,fMax,energyMinimizerFire->deltaT,energyMinimizerFire->power,energyMinimizerFire->alpha);
-                }
-            else
-                printf("step %i \n",ii);
-            }
+            double nowTemp = NVTUpdater->getTemperatureFromKE();
+            printf("step %i T %f \n",ii,nowTemp);
+            temperatureFile << ii << ", " << nowTemp << "\n";
+	    }
+	if ((ii > maximumIterations) && (ii%breakpoint == 0))
+       	    {
+            double nowTemp = NVTUpdater->getTemperatureFromKE();
+	    vector<double> stress(9, 0.0); 
+	    simulator->computeMonodisperseStress(stress);
+	    //stress trace is pressure, kb = 1, get temperature from average KE, and density is number density above
+            sumBPoR += (stress[0]+stress[4]+stress[8])/(density*nowTemp);
+	    counter+=1;  
+	    }
         }
-
-    for (int ii = 0; ii < 100; ++ii)
-        {
-        simulator->performTimestep();
-        saveState.writeState(configuration,dt*(ii+maximumIterations));
-        };
-
+    
+    temperatureFile.close(); 
     timer.print();
+    
+    double betaPoverRho = sumBPoR/counter; // mean beta*P/rho "after equilibrium" (hopefully)  
+    
+    cout << "rho sigma squared: " << rhoSigma2 << endl; 
+    cout << "beta P over Rho: " << betaPoverRho << endl;
+    cout << "{" << rhoSigma2 << ", " << betaPoverRho << "}" << endl;
 
     return 0;
     };

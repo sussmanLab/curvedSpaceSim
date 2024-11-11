@@ -2,7 +2,8 @@
 
 If you use this software packagefor a publication or project, please cite the main curvedSpaceSimulation methods paper:
 
-(1) (arXiv and eventual journal link here)
+(1) [The current arXiv version of the paper](https://arxiv.org/abs/2404.19751): Toler H. Webb and Daniel M. Sussman. "curvedSpaceSim: A framework for simulating particles interacting along geodesics." arXiv preprint arXiv:2404.19751 (2024).
+
 
 The core algorithm used to compute geodesic distances and paths comes from:
 

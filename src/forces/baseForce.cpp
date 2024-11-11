@@ -1,15 +1,14 @@
 #include "baseForce.h"
 /*! \file baseForce.cpp */
 
-force::force()
-    {
-    };
-
-void force::setForceParameters(vector<double> &params)
-    {
-    };
-
-//note that computeForces expects neighbor vectors to be *unit vectors* 
+/*!
+Assuming that we are implementing pairwise forces, this function will first call
+the model function to find neighbors within some maximumInteractionRange.  This
+is a vector of vectors containing the index,j, of all neighbors of particle i;
+this function executes the double loop and calls the child class to compute the
+specific pairwise force between the particles.  Note that computeForces expects
+the neighborVectors to all be *unit vectors*
+*/
 void force::computeForces(vector<vector3> &forces,bool zeroOutForce, int type)
     {
     if(forces.size() != model->N)
@@ -28,6 +27,9 @@ void force::computeForces(vector<vector3> &forces,bool zeroOutForce, int type)
         }
     };
 
+/*!
+See the comment on computeForces... computeEnergy works the same way
+*/
 double force::computeEnergy(bool verbose)
     {
     model->findNeighbors(maximumInteractionRange);

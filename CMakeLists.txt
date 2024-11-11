@@ -12,6 +12,17 @@ endif()
 message(STATUS "cmake build type: ${CMAKE_BUILD_TYPE}")
 #set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 #set(CMAKE_VERBOSE_MAKEFILE on)
+set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
+
+# If on MacOS, assume that pthreads in built-in
+IF(APPLE)
+    set(CMAKE_THREAD_LIBS_INIT "-lpthread")
+    set(CMAKE_HAVE_THREADS_LIBRARY 1)
+    set(CMAKE_USE_WIN32_THREADS_INIT 0)
+    set(CMAKE_USE_PTHREADS_INIT 1)
+    set(THREADS_PREFER_PTHREAD_FLAG ON)
+ENDIF()
+
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_MATH_DISABLE_FLOAT128 -fopenmp -frounding-math -Wall -Wno-unused-function -Wno-sign-compare") #-Wno-shadow
 
@@ -71,7 +82,6 @@ set(HEADERS
 
 # list the names of cpp files corresponding to linked executables you'd like...
 foreach(ARG
-        meshTesting
         curvedSpaceSimulation
         multirankSimulation
         visualization
@@ -82,7 +92,7 @@ target_include_directories("${ARG}.out" PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/deps
 target_link_libraries("${ARG}.out"
     ${myLibs}
     netcdf
-    netcdf_c++
+    netcdf_c++4
     #OpenMP::OpenMP_CXX
     CGAL::CGAL
     ${MPI_LIBRARIES}

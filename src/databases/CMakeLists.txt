@@ -7,4 +7,5 @@ include_directories(incDirs)
 add_library(databases
     DatabaseNetCDF.cpp
     vectorValueDatabase.cpp
+    simpleModelDatabase.cpp
     )

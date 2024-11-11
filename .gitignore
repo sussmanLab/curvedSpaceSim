@@ -35,4 +35,4 @@
 *.swp
 build/*
 debug/*
-
+.cache/*

@@ -98,7 +98,7 @@ vector3 vv;
     vector<double> posToSave;
     getFlatVectorOfPositions(configuration,posToSave);
 
-    vectorValueDatabase vvdat(posToSave.size(),"./flatSpaceTestTrajectory.nc",NcFile::Replace);
+    vectorValueDatabase vvdat(posToSave.size(),"./flatSpaceTestTrajectory.nc",NcFile::replace);
     vvdat.writeState(posToSave,0);
 
     for (int ii = 0; ii < maximumIterations; ++ii)
