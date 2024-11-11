@@ -12,6 +12,7 @@
 #include "simpleModel.h"
 #include "gaussianRepulsion.h"
 #include "harmonicRepulsion.h"
+#include "softRepulsion.h"
 #include "vectorValueDatabase.h"
 #include "simpleModelDatabase.h"
 #include "cellListNeighborStructure.h"
@@ -89,6 +90,7 @@ int main(int argc, char*argv[])
 
     //shared_ptr<gaussianRepulsion> pairwiseForce = make_shared<gaussianRepulsion>(1.0,.5);
     shared_ptr<harmonicRepulsion> pairwiseForce = make_shared<harmonicRepulsion>(1.0,maximumInteractionRange);//stiffness and sigma. this is a monodisperse setting
+    // shared_ptr<softRepulsion> pairwiseForce = make_shared<softRepulsion>(3.0,1.0,maximumInteractionRange);//stiffness and sigma. this is a monodisperse setting
     pairwiseForce->setModel(configuration);
 
     shared_ptr<simulation> simulator=make_shared<simulation>();
@@ -113,6 +115,7 @@ int main(int argc, char*argv[])
     else
         {
         cout <<"running FIRE minimization" << endl;
+        energyMinimizerFire->setFIREParameters(1,dt,.99,10*dt,0.01*dt,1.05,.95,.95,3,1e-12,0.);
         energyMinimizerFire->setModel(configuration);
         simulator->addUpdater(energyMinimizerFire,configuration);
         }
@@ -127,9 +130,9 @@ int main(int argc, char*argv[])
     */
 
     //by default, the simpleModelDatabase will save euclidean positions, mesh positions (barycentric + faceIdx), and particle velocities. See constructor for saving forces and/or particle types as well
-    simpleModelDatabase saveState(N,"./testModelDatabase.nc",NcFile::replace);
+    //
+    simpleModelDatabase saveState(N,"./testModelDatabase.nc",NcFile::replace,true,false,true);
     saveState.writeState(configuration,0.0);
-
     for (int ii = 0; ii < maximumIterations; ++ii)
         {
         timer.start();
@@ -147,19 +150,25 @@ int main(int argc, char*argv[])
                 double fNorm,fMax;
                 fNorm = energyMinimizer->getForceNorm();
                 fMax = energyMinimizer->getMaxForce();
-                printf("step %i fN %g fM %g\n",ii,fNorm,fMax);
+                printf("step %i fN %.2g fM %.2g\n",ii,fNorm,fMax);
+                }
+            else if(programBranch ==0)
+                {
+                double fNorm,fMax;
+                fNorm = energyMinimizerFire->getForceNorm();
+                fMax = energyMinimizerFire->getMaxForce();
+                printf("step %i fN %.2g fM %.2g dt %.2g power %.2g alpha %.2g\n",ii,fNorm,fMax,energyMinimizerFire->deltaT,energyMinimizerFire->power,energyMinimizerFire->alpha);
                 }
             else
                 printf("step %i \n",ii);
             }
         }
-    if(programBranch ==0)
+
+    for (int ii = 0; ii < 100; ++ii)
         {
-        double fNorm,fMax;
-        fNorm = energyMinimizerFire->getForceNorm();
-        fMax = energyMinimizerFire->getMaxForce();
-        printf("fN %g fM %g\n",fNorm,fMax);
-        }
+        simulator->performTimestep();
+        saveState.writeState(configuration,dt*(ii+maximumIterations));
+        };
 
     timer.print();
 
