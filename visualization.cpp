@@ -292,8 +292,9 @@ void myCallback()
             ImGui::SameLine();
             if (ImGui::Button("hide interactions"))
                 {
-                for (int ii = 0; ii < configuration->getNumberOfParticles(); ++ii)
-                    polyscope::removeStructure(basePathName + std::to_string(ii));
+                for (int ii = 0; ii < configuration->getNumberOfParticles()-1; ++ii)
+                    for (int jj = ii+1; jj < configuration->getNumberOfParticles(); ++jj)
+                        polyscope::removeStructure(basePathName + std::to_string(ii)+std::to_string(jj));
                 }
 
             if(ImGui::Button("finished visualization of paths",ImVec2(200, 0)))
