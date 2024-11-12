@@ -193,14 +193,17 @@ void drawGeodesics()
             {
             int idx2 = configuration->neighbors[ii][jj];
             meshPosition p2 = configuration->positions[idx2];
-            smspFaceLocation targetPoint = meshPositionToFaceLocation(p2);
-            std::vector<point3> pathPoints;
-            shortestPathResult geodesic = smsp->shortest_path_points_to_source_points(targetPoint.first, targetPoint.second,  std::back_inserter(pathPoints));
-            string cnlName=basePathName+std::to_string(ii);
-            psCurve = polyscope::registerCurveNetworkLine(cnlName, pathPoints);
-            psCurve->setRadius(0.002);
-            glm::vec3 newColor(0.867,0.289,0.285);
-            psCurve->setColor(newColor);
+            if(idx2 > ii)
+                {
+                smspFaceLocation targetPoint = meshPositionToFaceLocation(p2);
+                std::vector<point3> pathPoints;
+                shortestPathResult geodesic = smsp->shortest_path_points_to_source_points(targetPoint.first, targetPoint.second,  std::back_inserter(pathPoints));
+                string cnlName=basePathName+std::to_string(ii)+std::to_string(idx2);
+                psCurve = polyscope::registerCurveNetworkLine(cnlName, pathPoints);
+                psCurve->setRadius(0.002);
+                glm::vec3 newColor(0.867,0.289,0.285);
+                psCurve->setColor(newColor);
+                }
             }
         }
     };
