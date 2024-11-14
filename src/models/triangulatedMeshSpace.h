@@ -81,13 +81,18 @@ class triangulatedMeshSpace : public baseSpace
 
         //!A flag that sets boundary conditions. child classes may implement more sophisticated BCs
         bool useTangentialBCs = false;
+        
+	virtual void printSourceTargetDisplacementInfo(point3 sourcePoint, point3 target, pmpBarycentricCoordinates sourceBarycentricLocation, pmpBarycentricCoordinates targetBarycentricLocation, vector3 displacementVector);
+
 
     protected:
         //!Update some internal datastructures used in finding shortest paths
         void updateMeshSpanAndTree();
         //!Handle transport through vertices rather than across edges
         std::pair<faceIndex,vector3> throughVertex(vertexIndex &intersectedVertex, vector3 &toIntersection, faceIndex &sourceFace);
-        bool verbose = false;
+        void updateForVertexIntersection(pmpBarycentricCoordinates &sourceBCs, point3 &sourcePoint, faceIndex &sourceFace, point3 &target, vector3 &displacementVector, vector3 &sourceNormal, vector<point3> vertexPositions, vector<vector3> &transportVectors, halfedgeIndex &lastUsedHalfedge, vertexIndex intersectedV, vector3 toIntersection);
+        void updateForEdgeIntersection(pmpBarycentricCoordinates &sourceBarycentricLocation, point3 &sourcePoint, pmpBarycentricCoordinates &intersectionPoint, vector3 &currentSourceNormal, faceIndex &currentSourceFace, point3 &target, vector<vector3> &transportVectors, halfedgeIndex &lastUsedHalfedge, vector3 &displacementVector, vector<point3> &vertexPositions, halfedgeIndex intersectedEdge);
+	bool verbose = false;
         shared_ptr<surfaceMeshShortestPath> globalSMSP;
         AABB_tree globalTree;
         bool submeshingActivated = false;
@@ -98,7 +103,6 @@ class triangulatedMeshSpace : public baseSpace
         double maximumDistance = 0;
         //data structures associated with the potential for "dangerous" submeshes -- these can occur when submeshing routine is capable of returning a submesh with multiple connected components (e.g., when dealing with a surface that looks like an elephant's ear)
         bool dangerousSubmeshing = false;
-
         int maximumShiftEdgeCrossings = 1000000;
     };
 #endif
