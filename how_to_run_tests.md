@@ -14,6 +14,28 @@ make
 ``` 
 in a build directory. 
 
+##Error vs. Complexity
+This test aims to check how far off our calculations of distances and 
+tangents are compared to the smooth surface a mesh approximates. Because 
+an analytic value of the geodesic must exist for a comparison to be possible,
+we chose to use spheres for the test; on spheres, geodesics are on great circles,
+for which analytic arc lengths and headings are straightforward to compute. 
+
+The test is set up to require minimal command line arguments. To replicate our test,
+one should be able to build and then execute
+```
+./err_v_complexity.out -z 1 -i 200 -m sphere
+```
+and other surfaces can be used by generating them with the name 
+```
+[meshID]_mesh.off
+```
+within the error vs. complexity meshes folder (err v. c). The data comes out as a list:
+point, point, distance, tangent, displacement heading, large displacement, small
+displacement,
+and example analysis is shown in the accompanying error vs. complexity 
+Mathematica notebook.  
+
 ##Cost vs. N 
 As with all of these, one should be able to run the cost vs. 
 N test totally from the command line, with minor changes
@@ -91,8 +113,8 @@ near the end of the cpp file and marked with a comment.
 
 ##Torus Relaxations
 
-Because the torus relaxations are the closest to a true numerical physics
-experiment of the tests, the torusCrystallization cpp file has the largest set of command 
+Because the torus & silo relaxations are the closest to true numerical physics
+experiments of the tests, their executables have the largest set of command 
 line options. One can set  the number of particles to be relaxed, the force
 tolerance at which to stop crystallization, the harmonic stiffness, and a 
 file for starting locations in addition to the usual choice of mesh, 
@@ -145,4 +167,23 @@ to generate both a bisector image file and a connectivity object file, which is 
 SurfaceVoronoi source code as other.obj. We will be happy to provide our specific (lightly) edited SurfaceVoronoi 
 project file upon request, although it is not part of this codebase. 
 
+##Silo Relaxations
+
+As with the torus crystallizations, these tests take significant time and are much more complex than the error checking routines. 
+
+The key executable file for this test is manyFIREAnneals.cpp, which heats up a configuration, does a fast anneal using FIRE, then lets the configuration settle in a brief gradient descent. 
+In general, the below form was the only one used for our tests:
+
+```
+./manyFIREAnneals.out -m [MESHNAME] -n [NUMBER PARTICLES] -w [SILO OMEGA VALUE] -i [ITERATIONS] -s [SAVE FREQUENCY] -e [MAX TIMESTEP SIZE/GD TIMESTEP SIZE] -t 0.5 -z 1 -d .93 -c
+```
+For options, t is temperature (all our tests used 0.5), z guarantees that submeshes are used, d sets the area fraction taken up by our particles, and c ensures that tangential boundary conditions are employed.
+In each of these tests, forces are transported along with velocities so that successive FIRE steps use accurate force vectors. The test in the paper were performed with particle numbers
+as described there, omega values in increments of 0.004 up to 0.240, for 200 iterations and a maximum timestep size of 0.1. The code expects three folders to exist: 
+```
+../bulk_silo_data/FIRE_[N]_voronois
+../bulk_silo_data/FIRE_[N]_minimals
+../bulk_silo_data/FIRE_[N]_trajectories
+```
+The voronois are the primary output file which can be used along with SurfaceVoronoi to create voronoi diagrams and triangle files. Minimals are .nc files with the position information of the voronoi files, and trajectories are the full saved trajectories for the test so one can watch the relaxation and ensure it is behaving as expected. The voronoi files are used in much the same way as is described above. 
 
