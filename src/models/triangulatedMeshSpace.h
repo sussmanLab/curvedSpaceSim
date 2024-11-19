@@ -25,7 +25,7 @@ class triangulatedMeshSpace : public baseSpace
         triangulatedMeshSpace(){};
 
         //!load data from an off file and initialize all mesh data structures
-        void loadMeshFromFile(std::string filename, bool verbose = false);
+        virtual void loadMeshFromFile(std::string filename, bool verbose = false);
 
         //!displace particle just calls the transportParticleAndVectors function
         virtual void displaceParticle(meshPosition &pos, vector3 &displacementVector);
@@ -78,20 +78,22 @@ class triangulatedMeshSpace : public baseSpace
         double3 minVertexPosition;
         //!The upper-top-right position of the rectilinear domain containing the surface
         double3 maxVertexPosition;
-
-        //!A flag that sets boundary conditions. child classes may implement more sophisticated BCs
-        bool useTangentialBCs = false;
         
 	virtual void printSourceTargetDisplacementInfo(point3 sourcePoint, point3 target, pmpBarycentricCoordinates sourceBarycentricLocation, pmpBarycentricCoordinates targetBarycentricLocation, vector3 displacementVector);
-
 
     protected:
         //!Update some internal datastructures used in finding shortest paths
         void updateMeshSpanAndTree();
         //!Handle transport through vertices rather than across edges
         std::pair<faceIndex,vector3> throughVertex(vertexIndex &intersectedVertex, vector3 &toIntersection, faceIndex &sourceFace);
-        void updateForVertexIntersection(pmpBarycentricCoordinates &sourceBCs, point3 &sourcePoint, faceIndex &sourceFace, point3 &target, vector3 &displacementVector, vector3 &sourceNormal, vector<point3> vertexPositions, vector<vector3> &transportVectors, halfedgeIndex &lastUsedHalfedge, vertexIndex intersectedV, vector3 toIntersection);
-        void updateForEdgeIntersection(pmpBarycentricCoordinates &sourceBarycentricLocation, point3 &sourcePoint, pmpBarycentricCoordinates &intersectionPoint, vector3 &currentSourceNormal, faceIndex &currentSourceFace, point3 &target, vector<vector3> &transportVectors, halfedgeIndex &lastUsedHalfedge, vector3 &displacementVector, vector<point3> &vertexPositions, halfedgeIndex intersectedEdge);
+        //!Helper functions to handle different triangle border crossing cases
+	virtual void updateForEdgeIntersection(pmpBarycentricCoordinates &sourceBarycentricLocation, point3 &sourcePoint, pmpBarycentricCoordinates &intersectionPoint, vector3 &currentSourceNormal, faceIndex &currentSourceFace, point3 &target, vector<vector3> &transportVectors, halfedgeIndex &lastUsedHalfedge, vector3 &displacementVector, vector<point3> &vertexPositions, halfedgeIndex intersectedEdge);
+        
+	virtual void updateForVertexIntersection(pmpBarycentricCoordinates &sourceBCs, point3 &sourcePoint, faceIndex &sourceFace, point3 &target, vector3 &displacementVector, vector3 &sourceNormal, vector<point3> vertexPositions, vector<vector3> &transportVectors, halfedgeIndex &lastUsedHalfedge, vertexIndex intersectedV, vector3 toIntersection);
+        //!Effectively placeholders for spaces with boundary conditions
+        void updateForBoundaryEdge(); 
+        void updateForBoundaryVertex();
+	
 	bool verbose = false;
         shared_ptr<surfaceMeshShortestPath> globalSMSP;
         AABB_tree globalTree;

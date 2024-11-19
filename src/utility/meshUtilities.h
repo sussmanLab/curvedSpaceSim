@@ -71,7 +71,7 @@ double totalArea(triangleMesh mesh);
 //! Transform v by removing any component orthogonal to the direction
 void projectVectorOntoDirection(vector3 &v, vector3 &direction);
 //! Transform v by removing any component parallel to the direction
-void projectVectorOrthongonalToDirection(vector3 &v, vector3 &direction);
+void projectVectorOrthogonalToDirection(vector3 &v, vector3 &direction);
 
 //!clamp negative barycentric points to within the tolerance
 void belowZeroClamp(pmpBarycentricCoordinates &baryPoint, double tol = 1e-11);

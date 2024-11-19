@@ -115,7 +115,7 @@ void projectVectorOntoDirection(vector3 &v, vector3 &direction)
     v = (v*dhat)*dhat;
     }
 
-void projectVectorOrthongonalToDirection(vector3 &v, vector3 &direction)
+void projectVectorOrthogonalToDirection(vector3 &v, vector3 &direction)
     {
     vector3 dhat = normalize(direction); 
     v = v - (v*dhat)*dhat;

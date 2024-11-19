@@ -404,7 +404,7 @@ void triangulatedMeshSpace::projectVectorsIfOverBoundary(vector<vector3> &vector
         double vAndPerpDot = v*orthogonal;
         bool vAlongPerp = (vAndPerpDot > 0);
         if ((pointsOut && vAlongPerp) || (!pointsOut && !vAlongPerp)) 
-            projectVectorOrthongonalToDirection(v,orthogonal);
+            projectVectorOrthogonalToDirection(v,orthogonal);
         vectors[i] = v;
         }
     }
@@ -501,7 +501,7 @@ void triangulatedMeshSpace::transportParticleAndVectors(meshPosition &pos, vecto
 	if (uninvolvedVertex.size() == 2)
 	    {
 	    if (surface.is_border(vertexIndex(involvedVertex[0]))) 
-		ERRORERROR("Found a border vertex. Is this really a closed mesh space?"); 
+		updateForBoundaryVertex(); 
 	        
 	    else 
 	        {
@@ -520,8 +520,7 @@ void triangulatedMeshSpace::transportParticleAndVectors(meshPosition &pos, vecto
 	    {
 	    halfedgeIndex intersectedEdge = surface.halfedge(involvedVertex[0], involvedVertex[1]); 
             
-	    if (surface.is_border(edgeIndex(intersectedEdge)))
-                ERRORERROR("Found a border edge. Is this really a closed mesh space?");
+	    if (surface.is_border(edgeIndex(intersectedEdge))) updateForBoundaryEdge();
 	    
 	    else 
 	        {
@@ -641,3 +640,13 @@ void triangulatedMeshSpace::printSourceTargetDisplacementInfo(point3 sourcePoint
 
             cout << "displacement vector: " << displacementVector[0] << ", " << displacementVector[1] << ", " << displacementVector[2] << endl;
             }
+
+void triangulatedMeshSpace::updateForBoundaryEdge() 
+    {
+    ERRORERROR("Found a border edge. Is this really a closed mesh space?");
+    }
+
+void triangulatedMeshSpace::updateForBoundaryVertex()
+    {
+    ERRORERROR("Found a border vertex. Is this really a closed mesh space?");
+    }
