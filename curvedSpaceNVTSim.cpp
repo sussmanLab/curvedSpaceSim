@@ -171,21 +171,19 @@ int main(int argc, char*argv[])
     double largeDouble = 10000.0;
     meshSpace->setNewSubmeshCutoff(largeDouble);
     meshSpace->useSubmeshingRoutines(false); 
+    //use one particle as reference so number based normalization makes sense later.  
      
-    for (int i = 0; i < (positions.size()-1); i++)
-        {
-	//size -1 because we can't find the ``last'' particle's distance with itself
-	vector<meshPosition>::const_iterator first = positions.begin() + i + 1;
-        vector<meshPosition>::const_iterator last = positions.end(); 
-	vector<meshPosition> targets(first, last);	
-	tempDistList.reserve(positions.size() - (i+1)); //largely just readability, a resize call happens within distance 
-        meshSpace->distance(positions[i], targets, tempDistList, startTangents, endTangents);
-	//as usual, we only care about distances, so we could just discard startTangents and endTangents
-        for (double dist: tempDistList)
-       	    { 
-            distancesFile << dist << ", "; 
-	    }
-        }
+    //add one to ``first'' so we don't accidentally 
+    vector<meshPosition>::const_iterator first = positions.begin() +  1;
+    vector<meshPosition>::const_iterator last = positions.end(); 
+    vector<meshPosition> targets(first, last);	
+    tempDistList.reserve(positions.size()); //largely just readability, a resize call happens within distance 
+    meshSpace->distance(positions[0], targets, tempDistList, startTangents, endTangents);
+    //as usual, we only care about distances, so we could just discard startTangents and endTangents
+    for (double dist: tempDistList)
+       	{ 
+        distancesFile << dist << ", "; 
+	}
     distancesFile.close(); 
 
     return 0;
