@@ -10,4 +10,5 @@ add_library(model
     euclideanSpace.cpp
     triangulatedMeshSpace.cpp
     fullStopMeshSpace.cpp
+    tangentialMeshSpace.cpp
     )

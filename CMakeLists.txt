@@ -75,6 +75,7 @@ foreach(ARG
         multirankSimulation
 	curvedSpaceNVTSim
         fullStopSimulation
+	tangentialSimulation
 	)
 
 add_executable("${ARG}.out" "${ARG}.cpp" )
