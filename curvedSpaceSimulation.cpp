@@ -72,6 +72,7 @@ int main(int argc, char*argv[])
     meshSpace->useSubmeshingRoutines(false);
     if(programBranch >=0)
         meshSpace->useSubmeshingRoutines(true,maximumInteractionRange,dangerous);
+    meshSpace->useTangentialBCs = true;
 
     shared_ptr<simpleModel> configuration=make_shared<simpleModel>(N);
     configuration->setVerbose(verbose);
