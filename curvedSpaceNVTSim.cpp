@@ -120,10 +120,13 @@ int main(int argc, char*argv[])
     double density = N/area; 
     double rhoSigma2 = density*maximumInteractionRange*maximumInteractionRange; 
     
-    int breakpoint = maximumIterations/100;  
     double sumBPoR = 0;
     int counter = 1; 
 
+    string distancesFilename = "../sphere_data/NVTrun_N" + to_string(N) + "_a"+to_string(maximumInteractionRange) + "_distances.csv";
+    std::ofstream distancesFile(distancesFilename);
+    double largeDouble = 10000.0;
+    
     for (int ii = 0; ii < 2*maximumIterations; ++ii)
         {
         timer.start();
@@ -140,17 +143,44 @@ int main(int argc, char*argv[])
             printf("step %i T %f \n",ii,nowTemp);
             temperatureFile << ii << ", " << nowTemp << "\n";
 	    }
-	if ((ii > maximumIterations) && (ii%breakpoint == 0))
+	if ((ii > maximumIterations) && (ii%saveFrequency == saveFrequency-1))
        	    {
             double nowTemp = NVTUpdater->getTemperatureFromKE();
 	    vector<double> stress(9, 0.0); 
 	    simulator->computeMonodisperseStress(stress);
 	    //stress trace is pressure, kb = 1, get temperature from average KE, and density is number density above
             sumBPoR += (stress[0]+stress[4]+stress[8])/(density*nowTemp);
-	    counter+=1;  
+	    counter+=1; 
+            
+	    //collect a set of distances every so often for later comparison
+	    vector<double> tempDistList;
+            vector<vector3> startTangents;
+            vector<vector3> endTangents;
+            vector<meshPosition> positions = configuration->positions;
+            //the below is necessary so that we don't accidentally cut off distances
+            meshSpace->setNewSubmeshCutoff(largeDouble);
+            meshSpace->useSubmeshingRoutines(false); 
+            //use one particle as reference so number based normalization makes sense later.  
+     
+            //add one to ``first'' so we don't accidentally 
+            vector<meshPosition>::const_iterator first = positions.begin() +  1;
+            vector<meshPosition>::const_iterator last = positions.end(); 
+            vector<meshPosition> targets(first, last);	
+            tempDistList.reserve(positions.size()); //largely just readability, a resize call happens within distance 
+	    meshSpace->distance(positions[0], targets, tempDistList, startTangents, endTangents);
+	    //as usual, we only care about distances, so we could just discard startTangents and endTangents
+            
+	    distancesFile << tempDistList[0]; 
+	    for (int jj = 1; jj < tempDistList.size(); jj ++)
+       	        { 
+                distancesFile << ", " << tempDistList[jj]; 
+	        }
+            distancesFile << "\n"; 
+	    meshSpace->useSubmeshingRoutines(true, maximumInteractionRange, dangerous);
 	    }
         }
     
+    distancesFile.close(); 
     temperatureFile.close(); 
     timer.print();
     
@@ -160,31 +190,7 @@ int main(int argc, char*argv[])
     cout << "beta P over Rho: " << betaPoverRho << endl;
     cout << "{" << rhoSigma2 << ", " << betaPoverRho << "}" << endl;
 
-    string distancesFilename = "../sphere_data/NVTrun_N" + to_string(N) + "_a"+to_string(maximumInteractionRange) + "_distances.csv";
-    std::ofstream distancesFile(distancesFilename);
-
-    vector<double> tempDistList;
-    vector<vector3> startTangents;
-    vector<vector3> endTangents;
-    vector<meshPosition> positions = configuration->positions;
-    //the below is necessary so that we don't accidentally cut off distances
-    double largeDouble = 10000.0;
-    meshSpace->setNewSubmeshCutoff(largeDouble);
-    meshSpace->useSubmeshingRoutines(false); 
-    //use one particle as reference so number based normalization makes sense later.  
-     
-    //add one to ``first'' so we don't accidentally 
-    vector<meshPosition>::const_iterator first = positions.begin() +  1;
-    vector<meshPosition>::const_iterator last = positions.end(); 
-    vector<meshPosition> targets(first, last);	
-    tempDistList.reserve(positions.size()); //largely just readability, a resize call happens within distance 
-    meshSpace->distance(positions[0], targets, tempDistList, startTangents, endTangents);
-    //as usual, we only care about distances, so we could just discard startTangents and endTangents
-    for (double dist: tempDistList)
-       	{ 
-        distancesFile << dist << ", "; 
-	}
-    distancesFile.close(); 
+   
 
     return 0;
     };
