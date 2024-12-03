@@ -501,8 +501,7 @@ void triangulatedMeshSpace::transportParticleAndVectors(meshPosition &pos, vecto
 	if (uninvolvedVertex.size() == 2)
 	    {
 	    if (surface.is_border(vertexIndex(involvedVertex[0]))) 
-		updateForBoundaryVertex(); 
-	        
+	       ERRORERROR("Surface is meant to be closed, but a border vertex was encountered.");  
 	    else 
 	        {
 	        updateForVertexIntersection(sourceBarycentricLocation, sourcePoint, currentSourceFace, target, displacementVector, currentSourceNormal, vertexPositions, transportVectors, lastUsedHalfedge, involvedVertex[0], toIntersection);
@@ -520,7 +519,8 @@ void triangulatedMeshSpace::transportParticleAndVectors(meshPosition &pos, vecto
 	    {
 	    halfedgeIndex intersectedEdge = surface.halfedge(involvedVertex[0], involvedVertex[1]); 
             
-	    if (surface.is_border(edgeIndex(intersectedEdge))) updateForBoundaryEdge();
+	    if (surface.is_border(edgeIndex(intersectedEdge))) 
+	        ERRORERROR("Surface is meant to be closed, but a border edge was encountered.");
 	    
 	    else 
 	        {
@@ -641,12 +641,3 @@ void triangulatedMeshSpace::printSourceTargetDisplacementInfo(point3 sourcePoint
             cout << "displacement vector: " << displacementVector[0] << ", " << displacementVector[1] << ", " << displacementVector[2] << endl;
             }
 
-void triangulatedMeshSpace::updateForBoundaryEdge() 
-    {
-    ERRORERROR("Found a border edge. Is this really a closed mesh space?");
-    }
-
-void triangulatedMeshSpace::updateForBoundaryVertex()
-    {
-    ERRORERROR("Found a border vertex. Is this really a closed mesh space?");
-    }

@@ -74,7 +74,7 @@ foreach(ARG
         curvedSpaceSimulation
         multirankSimulation
 	curvedSpaceNVTSim
-        fullStopSimulation
+        absorbingSimulation
 	tangentialSimulation
 	)
 

@@ -1,6 +1,6 @@
-#include "tangentialMeshSpace.h"
+#include "tangentialOpenMeshSpace.h"
 
-void tangentialMeshSpace::tangentialBoundaryVertex(pmpBarycentricCoordinates &sourceBCs, pmpBarycentricCoordinates &targetBCs, point3 &target, vector3 &sourceNormal, faceIndex &sourceFace, vector3 &displacement, vector<point3> &vertexPositions, vector<vector3> &transportVectors, halfedgeIndex &lastUsedHalfedge, vertexIndex intersectedV, bool &continueShifting)
+void tangentialOpenMeshSpace::boundaryVertex(pmpBarycentricCoordinates &sourceBCs, pmpBarycentricCoordinates &targetBCs, point3 &target, vector3 &sourceNormal, faceIndex &sourceFace, vector3 &displacement, vector<point3> &vertexPositions, vector<vector3> &transportVectors, halfedgeIndex &lastUsedHalfedge, vertexIndex intersectedV, bool &continueShifting)
     {
     //first get heading & next vertex along the boundary in that heading; source face is modified
     std::pair<vector3, vertexIndex> headingAndVertex;
@@ -19,7 +19,7 @@ void tangentialMeshSpace::tangentialBoundaryVertex(pmpBarycentricCoordinates &so
     lastUsedHalfedge = nullHalfedge;  
     }
 
-void tangentialMeshSpace::tangentialBoundaryEdge(pmpBarycentricCoordinates &sourceBCs, point3 &target, faceIndex &sourceFace, vector3 &sourceNormal, vertexIndex edgeV1, vertexIndex edgeV2, point3 innerVertex, vector<vector3> transportVectors, vector3 &displacement, halfedgeIndex &lastUsedHalfedge, bool &continueShifting)
+void tangentialOpenMeshSpace::boundaryEdge(pmpBarycentricCoordinates &sourceBCs, point3 &target, faceIndex &sourceFace, vector3 &sourceNormal, vertexIndex edgeV1, vertexIndex edgeV2, point3 innerVertex, vector<vector3> transportVectors, vector3 &displacement, halfedgeIndex &lastUsedHalfedge, bool &continueShifting)
     {
 
     point3 ev1 = surface.point(edgeV1);
@@ -71,7 +71,7 @@ displacementVector: The (euclidean) direction and magnitude to displace the degr
 
 This function is identical to that of triangulatedMeshSpace.cpp but with different boundary condition arguments. 
 */
-void tangentialMeshSpace::transportParticleAndVectors(meshPosition &pos, vector3 &displacementVector, vector<vector3> &transportVectors)
+void tangentialOpenMeshSpace::transportParticleAndVectors(meshPosition &pos, vector3 &displacementVector, vector<vector3> &transportVectors)
     {
     pmpFaceLocation sourceLocation = meshPositionToFaceLocation(pos);
     point3 sourcePoint = PMP::construct_point(sourceLocation,surface);
@@ -143,8 +143,7 @@ void tangentialMeshSpace::transportParticleAndVectors(meshPosition &pos, vector3
             {
             if (surface.is_border(vertexIndex(involvedVertex[0])))
 	        {
-		cout << "tangential vertex update" << endl;
-		tangentialBoundaryVertex(sourceBarycentricLocation, targetBarycentricLocation, target, currentSourceNormal, currentSourceFace, displacementVector, vertexPositions, transportVectors, lastUsedHalfedge, involvedVertex[0], continueShifting);
+		boundaryVertex(sourceBarycentricLocation, targetBarycentricLocation, target, currentSourceNormal, currentSourceFace, displacementVector, vertexPositions, transportVectors, lastUsedHalfedge, involvedVertex[0], continueShifting);
 		continue;
                 }
             else
@@ -166,13 +165,13 @@ void tangentialMeshSpace::transportParticleAndVectors(meshPosition &pos, vector3
 
             if (surface.is_border(edgeIndex(intersectedEdge)))
 	        {    
-		tangentialBoundaryEdge(sourceBarycentricLocation, target, currentSourceFace, currentSourceNormal, involvedVertex[0], involvedVertex[1], vertexPositions[uninvolvedVertex[0]], transportVectors, displacementVector, lastUsedHalfedge, continueShifting);	
+		boundaryEdge(sourceBarycentricLocation, target, currentSourceFace, currentSourceNormal, involvedVertex[0], involvedVertex[1], vertexPositions[uninvolvedVertex[0]], transportVectors, displacementVector, lastUsedHalfedge, continueShifting);	
 		continue;
 	    	}
             else
                 {
                 updateForEdgeIntersection(sourceBarycentricLocation, sourcePoint, intersectionPoint, currentSourceNormal, currentSourceFace, target, transportVectors, lastUsedHalfedge, displacementVector, vertexPositions, intersectedEdge);
-                continue; // probably won't be necessary in final vsn
+                continue; 
                 }
 
             }	

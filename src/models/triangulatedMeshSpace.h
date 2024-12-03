@@ -90,9 +90,6 @@ class triangulatedMeshSpace : public baseSpace
 	virtual void updateForEdgeIntersection(pmpBarycentricCoordinates &sourceBarycentricLocation, point3 &sourcePoint, pmpBarycentricCoordinates &intersectionPoint, vector3 &currentSourceNormal, faceIndex &currentSourceFace, point3 &target, vector<vector3> &transportVectors, halfedgeIndex &lastUsedHalfedge, vector3 &displacementVector, vector<point3> &vertexPositions, halfedgeIndex intersectedEdge);
         
 	virtual void updateForVertexIntersection(pmpBarycentricCoordinates &sourceBCs, point3 &sourcePoint, faceIndex &sourceFace, point3 &target, vector3 &displacementVector, vector3 &sourceNormal, vector<point3> vertexPositions, vector<vector3> &transportVectors, halfedgeIndex &lastUsedHalfedge, vertexIndex intersectedV, vector3 toIntersection);
-        //!Effectively placeholders for spaces with boundary conditions
-        void updateForBoundaryEdge(); 
-        void updateForBoundaryVertex();
 	
 	bool verbose = false;
         shared_ptr<surfaceMeshShortestPath> globalSMSP;
