@@ -80,6 +80,7 @@ foreach(ARG
 	curvedSpaceNVTSim
 	manyFIREAnneals
         EvOmegaR
+	ljSimulation
 	#testAnneal	
 	#annealedCrystallization
 	#cleanAnnealedCrystallization
@@ -88,7 +89,7 @@ foreach(ARG
 	#confFIREAnneals
 	#siloEnergyChecker
 	#clusterRadiusChecker
-	#ljFIREAnneals
+	ljFIREAnneals
 	)
 
 add_executable("${ARG}.out" "${ARG}.cpp" )
