@@ -174,6 +174,12 @@ int main(int argc, char*argv[])
     //log spaced saving -- MAKE SURE TO PASS LAST ARG AS FLOAT
     vector<int> writeSteps = logSpacedIntegers(maximumIterations, 0, 1.0/100.0);
     int placeInWriteSteps = 0; 
+    
+    cout << "writing at steps: " << endl;
+    for (int step: writeSteps) 
+        {
+        printf("%i\n", step); 
+	}
 
     double energyState;
     
