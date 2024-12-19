@@ -141,6 +141,24 @@ void writeVoronoiPositions(vector<meshPosition> meshPositions, vector<double3> R
         }
     };
 
+void saveNeighbors(vector<vector<int>> neighbors, string neighborFileName, int N)
+    {
+    ofstream neighborsFile;
+    neighborsFile.open(neighborFileName, std::ios_base::app);
+    for (int i = 0; i < N; i++) 
+        {
+        if (neighbors[i].size() > 0) 
+	    {
+	    neighborsFile << neighbors[i][0]; 
+            }
+	for (int j = 1; j < neighbors[i].size(); j++)
+	    { 
+            neighborsFile << ", " << neighbors[i][j]; 
+    	    }
+	neighborsFile << "\n";
+	}
+     }
+
 
 using namespace TCLAP;
 int main(int argc, char*argv[])
@@ -194,8 +212,11 @@ int main(int argc, char*argv[])
     string trajectoryFilename = "../bulk_silo_data/ljFIRE_"+to_string(N)+"_trajectories/" + inputMeshName + "_N_"+to_string(N) + "_trajectory.nc"; 
     cout << trajectoryFilename <<endl;
    
-    simpleModelDatabase saveState(N,trajectoryFilename,NcFile::Replace);
+    string neighborFilename = "../bulk_silo_data/ljFIRE_"+to_string(N)+"_trajectories/neighbors_"+to_string(N)+"_"+to_string(areaFraction)+".csv"; 
 
+
+    simpleModelDatabase saveState(N,trajectoryFilename,NcFile::Replace);
+    ofstream neighborFile(neighborFilename);
        
     cout << "saving? " << saveTrajectory << endl;
     double fNorm, fMax, energyState; 
@@ -259,6 +280,10 @@ int main(int argc, char*argv[])
                 {
                 if (saveTrajectory) saveState.writeState(configuration,step); 
                 fMax = energyMinimizer->getMaxForce();
+
+	        configuration->findNeighbors(maximumInteractionRange); 
+	        saveNeighbors(configuration->neighbors, neighborFilename, N);	
+		
 		printf("omega %.4g step %i fN %.4g fM %.4g E %.4g\n",omega, step,fNorm,fMax, energyState);
 		}
 
@@ -269,12 +294,12 @@ int main(int argc, char*argv[])
         simulator->clearForceComputers();        
 	
 	simulator->addUpdater(fireEnergyMinimizer,configuration);
-       
-        //configuration->setNeighborStructure(LJcellList);
-        
-	meshSpace->useSubmeshingRoutines(true,cutoffSigma*maximumInteractionRange,false);
-
+	meshSpace->setNewSubmeshCutoff(cutoffSigma*maximumInteractionRange);
         simulator->addForce(LJForce);
+	simulator->computeForces(); 
+	
+        cout << "printing first lj forces" << endl;
+        for (auto f: configuration->forces) cout << f << "\n"; 
         
 	printf("FIRE cooling\n"); 
 	for (int ii = 0; ii < FIRESteps; ii++) 
@@ -288,6 +313,9 @@ int main(int argc, char*argv[])
                 fMax = fireEnergyMinimizer->getMaxForce();
                 fNorm = fireEnergyMinimizer->getForceNorm();
 		energyState = LJForce->computeEnergy();
+		
+		configuration->findNeighbors(cutoffSigma*maximumInteractionRange);
+		saveNeighbors(configuration->neighbors, neighborFilename, N);
 		printf("omega %.4g step %i fN %.16g fM %.16g E %.16g\n",omega, step,fNorm,fMax, energyState);
                 }
             step++;     

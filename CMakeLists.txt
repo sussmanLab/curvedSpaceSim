@@ -79,7 +79,6 @@ foreach(ARG
 	computationalTiming
 	curvedSpaceNVTSim
 	manyFIREAnneals
-        EvOmegaR
 	ljSimulation
 	#testAnneal	
 	#annealedCrystallization
