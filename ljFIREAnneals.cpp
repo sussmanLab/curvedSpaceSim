@@ -222,8 +222,8 @@ int main(int argc, char*argv[])
     double fNorm, fMax, energyState; 
     int step = 1;//purely for printouts
     cout << "starting annealing loop" << endl;
-    int GDSteps = 2500;   
-    int FIRESteps = 1000;     
+    int GDSteps = 2000;   
+    int FIRESteps = 1500;     
     double cutoffSigma = 2.5;
 
     //for testing, just initialize particles randomly in a small space. Similarly, set random velocities in the tangent plane

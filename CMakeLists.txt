@@ -89,6 +89,7 @@ foreach(ARG
 	#siloEnergyChecker
 	#clusterRadiusChecker
 	ljFIREAnneals
+	loadTrajectory
 	)
 
 add_executable("${ARG}.out" "${ARG}.cpp" )
