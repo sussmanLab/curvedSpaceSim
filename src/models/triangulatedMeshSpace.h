@@ -74,10 +74,19 @@ class triangulatedMeshSpace : public baseSpace
 
         //!set a new cutoff scale for submeshing routines (used in some of Toler's mesh refinement tests)
     	void setNewSubmeshCutoff(double newCutoff)
-           {
-           useSubmeshingRoutines(true,newCutoff);
-           }
+            {
+            useSubmeshingRoutines(true,newCutoff);
+            }
 
+	void printMaxDist() 
+	    {
+	    printf("Maximum distance is: %.6g \n", maximumDistance);
+	    }
+
+        void printMinMaxVP() 
+            {
+            printf("Min vertex position: (%.6g,%.6g,%.6g)  Max vertex position: (%.6g,%.6g,%.6g)  \n", minVertexPosition.x, minVertexPosition.y, minVertexPosition.z,  maxVertexPosition.x, maxVertexPosition.y, maxVertexPosition.z); 
+	    }
 
         //!given a vector of meshPositions that represent barycentric coordinates, fill a second vector of meshPositions that represent the corresponding R3 positions
         void convertToEuclideanPositions(std::vector<meshPosition> &a, std::vector<meshPosition> &b);
@@ -95,11 +104,13 @@ class triangulatedMeshSpace : public baseSpace
 	
 	bool useTangentialBCs = false;
 
+
+        void updateMeshSpanAndTree(bool updateSMSP = true);
+    
     protected:
 	void checkBaryNan(pmpBarycentricCoordinates bcoords, string message = "", int step = 0);
         void clampAndUpdatePosition(pmpBarycentricCoordinates &baryLoc, point3 &r3Loc, faceIndex &sFace, bool belowZero = false);
         //!Update some internal datastructures used in finding shortest paths
-        void updateMeshSpanAndTree();
         //!Handle transport through vertices rather than across edges
         std::pair<faceIndex,vector3> throughVertex(vertexIndex &intersectedVertex, vector3 &toIntersection, faceIndex &sourceFace);
         bool verbose = false;

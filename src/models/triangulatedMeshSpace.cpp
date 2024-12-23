@@ -3,11 +3,11 @@
 /*! \file triangulatedMeshSpace.cpp */
 #include <stdexcept>
 
-void triangulatedMeshSpace::updateMeshSpanAndTree()
+void triangulatedMeshSpace::updateMeshSpanAndTree(bool updateSMSP)
     {
     //set domain in which surface lives
-    minVertexPosition.x = 0;minVertexPosition.y = 0;minVertexPosition.z = 0;
-    maxVertexPosition.x = 0;maxVertexPosition.y = 0;maxVertexPosition.z = 0;
+    minVertexPosition.x = 0; minVertexPosition.y = 0; minVertexPosition.z = 0;
+    maxVertexPosition.x = 0; maxVertexPosition.y = 0; maxVertexPosition.z = 0;
     for (vertexIndex v : surface.vertices())
         {
         point3 p = surface.point(v);                          
@@ -26,10 +26,15 @@ void triangulatedMeshSpace::updateMeshSpanAndTree()
         };
     if(verbose)
         printf("mesh spans (%f,%f,%f) to (%f,%f,%f)\n", minVertexPosition.x,minVertexPosition.y,minVertexPosition.z, maxVertexPosition.x,maxVertexPosition.y,maxVertexPosition.z);
-
-    globalSMSP = make_shared<surfaceMeshShortestPath>(surface);
-    //global tree speeds up all subsequent location operations on the surface
-    globalSMSP->build_aabb_tree(globalTree);
+    
+    if (updateSMSP) 
+        {
+        globalSMSP = make_shared<surfaceMeshShortestPath>(surface);
+        //global tree speeds up all subsequent location operations on the surface
+        globalSMSP->build_aabb_tree(globalTree);
+	cout << "SMSP updated." <<endl;
+	}
+    else cout << "SMSP NOT updated." << endl;
     }
 
 void triangulatedMeshSpace::loadMeshFromFile(std::string filename, bool _verbose)
@@ -37,6 +42,7 @@ void triangulatedMeshSpace::loadMeshFromFile(std::string filename, bool _verbose
     verbose = _verbose;
     positionsAreEuclidean = false;
     surface = triangleMesh(); //clear mesh so we don't accidentally load two meshes at once
+    
     if(verbose)
         {
         printf("loading from file %s\n",filename.c_str());
@@ -49,19 +55,23 @@ void triangulatedMeshSpace::loadMeshFromFile(std::string filename, bool _verbose
             throw std::exception();
             }
         };
+    
     if(!CGAL::is_triangle_mesh(surface))
         {
         std::cerr << "Non-triangular mesh" << std::endl;
         throw std::exception();
         };
+    
     int nFaces = surface.number_of_faces();
     int nVertices = surface.number_of_vertices();
+    
     if(verbose)
         {
         printf("input mesh has %i faces and %i vertices\n",nFaces,nVertices);
         };
+    
     //set spatial domain for surface, create global AABB tree
-    updateMeshSpanAndTree();
+    updateMeshSpanAndTree(true);
     };
 
 void triangulatedMeshSpace::isotropicallyRemeshSurface(double targetEdgeLength)
@@ -79,7 +89,7 @@ void triangulatedMeshSpace::meshPositionToEuclideanLocation(std::vector<meshPosi
     for(int ii = 0; ii < p1.size();++ii)
         {
         smspFaceLocation sourcePoint = meshPositionToFaceLocation(p1[ii]);
-        point3 b=globalSMSP->point(sourcePoint.first,sourcePoint.second);
+        point3 b = globalSMSP->point(sourcePoint.first,sourcePoint.second);
         result[ii].x=b;
         };
     }
@@ -234,6 +244,7 @@ void triangulatedMeshSpace::distance(meshPosition &p1, std::vector<meshPosition>
         smspFaceLocation targetPoint = meshPositionToFaceLocation(p2[ii]);
         computePathDistanceAndTangents(globalSMSP.get(), targetPoint, distances[ii],startPathTangent[ii], endPathTangent[ii]);
         };
+    
     globalSMSP->remove_all_source_points();
     };
 

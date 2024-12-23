@@ -201,19 +201,11 @@ int main(int argc, char*argv[])
  
     profiler timer("various parts of the code");
     
-    shared_ptr<triangulatedMeshSpace> meshSpace=make_shared<triangulatedMeshSpace>();
-    meshSpace->loadMeshFromFile(meshName,verbose);
-    meshSpace->useTangentialBCs = tangentialBCs;
-
-    double area = totalArea(meshSpace->surface);
-    double maximumInteractionRange = 2*sqrt(areaFraction*area/(N*M_PI));
-
     string inputMeshName = meshName.substr(14,15);
     string trajectoryFilename = "../bulk_silo_data/ljFIRE_"+to_string(N)+"_trajectories/" + inputMeshName + "_N_"+to_string(N) + "_trajectory.nc"; 
     cout << trajectoryFilename <<endl;
    
     string neighborFilename = "../bulk_silo_data/ljFIRE_"+to_string(N)+"_trajectories/neighbors_"+to_string(N)+"_"+to_string(areaFraction)+".csv"; 
-
 
     simpleModelDatabase saveState(N,trajectoryFilename,NcFile::Replace);
     ofstream neighborFile(neighborFilename);
@@ -223,8 +215,15 @@ int main(int argc, char*argv[])
     int step = 1;//purely for printouts
     cout << "starting annealing loop" << endl;
     int GDSteps = 2000;   
-    int FIRESteps = 1500;     
+    int FIRESteps = 500;     
     double cutoffSigma = 2.5;
+
+    double maximumInteractionRange = 1; //placeholder
+    shared_ptr<triangulatedMeshSpace> meshSpace = make_shared<triangulatedMeshSpace>(); //placeholder
+    
+    //!!!
+    meshSpace->loadMeshFromFile(meshName,true);
+    //!!!
 
     //for testing, just initialize particles randomly in a small space. Similarly, set random velocities in the tangent plane
     noiseSource noise(reproducible);
@@ -232,10 +231,19 @@ int main(int argc, char*argv[])
     vector<meshPosition> finalPositions;  
 
     for (int annealStep = 0; annealStep < totalAnneals; annealStep++) 
-	{   
-   	meshSpace->useSubmeshingRoutines(true,maximumInteractionRange,false);
+	{
+	cout << "\nnew iteration, "<< annealStep << " updating..."<< endl;	
+        meshSpace->updateMeshSpanAndTree(false);
+	meshSpace->useTangentialBCs = tangentialBCs;
+	cout << "setting positions are euclidean to false (?)" << endl;
+        meshSpace->positionsAreEuclidean = false;
 
-        shared_ptr<simpleModel> configuration=make_shared<simpleModel>(N);
+        double area = totalArea(meshSpace->surface);
+        maximumInteractionRange = 2*sqrt(areaFraction*area/(N*M_PI));
+
+	meshSpace->useSubmeshingRoutines(true,maximumInteractionRange,false);
+
+	shared_ptr<simpleModel> configuration=make_shared<simpleModel>(N);
         configuration->setVerbose(verbose);
         configuration->setSpaceAndTMeshSpace(meshSpace);
  
@@ -265,7 +273,8 @@ int main(int argc, char*argv[])
 		
 	simulator->addUpdater(energyMinimizer, configuration);       
         simulator->addForce(pairwiseForce);
-
+        
+   	
 	printf("GD Cooling\n"); 
 	for (int ii = 0; ii < GDSteps; ii++)
             {
@@ -295,12 +304,15 @@ int main(int argc, char*argv[])
 	
 	simulator->addUpdater(fireEnergyMinimizer,configuration);
 	meshSpace->setNewSubmeshCutoff(cutoffSigma*maximumInteractionRange);
-        simulator->addForce(LJForce);
+
+	simulator->addForce(LJForce);
 	simulator->computeForces(); 
-	
+ 
+        /*	
         cout << "printing first lj forces" << endl;
         for (auto f: configuration->forces) cout << f << "\n"; 
-        
+        */
+
 	printf("FIRE cooling\n"); 
 	for (int ii = 0; ii < FIRESteps; ii++) 
 	    {
