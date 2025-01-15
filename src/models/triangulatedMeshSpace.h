@@ -105,7 +105,7 @@ class triangulatedMeshSpace : public baseSpace
 	bool useTangentialBCs = false;
 
 
-        void updateMeshSpanAndTree(bool updateSMSP = true);
+        void updateMeshSpanAndTree();
     
     protected:
 	void checkBaryNan(pmpBarycentricCoordinates bcoords, string message = "", int step = 0);

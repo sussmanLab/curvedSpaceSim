@@ -149,76 +149,18 @@ int main(int argc, char*argv[])
     ofstream distanceFile("./distances_"+to_string(N)+minimizerName+to_string(areaFraction)+".csv");
     cout << "Using exclusions? " << excludeBoundary << endl;
     
-    int stopGD = 4000;
-    /*comment here start
-    for (int jj = 0; jj < 100; ++jj) 
-    {
-    configuration->setRandomMeshPositionsNearZero(noise, initializationRange); 
-    configuration->setMaxwellBoltzmannVelocities(noise, 0);
-    configuration->particleShiftsRequireVelocityTransport = false; 
-    simulator->clearForceComputers();
-    simulator->clearUpdaters(); 
-    simulator->addUpdater(energyMinimizer); 
-    simulator->addForce(pairwiseForce);
-    meshSpace->useSubmeshingRoutines(true,maximumInteractionRange,dangerous);
-    configuration->setNeighborStructure(cellList);
-    cout << "neighbor structure set" << endl;
-    */ //comment here stop 
+    
     for (int ii = 0; ii < maximumIterations; ++ii)
         {
-        if (ii == stopGD) 
-	    {
-	    //need to reset cell list to use double the maximum interaction range here so that neighbors are allowed to exist within 2sigma, rather than just 1sigma 
-	    simulator->clearUpdaters();
-	    simulator->clearForceComputers(); 
-	    
-	    energyMinimizerFire->setModel(configuration);
-            simulator->addUpdater(energyMinimizerFire,configuration);
-	    LJForce->setModel(configuration);
-	    
-	    //shared_ptr<cellListNeighborStructure> cellListTwo = make_shared<cellListNeighborStructure>(meshSpace->minVertexPosition,meshSpace->maxVertexPosition,cutoffSigma*maximumInteractionRange);
-	    //configuration->setNeighborStructure(cellListTwo);
-            
-	    meshSpace->setNewSubmeshCutoff(cutoffSigma*maximumInteractionRange); 
-	    simulator->addForce(LJForce);
-            simulator->computeForces();
-	    programBranch = 0;
-
-	    cout << "printing first lj forces" << endl;
-	    for (auto f: configuration->forces) cout << f << "\n"; 
-	    }
 
 	timer.start();
 	simulator->performTimestep();
         timer.end();
         
 	double energy; 
-	if (ii < stopGD) energy = pairwiseForce->computeEnergy();
-	if (ii >= stopGD) energy = LJForce->computeEnergy(); 
-            
-		
-	if (ii > maximumIterations-1000) 
-	    {
-	    configuration->findNeighbors(cutoffSigma*maximumInteractionRange);
-	    vector<vector<int>> neighbors = configuration->neighbors;
-	    vector<vector<double>> neighborDistances = configuration->neighborDistances; 
+	energy = pairwiseForce->computeEnergy();    		
 
-            for (int i = 0; i < N; i++) {
-		if (neighbors[i].size() > 0) 
-	            {
-		    neighborsFile << neighbors[i][0]; 
-		    distanceFile << neighborDistances[i][0];
-		    }
-	        for (int j = 1; j < neighbors[i].size(); j++){ 
-                    neighborsFile << ", " << neighbors[i][j]; 
-                    distanceFile << ", " << neighborDistances[i][j]; 
-    	            }
-	        neighborsFile << "\n";
-		distanceFile << "\n";
-	        }
-	    }
-
-        if(ii%saveFrequency == saveFrequency-1 || ii > maximumIterations-1000)
+        if(ii%saveFrequency == saveFrequency-1)
             {
             saveState.writeState(configuration,dt*ii);
 	    vector<int> exclusions;

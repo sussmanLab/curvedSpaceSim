@@ -3,7 +3,7 @@
 /*! \file triangulatedMeshSpace.cpp */
 #include <stdexcept>
 
-void triangulatedMeshSpace::updateMeshSpanAndTree(bool updateSMSP)
+void triangulatedMeshSpace::updateMeshSpanAndTree()
     {
     //set domain in which surface lives
     minVertexPosition.x = 0; minVertexPosition.y = 0; minVertexPosition.z = 0;
@@ -26,15 +26,12 @@ void triangulatedMeshSpace::updateMeshSpanAndTree(bool updateSMSP)
         };
     if(verbose)
         printf("mesh spans (%f,%f,%f) to (%f,%f,%f)\n", minVertexPosition.x,minVertexPosition.y,minVertexPosition.z, maxVertexPosition.x,maxVertexPosition.y,maxVertexPosition.z);
-    
-    if (updateSMSP) 
-        {
-        globalSMSP = make_shared<surfaceMeshShortestPath>(surface);
-        //global tree speeds up all subsequent location operations on the surface
-        globalSMSP->build_aabb_tree(globalTree);
-	cout << "SMSP updated." <<endl;
-	}
-    else cout << "SMSP NOT updated." << endl;
+        
+    globalSMSP = make_shared<surfaceMeshShortestPath>(surface);
+    //global tree speeds up all subsequent location operations on the surface
+    globalSMSP->build_aabb_tree(globalTree);
+    cout << "SMSP updated." <<endl;
+	
     }
 
 void triangulatedMeshSpace::loadMeshFromFile(std::string filename, bool _verbose)
@@ -71,8 +68,38 @@ void triangulatedMeshSpace::loadMeshFromFile(std::string filename, bool _verbose
         };
     
     //set spatial domain for surface, create global AABB tree
-    updateMeshSpanAndTree(true);
+    updateMeshSpanAndTree();
+
     };
+
+/*
+ * operative parts of loadMeshFromFile
+void triangulatedMeshSpace::SPARSEloadMeshFromFile(std::string filename)
+    {
+    verbose = _verbose;
+    positionsAreEuclidean = false;
+    surface = triangleMesh(); //clear mesh so we don't accidentally load two meshes at once
+    
+    if(!CGAL::IO::read_polygon_mesh(filename, surface))
+        {
+        if(!CGAL::Polygon_mesh_processing::IO::read_polygon_mesh(filename, surface))
+            {
+            std::cerr << "Invalid input file." << std::endl;
+            throw std::exception();
+            }
+        };
+    
+    if(!CGAL::is_triangle_mesh(surface))
+        {
+        std::cerr << "Non-triangular mesh" << std::endl;
+        throw std::exception();
+        };
+    
+    //set spatial domain for surface, create global AABB tree
+    updateMeshSpanAndTree();
+
+    };
+*/
 
 void triangulatedMeshSpace::isotropicallyRemeshSurface(double targetEdgeLength)
     {

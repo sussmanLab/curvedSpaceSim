@@ -222,7 +222,7 @@ int main(int argc, char*argv[])
     shared_ptr<triangulatedMeshSpace> meshSpace = make_shared<triangulatedMeshSpace>(); //placeholder
     
     //!!!
-    meshSpace->loadMeshFromFile(meshName,true);
+    meshSpace->loadMeshFromFile(meshName, true);
     //!!!
 
     //for testing, just initialize particles randomly in a small space. Similarly, set random velocities in the tangent plane
@@ -232,13 +232,15 @@ int main(int argc, char*argv[])
 
     for (int annealStep = 0; annealStep < totalAnneals; annealStep++) 
 	{
+	
 	cout << "\nnew iteration, "<< annealStep << " updating..."<< endl;	
-        meshSpace->updateMeshSpanAndTree(false);
+        meshSpace->loadMeshFromFile(meshName, false);
+	//meshSpace->updateMeshSpanAndTree();
+	cout << "Mesh updated..." << endl;
 	meshSpace->useTangentialBCs = tangentialBCs;
-	cout << "setting positions are euclidean to false (?)" << endl;
-        meshSpace->positionsAreEuclidean = false;
 
         double area = totalArea(meshSpace->surface);
+	cout <<"mesh area: " << area <<endl;
         maximumInteractionRange = 2*sqrt(areaFraction*area/(N*M_PI));
 
 	meshSpace->useSubmeshingRoutines(true,maximumInteractionRange,false);
@@ -328,8 +330,10 @@ int main(int argc, char*argv[])
 		
 		configuration->findNeighbors(cutoffSigma*maximumInteractionRange);
 		saveNeighbors(configuration->neighbors, neighborFilename, N);
-		printf("omega %.4g step %i fN %.16g fM %.16g E %.16g\n",omega, step,fNorm,fMax, energyState);
+		printf("omega %.4g step %i fN %.16g fM %.16g E %.16g\n",omega, step-1,fNorm,fMax, energyState);
                 }
+
+
             step++;     
 	    }    
 
