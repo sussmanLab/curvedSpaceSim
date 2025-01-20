@@ -43,6 +43,7 @@ int main(int argc, char*argv[])
     ValueArg<int> iterationsArg("i","iterations","number of performTimestep calls to make",false,1000,"int",cmd);
     ValueArg<int> saveFrequencyArg("s","saveFrequency","how often a file gets updated",false,100,"int",cmd);
     ValueArg<int> chainLengthArg("l", "M", "length of N-H chain", false, 2, "int", cmd); 
+    ValueArg<int> sourcesArg("k", "nSources", "number of particles to collect ditsances from", false, 1, "int", cmd); 
     ValueArg<string> meshSwitchArg("m","meshSwitch","filename of the mesh you want to load",false,"../exampleMeshes/torus_isotropic_remesh.off","string",cmd);
     ValueArg<double> interactionRangeArg("a","interactionRange","range ofthe interaction to set for both potential and cell list",false,1.,"double",cmd);
     ValueArg<double> deltaTArg("e","dt","timestep size",false,.01,"double",cmd);
@@ -62,6 +63,7 @@ int main(int argc, char*argv[])
     int maximumIterations = iterationsArg.getValue();
     int saveFrequency = saveFrequencyArg.getValue();
     int M = chainLengthArg.getValue(); 
+    int nSources = sourcesArg.getValue();  
     string meshName = meshSwitchArg.getValue();
     double dt = deltaTArg.getValue();
     double maximumInteractionRange= interactionRangeArg.getValue();
@@ -126,8 +128,9 @@ int main(int argc, char*argv[])
     string distancesFilename = "../sphere_data/NVTrun_N" + to_string(N) + "_a"+to_string(maximumInteractionRange) + "_distances.csv";
     std::ofstream distancesFile(distancesFilename);
     double largeDouble = 10000.0;
-    
-    for (int ii = 0; ii < 2*maximumIterations; ++ii)
+    int bonusTime = 3; 
+
+    for (int ii = 0; ii < bonusTime*maximumIterations; ++ii)
         {
         timer.start();
         simulator->performTimestep();
@@ -153,29 +156,39 @@ int main(int argc, char*argv[])
 	    counter+=1; 
             
 	    //collect a set of distances every so often for later comparison
-	    vector<double> tempDistList;
-            vector<vector3> startTangents;
-            vector<vector3> endTangents;
-            vector<meshPosition> positions = configuration->positions;
+	    vector<meshPosition> positions = configuration->positions;
             //the below is necessary so that we don't accidentally cut off distances
             meshSpace->setNewSubmeshCutoff(largeDouble);
             meshSpace->useSubmeshingRoutines(false); 
             //use one particle as reference so number based normalization makes sense later.  
-     
-            //add one to ``first'' so we don't accidentally 
-            vector<meshPosition>::const_iterator first = positions.begin() +  1;
-            vector<meshPosition>::const_iterator last = positions.end(); 
-            vector<meshPosition> targets(first, last);	
-            tempDistList.reserve(positions.size()); //largely just readability, a resize call happens within distance 
-	    meshSpace->distance(positions[0], targets, tempDistList, startTangents, endTangents);
-	    //as usual, we only care about distances, so we could just discard startTangents and endTangents
+            int runningSum = 0;  
             
-	    distancesFile << tempDistList[0]; 
-	    for (int jj = 1; jj < tempDistList.size(); jj ++)
-       	        { 
-                distancesFile << ", " << tempDistList[jj]; 
+	    bool firstFlag = true; 
+    	    //below should always get every distance available	    
+	    for (int kk = 0; kk < nSources-1; kk ++) 
+	        {
+		vector<double> tempDistList;
+                vector<vector3> startTangents;
+                vector<vector3> endTangents;
+		//don't want to count self distance (+1) or any previously calculated distances (+kk)	
+	        vector<meshPosition>::const_iterator first = positions.begin() + 1 + kk;
+                vector<meshPosition>::const_iterator last = positions.end(); 
+                vector<meshPosition> targets(first, last);
+                tempDistList.reserve(positions.size()); //largely just readability, a resize call happens within distance 
+	        meshSpace->distance(positions[kk], targets, tempDistList, startTangents, endTangents);
+	        //as usual, we only care about distances, so we could just discard startTangents and endTangents
+		runningSum += tempDistList.size();
+	        for (int jj = 0; jj < tempDistList.size(); jj ++)
+       	            { 
+		    if (firstFlag) 
+		        {
+                        distancesFile << tempDistList[jj];
+			firstFlag = false;
+		        }
+		    else distancesFile << ", " << tempDistList[jj]; 
+		    }
 	        }
-            distancesFile << "\n"; 
+            distancesFile << "\n";
 	    meshSpace->useSubmeshingRoutines(true, maximumInteractionRange, dangerous);
 	    }
         }
