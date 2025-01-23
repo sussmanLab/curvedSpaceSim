@@ -72,18 +72,16 @@ int main(int argc, char*argv[])
     ValueArg<int> iterationsArg("i","iterations","number of performTimestep calls to make",false,1000,"int",cmd);
     ValueArg<int> saveFrequencyArg("s","saveFrequency","how often a file gets updated",false,100,"int",cmd);
     ValueArg<string> meshSwitchArg("m","meshSwitch","filename of the mesh you want to load",false,"../exampleMeshes/torus_isotropic_remesh.off","string",cmd);
-    ValueArg<double> interactionRangeArg("a","interactionRange","range ofthe interaction to set for both potential and cell list",false,1.,"double",cmd);
+    ValueArg<double> areaFractionArg("a","areaFraction","extent to which particle areas cover the surface",false,0.9,"double",cmd);
     ValueArg<double> deltaTArg("e","dt","timestep size",false,.01,"double",cmd);
     ValueArg<double> temperatureArg("t","T","temperature to set",false,0.0,"double",cmd);
-    ValueArg<double> velocityArg("v", "v0", "self-propulsion velocity", false, 1.0, "double", cmd); 
+    ValueArg<double> pecletArg("P", "Per", "rotational peclet number", false, 100.0, "double", cmd); 
     ValueArg<double> mobilityArg("q", "mu", "particle mobility", false, 1.0, "double", cmd); 
     ValueArg<double> noiseStrengthArg("u", "noise", "rotational noise strength", false, 0.0, "double", cmd); 
     ValueArg<double> DrArg("D", "Dr", "rotational diffusion rate", false, 1.0, "double", cmd); 
     SwitchArg reproducibleSwitch("r","reproducible","reproducible random number generation", cmd, true);
     SwitchArg verboseSwitch("w","verbose","output more things to screen ", cmd, false);
     SwitchArg dangerousSwitch("d", "dangerousMeshes", "meshes were submeshes are dangerous", cmd, false);
-
-   
 
     //parse the arguments
     cmd.parse( argc, argv );
@@ -94,9 +92,9 @@ int main(int argc, char*argv[])
     int saveFrequency = saveFrequencyArg.getValue();
     string meshName = meshSwitchArg.getValue();
     double dt = deltaTArg.getValue();
-    double maximumInteractionRange= interactionRangeArg.getValue();
+    double areaFraction = interactionRangeArg.getValue();
     double temperature = temperatureArg.getValue();
-    double velocity = velocityArg.getValue();
+    double Per = pecletArg.getValue();
     double mobility = mobilityArg.getValue();
     double noiseStrength = noiseStrengthArg.getValue();
     double Dr = DrArg.getValue(); 
@@ -104,20 +102,7 @@ int main(int argc, char*argv[])
     bool reproducible = reproducibleSwitch.getValue();
     bool dangerous = dangerousSwitch.getValue(); //not used right now
     
-    int PecletNum = floor(velocity/(Dr*maximumInteractionRange/2)); //peclet number for later naming
-    /*
-    //simple two test positions for a minimal check/sim -- intended for torus_isotropic_remesh.off surface
-    int f1 = 181;
-    point3 barys1(0.0338081, 0.873334, 0.0928577);
-    meshPosition loc1(barys1,f1);
-    int f2 =  945;
-    point3 barys2(0.500217, 0.339123, 0.16066);
-    meshPosition loc2(barys2,f2);
-    vector<meshPosition> testPositions;
-    testPositions.reserve(2);
-    testPositions.push_back(loc1);
-    testPositions.push_back(loc2);
-    */
+    int PecletNum = floor(Per); //peclet number for later naming
     cout << "Initialize mesh from file " << meshName << endl;
     //set space as a triangulatedMeshSpace
     shared_ptr<triangulatedMeshSpace> meshSpace=make_shared<triangulatedMeshSpace>();
@@ -125,6 +110,11 @@ int main(int argc, char*argv[])
     meshSpace->useSubmeshingRoutines(false);
     if(programBranch >0)
         meshSpace->useSubmeshingRoutines(true,maximumInteractionRange,dangerous);
+
+    double area = totalArea(meshSpace->surface);
+    double maximumInteractionRange = 2*sqrt(areaFraction*area/(N*M_PI)); //area fraction fixed at 1
+
+    double velocity = (maximumInteractionRange/2)*Dr*Per;
 
     //set model as "configuration" 
     shared_ptr<simpleModel> configuration=make_shared<simpleModel>(N);
@@ -203,3 +193,18 @@ int main(int argc, char*argv[])
 
     return 0;
     };
+
+/*
+    //simple two test positions for a minimal check/sim -- intended for torus_isotropic_remesh.off surface
+    int f1 = 181;
+    point3 barys1(0.0338081, 0.873334, 0.0928577);
+    meshPosition loc1(barys1,f1);
+    int f2 =  945;
+    point3 barys2(0.500217, 0.339123, 0.16066);
+    meshPosition loc2(barys2,f2);
+    vector<meshPosition> testPositions;
+    testPositions.reserve(2);
+    testPositions.push_back(loc1);
+    testPositions.push_back(loc2);
+    */
+
