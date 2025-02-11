@@ -81,8 +81,6 @@ foreach(ARG
 	manyFIREAnneals
         EvOmegaR
 	#testAnneal	
-	#annealedCrystallization
-	#cleanAnnealedCrystallization
 	#meshTesting
 	#makeConformalData
 	#confFIREAnneals

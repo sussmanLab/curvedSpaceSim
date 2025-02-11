@@ -154,9 +154,9 @@ The output files for the torus testing file are threefold. They include:
 -A neighborNumbers csv file. This outputs the total counts of interacting neighbors at the simulations final timestep, to compare with Voronoi neighbors.
 -A particle voronoi positions csv file. This file is designed to be used by SurfaceVoronoi, which requires face index/r3 position pairs. 
 
-Reproducing the Voronoi diagrams is much harder, and requires, at present, a Windows machine. 
+Reproducing the Voronoi diagrams is much harder, and usually requires, at present, a Windows machine. 
 We used the SurfaceVoronoi package, located at https://github.com/sssomeone/SurfaceVoronoi.
-To generate bisectors, we ran the above within Windows VisualStudio using the torusrb20.off
+To generate bisectors, we ran the above within Windows VisualStudio using, e.g., the torusrb20.off
 mesh as the surface and a 
 ```
 [particle number]_[fn cutoff exponent]_particle_voronoi_positions.csv

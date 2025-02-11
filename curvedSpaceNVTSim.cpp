@@ -1,7 +1,6 @@
 #include "std_include.h"
 #include <tclap/CmdLine.h>
 
-
 #include "profiler.h"
 #include "noiseSource.h"
 #include "triangulatedMeshSpace.h"
@@ -47,12 +46,10 @@ int main(int argc, char*argv[])
     ValueArg<double> interactionRangeArg("a","interactionRange","range ofthe interaction to set for both potential and cell list",false,1.,"double",cmd);
     ValueArg<double> deltaTArg("e","dt","timestep size",false,.01,"double",cmd);
     ValueArg<double> temperatureArg("t","T","temperature to set",false,.2,"double",cmd);
-    
 
     SwitchArg reproducibleSwitch("r","reproducible","reproducible random number generation", cmd, true);
     SwitchArg dangerousSwitch("d","dangerousMeshes","meshes where submeshes are dangerous", cmd, false);
     SwitchArg verboseSwitch("v","verbose","output more things to screen ", cmd, false);
-    SwitchArg tangentialSwitch("c", "tangentialBCs", "use tangential boundary conditions for open surfaces", cmd, false);
 
     //parse the arguments
     cmd.parse( argc, argv );
@@ -69,19 +66,16 @@ int main(int argc, char*argv[])
     bool verbose= verboseSwitch.getValue();
     bool reproducible = reproducibleSwitch.getValue();
     bool dangerous = dangerousSwitch.getValue(); //not used right now
-    bool tangentialBCs = tangentialSwitch.getValue(); 
 
     shared_ptr<triangulatedMeshSpace> meshSpace=make_shared<triangulatedMeshSpace>();
     meshSpace->loadMeshFromFile(meshName,verbose);
     meshSpace->useSubmeshingRoutines(false);
     if(programBranch >0)
         meshSpace->useSubmeshingRoutines(true,maximumInteractionRange,dangerous);
-    meshSpace->useTangentialBCs = tangentialBCs; 
 
     shared_ptr<simpleModel> configuration=make_shared<simpleModel>(N);
     configuration->setVerbose(verbose);
     configuration->setSpace(meshSpace);
-    cout << "Area: " << meshSpace->getArea() << endl;
 
     //set up the cellListNeighborStructure, which needs to know how large the mesh is
     shared_ptr<cellListNeighborStructure> cellList = make_shared<cellListNeighborStructure>(meshSpace->minVertexPosition,meshSpace->maxVertexPosition,maximumInteractionRange);
@@ -112,21 +106,9 @@ int main(int argc, char*argv[])
     //by default, the simpleModelDatabase will save euclidean positions, mesh positions (barycentric + faceIdx), and particle velocities. See constructor for saving forces and/or particle types as well
     simpleModelDatabase saveState(N,"./testModelDatabase.nc",NcFile::Replace);
     saveState.writeState(configuration,0.0);
+    cout << "intended starting temp: " << temperature << endl;
     cout << "starting temp: " << NVTUpdater->getTemperatureFromKE() << endl; 
-    
-    ofstream temperatureFile("nvtTemperatures.csv"); 
- 
-    double area = meshSpace->getArea(); 
-    double density = N/area; 
-    double rhoSigma2 = density*maximumInteractionRange*maximumInteractionRange; 
-    
-    double sumBPoR = 0;
-    int counter = 1; 
 
-    string distancesFilename = "../sphere_data/NVTrun_N" + to_string(N) + "_a"+to_string(maximumInteractionRange) + "_distances.csv";
-    std::ofstream distancesFile(distancesFilename);
-    double largeDouble = 10000.0;
-    
     for (int ii = 0; ii < 2*maximumIterations; ++ii)
         {
         timer.start();
@@ -134,63 +116,16 @@ int main(int argc, char*argv[])
         timer.end();
         if(ii%saveFrequency == saveFrequency-1)
             {
-            /*
-            getFlatVectorOfPositions(configuration,posToSave);
-            vvdat.writeState(posToSave,dt*ii);
-            */
             saveState.writeState(configuration,dt*ii);
             double nowTemp = NVTUpdater->getTemperatureFromKE();
             printf("step %i T %f \n",ii,nowTemp);
-            temperatureFile << ii << ", " << nowTemp << "\n";
 	    }
-	if ((ii > maximumIterations) && (ii%saveFrequency == saveFrequency-1))
-       	    {
-            double nowTemp = NVTUpdater->getTemperatureFromKE();
-	    vector<double> stress(9, 0.0); 
-	    simulator->computeMonodisperseStress(stress);
-	    //stress trace is pressure, kb = 1, get temperature from average KE, and density is number density above
-            sumBPoR += (stress[0]+stress[4]+stress[8])/(density*nowTemp);
-	    counter+=1; 
-            
-	    //collect a set of distances every so often for later comparison
-	    vector<double> tempDistList;
-            vector<vector3> startTangents;
-            vector<vector3> endTangents;
-            vector<meshPosition> positions = configuration->positions;
-            //the below is necessary so that we don't accidentally cut off distances
-            meshSpace->setNewSubmeshCutoff(largeDouble);
-            meshSpace->useSubmeshingRoutines(false); 
-            //use one particle as reference so number based normalization makes sense later.  
-     
-            //add one to ``first'' so we don't accidentally 
-            vector<meshPosition>::const_iterator first = positions.begin() +  1;
-            vector<meshPosition>::const_iterator last = positions.end(); 
-            vector<meshPosition> targets(first, last);	
-            tempDistList.reserve(positions.size()); //largely just readability, a resize call happens within distance 
-	    meshSpace->distance(positions[0], targets, tempDistList, startTangents, endTangents);
-	    //as usual, we only care about distances, so we could just discard startTangents and endTangents
-            
-	    distancesFile << tempDistList[0]; 
-	    for (int jj = 1; jj < tempDistList.size(); jj ++)
-       	        { 
-                distancesFile << ", " << tempDistList[jj]; 
-	        }
-            distancesFile << "\n"; 
-	    meshSpace->useSubmeshingRoutines(true, maximumInteractionRange, dangerous);
-	    }
+	//if one wished, could now compute thermodynamic variables with experimental
+	//functions -- e.g. simulator->computeMonodisperseStress
         }
     
-    distancesFile.close(); 
     temperatureFile.close(); 
     timer.print();
-    
-    double betaPoverRho = sumBPoR/counter; // mean beta*P/rho "after equilibrium" (hopefully)  
-    
-    cout << "rho sigma squared: " << rhoSigma2 << endl; 
-    cout << "beta P over Rho: " << betaPoverRho << endl;
-    cout << "{" << rhoSigma2 << ", " << betaPoverRho << "}" << endl;
-
-   
 
     return 0;
     };
