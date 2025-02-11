@@ -45,11 +45,10 @@ int main(int argc, char*argv[])
     ValueArg<int> chainLengthArg("l", "M", "length of N-H chain", false, 2, "int", cmd); 
     ValueArg<int> sourcesArg("k", "nSources", "number of particles to collect ditsances from", false, 1, "int", cmd); 
     ValueArg<string> meshSwitchArg("m","meshSwitch","filename of the mesh you want to load",false,"../exampleMeshes/torus_isotropic_remesh.off","string",cmd);
-    ValueArg<double> interactionRangeArg("a","interactionRange","range ofthe interaction to set for both potential and cell list",false,1.,"double",cmd);
+    ValueArg<double> areaFractionArg("f","areaFraction","percent of mesh area covered by particles",false,1.,"double",cmd);
     ValueArg<double> deltaTArg("e","dt","timestep size",false,.01,"double",cmd);
     ValueArg<double> temperatureArg("t","T","temperature to set",false,.2,"double",cmd);
     
-
     SwitchArg reproducibleSwitch("r","reproducible","reproducible random number generation", cmd, true);
     SwitchArg dangerousSwitch("d","dangerousMeshes","meshes where submeshes are dangerous", cmd, false);
     SwitchArg verboseSwitch("v","verbose","output more things to screen ", cmd, false);
@@ -66,7 +65,7 @@ int main(int argc, char*argv[])
     int nSources = sourcesArg.getValue();  
     string meshName = meshSwitchArg.getValue();
     double dt = deltaTArg.getValue();
-    double maximumInteractionRange= interactionRangeArg.getValue();
+    double af = areaFractionArg.getValue();
     double temperature = temperatureArg.getValue();
     bool verbose= verboseSwitch.getValue();
     bool reproducible = reproducibleSwitch.getValue();
@@ -76,6 +75,10 @@ int main(int argc, char*argv[])
     shared_ptr<triangulatedMeshSpace> meshSpace=make_shared<triangulatedMeshSpace>();
     meshSpace->loadMeshFromFile(meshName,verbose);
     meshSpace->useSubmeshingRoutines(false);
+   
+    double area = meshSpace->getArea();
+    double maximumInteractionRange = 2*sqrt(af*area/(N*M_PI));
+   
     if(programBranch >0)
         meshSpace->useSubmeshingRoutines(true,maximumInteractionRange,dangerous);
     meshSpace->useTangentialBCs = tangentialBCs; 
@@ -118,7 +121,6 @@ int main(int argc, char*argv[])
     
     ofstream temperatureFile("nvtTemperatures.csv"); 
  
-    double area = meshSpace->getArea(); 
     double density = N/area; 
     double rhoSigma2 = density*maximumInteractionRange*maximumInteractionRange; 
     
@@ -137,10 +139,6 @@ int main(int argc, char*argv[])
         timer.end();
         if(ii%saveFrequency == saveFrequency-1)
             {
-            /*
-            getFlatVectorOfPositions(configuration,posToSave);
-            vvdat.writeState(posToSave,dt*ii);
-            */
             saveState.writeState(configuration,dt*ii);
             double nowTemp = NVTUpdater->getTemperatureFromKE();
             printf("step %i T %f \n",ii,nowTemp);
