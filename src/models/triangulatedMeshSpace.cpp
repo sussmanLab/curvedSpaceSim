@@ -404,7 +404,7 @@ void triangulatedMeshSpace::projectVectorsIfOverBoundary(vector<vector3> &vector
         double vAndPerpDot = v*orthogonal;
         bool vAlongPerp = (vAndPerpDot > 0);
         if ((pointsOut && vAlongPerp) || (!pointsOut && !vAlongPerp)) 
-            projectVectorOrthongonalToDirection(v,orthogonal);
+            projectVectorOrthogonalToDirection(v,orthogonal);
         vectors[i] = v;
         }
     }
