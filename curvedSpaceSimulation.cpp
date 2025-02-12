@@ -72,6 +72,8 @@ int main(int argc, char*argv[])
     meshSpace->useSubmeshingRoutines(false);
     if(programBranch >=0)
         meshSpace->useSubmeshingRoutines(true,maximumInteractionRange,dangerous);
+    //currently, we either use tangential or absorbing boundary conditions for open boundaries -- 
+    //below uses tangential, and false would move to absorbing
     meshSpace->useTangentialBCs = true;
 
     shared_ptr<simpleModel> configuration=make_shared<simpleModel>(N);
@@ -138,10 +140,6 @@ int main(int argc, char*argv[])
         timer.end();
         if(ii%saveFrequency == saveFrequency-1)
             {
-            /*
-            getFlatVectorOfPositions(configuration,posToSave);
-            vvdat.writeState(posToSave,dt*ii);
-            */
             saveState.writeState(configuration,dt*ii);
             if(programBranch ==1)
                 {
