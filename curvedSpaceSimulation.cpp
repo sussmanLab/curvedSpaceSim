@@ -5,6 +5,7 @@
 #include "profiler.h"
 #include "noiseSource.h"
 #include "triangulatedMeshSpace.h"
+#include "closedMeshSpace.h"
 #include "simulation.h"
 #include "gradientDescent.h"
 #include "fireMinimization.h"
@@ -67,7 +68,7 @@ int main(int argc, char*argv[])
     bool reproducible = reproducibleSwitch.getValue();
     bool dangerous = dangerousSwitch.getValue(); //not used right now
 
-    shared_ptr<triangulatedMeshSpace> meshSpace=make_shared<triangulatedMeshSpace>();
+    shared_ptr<closedMeshSpace> meshSpace=make_shared<closedMeshSpace>();
     meshSpace->loadMeshFromFile(meshName,verbose);
     meshSpace->useSubmeshingRoutines(false);
     if(programBranch >=0)

@@ -3,11 +3,11 @@
 
 #include "triangulatedMeshSpace.h"
 
-class closedMeshSpace : public closedMeshSpace
+class closedMeshSpace : public triangulatedMeshSpace
     {
     //purely a name guard that clarifies that you're on a surface meant to be closed
     public:
-        fullStopMeshSpace(){};
+        closedMeshSpace(){};
     };
 
 #endif
