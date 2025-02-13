@@ -177,11 +177,31 @@ void openMeshSpace::transportParticleAndVectors(meshPosition &pos, vector3 &disp
         if (uninvolvedVertex.size() == 2)
             {
             if (surface.is_border(vertexIndex(involvedVertex[0])))
-		boundaryVertex();
+		updateAtBoundaryVertex(sourceBarycentricLocation,
+			       targetBarycentricLocation,
+			       target,
+			       currentSourceNormal,
+			       currentSourceFace,
+			       displacementVector,
+                               involvedVertex[0],
+                               vertexPositions,
+			       transportVectors,
+			       lastUsedHalfedge,
+			       continueShifting);
                 
             else
                 {
-                updateForVertexIntersection(sourceBarycentricLocation, sourcePoint, currentSourceFace, target, displacementVector, currentSourceNormal, vertexPositions, transportVectors, lastUsedHalfedge, involvedVertex[0], toIntersection);
+                updateForVertexIntersection(sourceBarycentricLocation,
+			       	            sourcePoint,
+					    currentSourceFace,
+					    target,
+					    displacementVector,
+					    currentSourceNormal,
+					    vertexPositions,
+					    transportVectors,
+					    lastUsedHalfedge,
+					    involvedVertex[0],
+					    toIntersection);
                 continue;
                 }
             }
@@ -197,12 +217,33 @@ void openMeshSpace::transportParticleAndVectors(meshPosition &pos, vector3 &disp
             halfedgeIndex intersectedEdge = surface.halfedge(involvedVertex[0], involvedVertex[1]);
 
             if (surface.is_border(edgeIndex(intersectedEdge)))
-		boundaryEdge();
+		updateAtBoundaryEdge(sourceBarycentricLocation,
+                                     targetBarycentricLocation,
+                                     target,
+                                     currentSourceFace,
+                                     currentSourceNormal,
+                                     involvedVertex[0],
+                                     involvedVertex[1],
+                                     vertexPositions[uninvolvedVertex[0]],
+                                     transportVectors,
+                                     displacementVector,
+                                     lastUsedHalfedge,
+                                     continueShifting);
                 
             else
                 {
-                updateForEdgeIntersection(sourceBarycentricLocation, sourcePoint, intersectionPoint, currentSourceNormal, currentSourceFace, target, transportVectors, lastUsedHalfedge, displacementVector, vertexPositions, intersectedEdge);
-                continue; // probably won't be necessary in final vsn
+                updateForEdgeIntersection(sourceBarycentricLocation,
+			       	          sourcePoint,
+					  intersectionPoint,
+					  currentSourceNormal,
+					  currentSourceFace,
+					  target,
+					  transportVectors,
+					  lastUsedHalfedge,
+					  displacementVector,
+					  vertexPositions,
+					  intersectedEdge);
+                continue; 
                 }
 
             }
