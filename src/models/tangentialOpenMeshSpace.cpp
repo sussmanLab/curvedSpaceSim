@@ -1,6 +1,6 @@
 #include "tangentialOpenMeshSpace.h"
 
-void tangentialOpenMeshSpace::updateShiftAtBoundaryEdge(
+void tangentialOpenMeshSpace::updateAtBoundaryEdge(
     pmpBarycentricCoordinates& sourceBCs, 
     pmpBarycentricCoordinates& targetBCs, 
     point3& target, 
@@ -46,7 +46,7 @@ void tangentialOpenMeshSpace::updateShiftAtBoundaryEdge(
     lastUsedHalfedge = nullHalfedge; 
     }
 
-void tangentialOpenMeshSpace::updateShiftAtBoundaryVertex(
+void tangentialOpenMeshSpace::updateAtBoundaryVertex(
     pmpBarycentricCoordinates& sourceBCs, 
     pmpBarycentricCoordinates& targetBCs, 
     point3& target, 

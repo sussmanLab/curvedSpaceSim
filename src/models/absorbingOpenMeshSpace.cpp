@@ -1,5 +1,5 @@
 #include "absorbingOpenMeshSpace.h"
-void absorbingOpenMeshSpace::updateShiftAtBoundaryEdge(
+void absorbingOpenMeshSpace::updateAtBoundaryEdge(
     pmpBarycentricCoordinates& sourceBCs, 
     pmpBarycentricCoordinates& targetBCs, 
     point3& target, 
@@ -32,7 +32,7 @@ void absorbingOpenMeshSpace::updateShiftAtBoundaryEdge(
     targetBCs = sourceBCs;  
     }
 
-void absorbingOpenMeshSpace::updateShiftAtBoundaryVertex(
+void absorbingOpenMeshSpace::updateAtBoundaryVertex(
     pmpBarycentricCoordinates& sourceBCs, 
     pmpBarycentricCoordinates& targetBCs, 
     point3& target, 

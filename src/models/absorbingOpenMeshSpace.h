@@ -10,7 +10,7 @@ class absorbingOpenMeshSpace : public openMeshSpace
 
     protected: 
          //!Implement boundary conditions; these functions will direct particles along the boundary if they encounter one
-         virtual void updateShiftAtBoundaryEdge(pmpBarycentricCoordinates& sourceBCs, 
+         void updateAtBoundaryEdge(pmpBarycentricCoordinates& sourceBCs, 
     pmpBarycentricCoordinates& targetBCs, 
     point3& target, 
     faceIndex& sourceFace, 
@@ -23,7 +23,7 @@ class absorbingOpenMeshSpace : public openMeshSpace
     halfedgeIndex& lastUsedHalfedge, 
     bool& continueShifting);
          
-	 virtual void updateShiftAtBoundaryVertex(
+	 void updateAtBoundaryVertex(
     pmpBarycentricCoordinates& sourceBCs, 
     pmpBarycentricCoordinates& targetBCs, 
     point3& target, 

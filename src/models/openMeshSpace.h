@@ -9,9 +9,7 @@ class openMeshSpace : public triangulatedMeshSpace
         openMeshSpace(){};
 
 	virtual void transportParticleAndVectors(meshPosition &pos, vector3 &displacementVector, vector<vector3> &transportVectors);
-
-    protected:
-        //! function signature for implementation by child classes. If this signature does not include an argument necessary for your implementation, add the relevant argument. 
+     //! function signature for implementation by child classes. If this signature does not include an argument necessary for your implementation, add the relevant argument. 
         virtual void updateAtBoundaryEdge(
     pmpBarycentricCoordinates& sourceBCs,
     pmpBarycentricCoordinates& targetBCs,
@@ -44,6 +42,8 @@ virtual void updateAtBoundaryVertex(
 ) {
     ERRORERROR("Boundary vertex: base open mesh space does not have boundary conditions."); 
 }
+    protected:
+       
 
 
 	//!helper functions for boundary vertex behaviors -- these are designed to extend to more complex boundary conditions
