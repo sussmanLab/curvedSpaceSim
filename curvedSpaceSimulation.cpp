@@ -44,13 +44,15 @@ int main(int argc, char*argv[])
     ValueArg<int> iterationsArg("i","iterations","number of performTimestep calls to make",false,1000,"int",cmd);
     ValueArg<int> saveFrequencyArg("s","saveFrequency","how often a file gets updated",false,100,"int",cmd);
     ValueArg<string> meshSwitchArg("m","meshSwitch","filename of the mesh you want to load",false,"../exampleMeshes/torus_isotropic_remesh.off","string",cmd);
-    ValueArg<double> interactionRangeArg("a","interactionRange","range ofthe interaction to set for both potential and cell list",false,1.,"double",cmd);
+    ValueArg<double> areaFractionArg("a","areaFraction","set interaction range for soft potential based on desired surface coverage",false,0.9,"double",cmd);
     ValueArg<double> deltaTArg("e","dt","timestep size",false,.01,"double",cmd);
     ValueArg<double> temperatureArg("t","T","temperature to set",false,.2,"double",cmd);
 
     SwitchArg reproducibleSwitch("r","reproducible","reproducible random number generation", cmd, true);
     SwitchArg dangerousSwitch("d","dangerousMeshes","meshes where submeshes are dangerous", cmd, false);
     SwitchArg verboseSwitch("v","verbose","output more things to screen ", cmd, false);
+    SwitchArg tangentialSwitch("c", "tangentialBCs", "turn on tangential (vs. absorbing) bcs" , cmd, false); 
+
 
     //parse the arguments
     cmd.parse( argc, argv );
@@ -61,20 +63,25 @@ int main(int argc, char*argv[])
     int saveFrequency = saveFrequencyArg.getValue();
     string meshName = meshSwitchArg.getValue();
     double dt = deltaTArg.getValue();
-    double maximumInteractionRange= interactionRangeArg.getValue();
+    double areaFraction = areaFractionArg.getValue();
     double temperature = temperatureArg.getValue();
     bool verbose= verboseSwitch.getValue();
     bool reproducible = reproducibleSwitch.getValue();
     bool dangerous = dangerousSwitch.getValue(); //not used right now
+    bool useTangential = tangentialSwitch.getValue();
 
     shared_ptr<triangulatedMeshSpace> meshSpace=make_shared<triangulatedMeshSpace>();
     meshSpace->loadMeshFromFile(meshName,verbose);
     meshSpace->useSubmeshingRoutines(false);
+    double area = totalArea(meshSpace->surface);
+    double maximumInteractionRange = 2*sqrt(areaFraction*area/(N*M_PI)); //set maximum interaction range via 2-D disk areas
     if(programBranch >=0)
-        meshSpace->useSubmeshingRoutines(true,maximumInteractionRange,dangerous);
+        meshSpace->useSubmeshingRoutines(true,maximumInteractionRange,dangerous); 
+    
     //currently, we either use tangential or absorbing boundary conditions for open boundaries -- 
     //below uses tangential, and false would move to absorbing
-    meshSpace->useTangentialBCs = true;
+    meshSpace->useTangentialBCs = useTangential;
+    cout << "using tangential bcs? " << useTangential << endl;
 
     shared_ptr<simpleModel> configuration=make_shared<simpleModel>(N);
     configuration->setVerbose(verbose);
