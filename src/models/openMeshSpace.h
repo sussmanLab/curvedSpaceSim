@@ -9,7 +9,7 @@ class openMeshSpace : public triangulatedMeshSpace
         openMeshSpace(){};
 
 	virtual void transportParticleAndVectors(meshPosition &pos, vector3 &displacementVector, vector<vector3> &transportVectors);
-     //! function signature for implementation by child classes. If this signature does not include an argument necessary for your implementation, add the relevant argument. 
+     //! functions signature for implementation by child classes. If this signature does not include an argument necessary for your implementation, add the relevant argument. 
         virtual void updateAtBoundaryEdge(
     pmpBarycentricCoordinates& sourceBCs,
     pmpBarycentricCoordinates& targetBCs,
@@ -23,9 +23,10 @@ class openMeshSpace : public triangulatedMeshSpace
     vector3& displacement,
     halfedgeIndex& lastUsedHalfedge,
     bool& continueShifting
-) {
-    ERRORERROR("Boundary edge: base open mesh space does not have boundary conditions."); 
-}
+)     
+        {
+        ERRORERROR("Boundary edge: base open mesh space does not have boundary conditions."); 
+        }
 
 virtual void updateAtBoundaryVertex(
     pmpBarycentricCoordinates& sourceBCs,
@@ -39,13 +40,12 @@ virtual void updateAtBoundaryVertex(
     vector<vector3>& transportVectors,
     halfedgeIndex& lastUsedHalfedge,
     bool& continueShifting
-) {
-    ERRORERROR("Boundary vertex: base open mesh space does not have boundary conditions."); 
-}
+)
+        {
+	ERRORERROR("Boundary vertex: base open mesh space does not have boundary conditions."); 
+        }
+    
     protected:
-       
-
-
 	//!helper functions for boundary vertex behaviors -- these are designed to extend to more complex boundary conditions
         virtual void projectVectorsForBoundaryVertex(vector3 heading, vertexIndex interesctedV, vertexIndex boundaryV, vector3 fNormal, faceIndex face, vector<vector3> &transportVectors);
         virtual void getBoundaryVertexHeading(vertexIndex v, faceIndex &sourceFace, vector3 &displacementVector, pmpBarycentricCoordinates &sourceBarycentricLocation, vector<point3> vertexPositions, vector3 sourceNormal, std::pair<vector3, vertexIndex> &result);

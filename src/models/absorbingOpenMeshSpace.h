@@ -9,7 +9,7 @@ class absorbingOpenMeshSpace : public openMeshSpace
         absorbingOpenMeshSpace(){}; 
 
     protected: 
-         //!Implement boundary conditions; these functions will direct particles along the boundary if they encounter one
+         //!Implement boundary conditions; these functions will stop a particle if it hits a boundary. continueShifting is set to false, vectors are transported to be in-surface, target point is set to boundary intersection. 
          void updateAtBoundaryEdge(pmpBarycentricCoordinates& sourceBCs, 
     pmpBarycentricCoordinates& targetBCs, 
     point3& target, 

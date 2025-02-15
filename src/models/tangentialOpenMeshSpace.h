@@ -9,7 +9,7 @@ class tangentialOpenMeshSpace : public openMeshSpace
         tangentialOpenMeshSpace(){}; 
 
     protected: 
-	 //!Implement boundary conditions; these functions will direct particles along the boundary if they encounter one
+	 //!Implement boundary conditions; these functions will direct particles along the boundary if they encounter one & redirect any transported vectors to remove components pointing over the boundary
          virtual void updateAtBoundaryEdge(pmpBarycentricCoordinates& sourceBCs, 
     pmpBarycentricCoordinates& targetBCs, 
     point3& target, 
