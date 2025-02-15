@@ -9,7 +9,7 @@ class openMeshSpace : public triangulatedMeshSpace
         openMeshSpace(){};
 
 	virtual void transportParticleAndVectors(meshPosition &pos, vector3 &displacementVector, vector<vector3> &transportVectors);
-     //! functions signature for implementation by child classes. If this signature does not include an argument necessary for your implementation, add the relevant argument. 
+     //! signature for implementation of boundary edge/vertex functions by child classes. If this signature does not include an argument necessary for your implementation, add the relevant argument. 
         virtual void updateAtBoundaryEdge(
     pmpBarycentricCoordinates& sourceBCs,
     pmpBarycentricCoordinates& targetBCs,
