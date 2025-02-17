@@ -12,7 +12,6 @@
 #include "simpleModel.h"
 #include "gaussianRepulsion.h"
 #include "harmonicRepulsion.h"
-#include "lennardJones.h"
 #include "vectorValueDatabase.h"
 #include "simpleModelDatabase.h"
 #include "cellListNeighborStructure.h"
@@ -45,7 +44,6 @@ int main(int argc, char*argv[])
     ValueArg<int> iterationsArg("i","iterations","number of performTimestep calls to make",false,1000,"int",cmd);
     ValueArg<int> saveFrequencyArg("s","saveFrequency","how often a file gets updated",false,100,"int",cmd);
     ValueArg<string> meshSwitchArg("m","meshSwitch","filename of the mesh you want to load",false,"../exampleMeshes/torus_isotropic_remesh.off","string",cmd);
-    ValueArg<double> initializationRangeArg("a","initializationRange","distance from origin to allow particles to initialize",false,1.,"double",cmd);
     ValueArg<double> deltaTArg("e","dt","timestep size",false,.01,"double",cmd);
     ValueArg<double> temperatureArg("t","T","temperature to set",false,.2,"double",cmd);
     ValueArg<double> afArg("f","areaFraction","area fraction for disks on the surface",false,1.0,"double",cmd);
@@ -63,7 +61,6 @@ int main(int argc, char*argv[])
     int maximumIterations = iterationsArg.getValue();
     int saveFrequency = saveFrequencyArg.getValue();
     string meshName = meshSwitchArg.getValue();
-    double initializationRange = initializationRangeArg.getValue();
     double dt = deltaTArg.getValue();
     double temperature = temperatureArg.getValue();
     double areaFraction = afArg.getValue();
@@ -78,7 +75,7 @@ int main(int argc, char*argv[])
     
     double area = totalArea(meshSpace->surface);
     double maximumInteractionRange = 2*sqrt(areaFraction*area/(N*M_PI));
-    cout << "max interaction range " << maximumInteractionRange << endl;
+    cout << "Max interaction range set to: " << maximumInteractionRange << endl;
    
     if(programBranch >=0) meshSpace->useSubmeshingRoutines(true,maximumInteractionRange,dangerous);
     meshSpace->useTangentialBCs = true;
@@ -91,20 +88,15 @@ int main(int argc, char*argv[])
     shared_ptr<cellListNeighborStructure> cellList = make_shared<cellListNeighborStructure>(meshSpace->minVertexPosition,meshSpace->maxVertexPosition,maximumInteractionRange);
     if(programBranch >= 0)
         configuration->setNeighborStructure(cellList);
-
+    
     //for testing, just initialize particles randomly in a small space. Similarly, set random velocities in the tangent plane
     noiseSource noise(reproducible);
     //configuration->setRandomParticlePositions(noise);
-    configuration->setRandomMeshPositionsNearZero(noise, initializationRange);
+    configuration->setRandomParticlePositions(noise);
     configuration->setMaxwellBoltzmannVelocities(noise,temperature);
 
-    //shared_ptr<gaussianRepulsion> pairwiseForce = make_shared<gaussianRepulsion>(1.0,.5);
     shared_ptr<harmonicRepulsion> pairwiseForce = make_shared<harmonicRepulsion>(1.0,maximumInteractionRange);//stiffness and sigma. this is a monodisperse setting
     pairwiseForce->setModel(configuration);
-    double ljEnergyScale = 1.00;
-    shared_ptr<lennardJones> LJForce = make_shared<lennardJones>(ljEnergyScale, maximumInteractionRange, true); 
-    double cutoffSigma = 2.5;
-    LJForce->cutoffCoefficient = cutoffSigma;
 
     shared_ptr<simulation> simulator=make_shared<simulation>();
     simulator->setConfiguration(configuration);
@@ -116,6 +108,8 @@ int main(int argc, char*argv[])
      
    //void setFIREParameters(int _maximumIterations,double _deltaT, double _alphaStart, double _deltaTMax, double _deltaTMin, double _deltaTInc, double _deltaTDec, double _alphaDec, int _nMin, double _forceCutoff, double _alphaMin = 0.75);
     energyMinimizerFire->setFIREParameters(1, dt, 0.99, dt/10, 1e-10, 1.1, 0.9, 0.9, 4, 1e-10,0.00); 
+    //exclude boundary dictates whether the code will ignore particles at the boundary of an open space in force/
+    //energy calculations or not. 
     energyMinimizerFire->useFWithExclusions = excludeBoundary;
     if(programBranch >=2)
         {
@@ -140,85 +134,22 @@ int main(int argc, char*argv[])
     //by default, the simpleModelDatabase will save euclidean positions, mesh positions (barycentric + faceIdx), and particle velocities. See constructor for saving forces and/or particle types as well
     string minimizerName = "null"; 
     if (programBranch == 0) minimizerName = "FIRE"; 
-    if (programBranch == 1) minimizerName = "GD"; 
-    simpleModelDatabase saveState(N,"./testModelDatabase_" + to_string(N) +"_fsaved" + minimizerName+to_string(areaFraction)+".nc",NcFile::Replace, true, false, true);
+    if (programBranch == 1) minimizerName = "GD";
+    simpleModelDatabase saveState(N,"./testModelDatabase_" + to_string(N) +"_" + minimizerName+ "_"+to_string(areaFraction)+".nc",NcFile::Replace, true, false, true);
     saveState.writeState(configuration,0.0); 
+    //write log of forces to check against particle positions
     ofstream forceFile("./forces_"+to_string(N)+minimizerName+to_string(areaFraction)+".csv");
-    
-    ofstream neighborsFile("./neighbors_"+to_string(N)+minimizerName+to_string(areaFraction)+".csv"); 
-    ofstream distanceFile("./distances_"+to_string(N)+minimizerName+to_string(areaFraction)+".csv");
-    cout << "Using exclusions? " << excludeBoundary << endl;
-    
-    int stopGD = 4000;
-    /*comment here start
-    for (int jj = 0; jj < 100; ++jj) 
-    {
-    configuration->setRandomMeshPositionsNearZero(noise, initializationRange); 
-    configuration->setMaxwellBoltzmannVelocities(noise, 0);
-    configuration->particleShiftsRequireVelocityTransport = false; 
-    simulator->clearForceComputers();
-    simulator->clearUpdaters(); 
-    simulator->addUpdater(energyMinimizer); 
-    simulator->addForce(pairwiseForce);
-    meshSpace->useSubmeshingRoutines(true,maximumInteractionRange,dangerous);
-    configuration->setNeighborStructure(cellList);
-    cout << "neighbor structure set" << endl;
-    */ //comment here stop 
+   
+    cout << "beginning simulation, saving every " << saveFrequency << "steps for " << maximumIterations << " iterations" << endl; 
     for (int ii = 0; ii < maximumIterations; ++ii)
         {
-        if (ii == stopGD) 
-	    {
-	    //need to reset cell list to use double the maximum interaction range here so that neighbors are allowed to exist within 2sigma, rather than just 1sigma 
-	    simulator->clearUpdaters();
-	    simulator->clearForceComputers(); 
-	    
-	    energyMinimizerFire->setModel(configuration);
-            simulator->addUpdater(energyMinimizerFire,configuration);
-	    LJForce->setModel(configuration);
-	    
-	    //shared_ptr<cellListNeighborStructure> cellListTwo = make_shared<cellListNeighborStructure>(meshSpace->minVertexPosition,meshSpace->maxVertexPosition,cutoffSigma*maximumInteractionRange);
-	    //configuration->setNeighborStructure(cellListTwo);
-            
-	    meshSpace->setNewSubmeshCutoff(cutoffSigma*maximumInteractionRange); 
-	    simulator->addForce(LJForce);
-            simulator->computeForces();
-	    programBranch = 0;
-
-	    cout << "printing first lj forces" << endl;
-	    for (auto f: configuration->forces) cout << f << "\n"; 
-	    }
-
 	timer.start();
 	simulator->performTimestep();
         timer.end();
         
-	double energy; 
-	if (ii < stopGD) energy = pairwiseForce->computeEnergy();
-	if (ii >= stopGD) energy = LJForce->computeEnergy(); 
-            
+	double energy = pairwiseForce->computeEnergy();
 		
-	if (ii > maximumIterations-1000) 
-	    {
-	    configuration->findNeighbors(cutoffSigma*maximumInteractionRange);
-	    vector<vector<int>> neighbors = configuration->neighbors;
-	    vector<vector<double>> neighborDistances = configuration->neighborDistances; 
-
-            for (int i = 0; i < N; i++) {
-		if (neighbors[i].size() > 0) 
-	            {
-		    neighborsFile << neighbors[i][0]; 
-		    distanceFile << neighborDistances[i][0];
-		    }
-	        for (int j = 1; j < neighbors[i].size(); j++){ 
-                    neighborsFile << ", " << neighbors[i][j]; 
-                    distanceFile << ", " << neighborDistances[i][j]; 
-    	            }
-	        neighborsFile << "\n";
-		distanceFile << "\n";
-	        }
-	    }
-
-        if(ii%saveFrequency == saveFrequency-1 || ii > maximumIterations-1000)
+        if(ii%saveFrequency == saveFrequency-1)
             {
             saveState.writeState(configuration,dt*ii);
 	    vector<int> exclusions;
@@ -257,7 +188,6 @@ int main(int argc, char*argv[])
                   
               }
             }
-        //} 
         }
     timer.print();
 

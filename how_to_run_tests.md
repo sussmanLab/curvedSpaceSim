@@ -12,7 +12,19 @@ invoked
 cmake ..
 make 
 ``` 
-in a build directory. 
+in a build directory.
+
+Note that there are some experimental features that remain in the 
+paper branch for exploratory reasons, or as testing points for some of 
+the figures in the paper. E.g., an incomplete implementation 
+of Lennard-Jones annealing is possible using the Lennard-Jones force 
+(but known issues arise when switching between soft harmonic GD and FIRE LJ
+repeatedly without reloading the underlying mesh); 
+particles can be initialized near zero for a mesh with faces there; 
+and some convenience functions remain as components of specific
+tests for the curvedSpaceSim paper. In general, example executables 
+have had experimental features removed for ease of use, and none of the figures
+in the paper rely on experimental features for their reproduction.  
 
 ##Error vs. Complexity
 This test aims to check how far off our calculations of distances and 

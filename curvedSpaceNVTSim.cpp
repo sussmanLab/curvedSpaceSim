@@ -109,7 +109,7 @@ int main(int argc, char*argv[])
     cout << "intended starting temp: " << temperature << endl;
     cout << "starting temp: " << NVTUpdater->getTemperatureFromKE() << endl; 
 
-    for (int ii = 0; ii < 2*maximumIterations; ++ii)
+    for (int ii = 0; ii < maximumIterations; ++ii)
         {
         timer.start();
         simulator->performTimestep();
@@ -124,7 +124,6 @@ int main(int argc, char*argv[])
 	//functions -- e.g. simulator->computeMonodisperseStress
         }
     
-    temperatureFile.close(); 
     timer.print();
 
     return 0;
