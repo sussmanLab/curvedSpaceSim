@@ -3,9 +3,13 @@
 
 #include "triangulatedMeshSpace.h"
 
+/*!
+A closedMeshSpace uses the base triangulatedMeshSpace functions for particle
+and vector transport. A closed mesh has no boundaries, so no special functions
+are needed
+*/
 class closedMeshSpace : public triangulatedMeshSpace
     {
-    //purely a name guard that clarifies that you're on a surface meant to be closed
     public:
         closedMeshSpace(){};
     };

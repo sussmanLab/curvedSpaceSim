@@ -234,15 +234,15 @@ void openMeshSpace::transportParticleAndVectors(meshPosition &pos, vector3 &disp
                 {
                 updateForEdgeIntersection(sourceBarycentricLocation,
 			       	          sourcePoint,
-					  intersectionPoint,
-					  currentSourceNormal,
-					  currentSourceFace,
-					  target,
-					  transportVectors,
-					  lastUsedHalfedge,
-					  displacementVector,
-					  vertexPositions,
-					  intersectedEdge);
+                              intersectionPoint,
+                              currentSourceNormal,
+                              currentSourceFace,
+                              target,
+                              transportVectors,
+                              lastUsedHalfedge,
+                              displacementVector,
+                              vertexPositions,
+                              intersectedEdge);
                 continue; 
                 }
 
