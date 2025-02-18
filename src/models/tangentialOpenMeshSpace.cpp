@@ -1,18 +1,18 @@
 #include "tangentialOpenMeshSpace.h"
 
 void tangentialOpenMeshSpace::updateAtBoundaryEdge(
-    pmpBarycentricCoordinates& sourceBCs, 
-    pmpBarycentricCoordinates& targetBCs, 
-    point3& target, 
-    faceIndex& sourceFace, 
-    vector3& sourceNormal, 
-    const vertexIndex edgeV1, 
-    const vertexIndex edgeV2, 
-    const point3& innerVertex, 
-    vector<vector3>& transportVectors, 
-    vector3& displacement, 
-    halfedgeIndex& lastUsedHalfedge, 
-    bool& continueShifting)
+                    pmpBarycentricCoordinates& sourceBCs, 
+                    pmpBarycentricCoordinates& targetBCs, 
+                    point3& target, 
+                    faceIndex& sourceFace, 
+                    vector3& sourceNormal, 
+                    const vertexIndex edgeV1, 
+                    const vertexIndex edgeV2, 
+                    const point3& innerVertex, 
+                    vector<vector3>& transportVectors, 
+                    vector3& displacement, 
+                    halfedgeIndex& lastUsedHalfedge, 
+                    bool& continueShifting)
     {
     point3 ev1 = surface.point(edgeV1);
     point3 ev2 = surface.point(edgeV2);
@@ -47,17 +47,17 @@ void tangentialOpenMeshSpace::updateAtBoundaryEdge(
     }
 
 void tangentialOpenMeshSpace::updateAtBoundaryVertex(
-    pmpBarycentricCoordinates& sourceBCs, 
-    pmpBarycentricCoordinates& targetBCs, 
-    point3& target, 
-    vector3& sourceNormal, 
-    faceIndex& sourceFace, 
-    vector3& displacement, 
-    vertexIndex intersectedV, 
-    vector<point3>& vertexPositions, 
-    vector<vector3>& transportVectors, 
-    halfedgeIndex& lastUsedHalfedge, 
-    bool& continueShifting)
+                    pmpBarycentricCoordinates& sourceBCs, 
+                    pmpBarycentricCoordinates& targetBCs, 
+                    point3& target, 
+                    vector3& sourceNormal, 
+                    faceIndex& sourceFace, 
+                    vector3& displacement, 
+                    vertexIndex intersectedV, 
+                    vector<point3>& vertexPositions, 
+                    vector<vector3>& transportVectors, 
+                    halfedgeIndex& lastUsedHalfedge, 
+                    bool& continueShifting)
     {
     //first get heading & next vertex along the boundary in that heading; source face is modified
     std::pair<vector3, vertexIndex> headingAndVertex;
