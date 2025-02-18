@@ -73,9 +73,8 @@ foreach(ARG
         flatSpaceSimulation
         curvedSpaceSimulation
         multirankSimulation
-	curvedSpaceNVTSim
-        absorbingSimulation
-	tangentialSimulation
+        curvedSpaceNVTSim
+        tangentialSimulation
 	)
 
 add_executable("${ARG}.out" "${ARG}.cpp" )
