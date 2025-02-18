@@ -5,7 +5,7 @@
 #include "profiler.h"
 #include "noiseSource.h"
 #include "triangulatedMeshSpace.h"
-#include "closedMeshSpace.h"
+#include "absorbingOpenMeshSpace.h"
 #include "simulation.h"
 #include "gradientDescent.h"
 #include "fireMinimization.h"
@@ -45,7 +45,7 @@ int main(int argc, char*argv[])
     ValueArg<int> iterationsArg("i","iterations","number of performTimestep calls to make",false,1000,"int",cmd);
     ValueArg<int> saveFrequencyArg("s","saveFrequency","how often a file gets updated",false,100,"int",cmd);
     ValueArg<string> meshSwitchArg("m","meshSwitch","filename of the mesh you want to load",false,"../exampleMeshes/torus_isotropic_remesh.off","string",cmd);
-    ValueArg<double> areaFractionArg("a","areaFraction","set interaction range for soft potential based on desired surface coverage",false,0.9,"double",cmd);
+    ValueArg<double> areaFractionArg("a","areaFraction","set interaction range for soft potential based on desired surface coverage",false,1.,"double",cmd);
     ValueArg<double> deltaTArg("e","dt","timestep size",false,.01,"double",cmd);
     ValueArg<double> temperatureArg("t","T","temperature to set",false,.2,"double",cmd);
 
@@ -69,13 +69,14 @@ int main(int argc, char*argv[])
     bool reproducible = reproducibleSwitch.getValue();
     bool dangerous = dangerousSwitch.getValue(); //not used right now
 
-    shared_ptr<closedMeshSpace> meshSpace=make_shared<closedMeshSpace>();
+    shared_ptr<absorbingOpenMeshSpace> meshSpace=make_shared<absorbingOpenMeshSpace>();
     meshSpace->loadMeshFromFile(meshName,verbose);
     meshSpace->useSubmeshingRoutines(false);
     double area = totalArea(meshSpace->surface);
     double maximumInteractionRange = 2*sqrt(areaFraction*area/(N*M_PI)); //set maximum interaction range via 2-D disk areas
     if(programBranch >=0)
-        meshSpace->useSubmeshingRoutines(true,maximumInteractionRange,dangerous); 
+        meshSpace->useSubmeshingRoutines(true,maximumInteractionRange,dangerous);
+    
 
     shared_ptr<simpleModel> configuration=make_shared<simpleModel>(N);
     configuration->setVerbose(verbose);
@@ -122,6 +123,14 @@ int main(int argc, char*argv[])
         }
     profiler timer("various parts of the code");
 
+    /*
+    vector<double> posToSave;
+    getFlatVectorOfPositions(configuration,posToSave);
+
+    vectorValueDatabase vvdat(posToSave.size(),"./testTrajectory.nc",NcFile::Replace);
+    vvdat.writeState(posToSave,0);
+    */
+
     //by default, the simpleModelDatabase will save euclidean positions, mesh positions (barycentric + faceIdx), and particle velocities. See constructor for saving forces and/or particle types as well
     simpleModelDatabase saveState(N,"./testModelDatabase.nc",NcFile::Replace);
     saveState.writeState(configuration,0.0);
@@ -133,6 +142,10 @@ int main(int argc, char*argv[])
         timer.end();
         if(ii%saveFrequency == saveFrequency-1)
             {
+            /*
+            getFlatVectorOfPositions(configuration,posToSave);
+            vvdat.writeState(posToSave,dt*ii);
+            */
             saveState.writeState(configuration,dt*ii);
             if(programBranch ==1)
                 {

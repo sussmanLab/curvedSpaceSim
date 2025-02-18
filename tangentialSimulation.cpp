@@ -5,7 +5,7 @@
 #include "profiler.h"
 #include "noiseSource.h"
 #include "triangulatedMeshSpace.h"
-#include "closedMeshSpace.h"
+#include "tangentialOpenMeshSpace.h"
 #include "simulation.h"
 #include "gradientDescent.h"
 #include "fireMinimization.h"
@@ -39,19 +39,19 @@ int main(int argc, char*argv[])
     CmdLine cmd("simulations in curved space!",' ',"V0.9");
 
     //define the various command line strings that can be passed in...
-    //ValueArg<T> variableName("shortflag","longFlag","description",required or not, default value,"value type",CmdLine object to add to
     ValueArg<int> programBranchSwitchArg("z","programBranchSwitch","an integer controlling program branch",false,0,"int",cmd);
     ValueArg<int> particleNumberSwitchArg("n","number","number of particles to simulate",false,20,"int",cmd);
     ValueArg<int> iterationsArg("i","iterations","number of performTimestep calls to make",false,1000,"int",cmd);
     ValueArg<int> saveFrequencyArg("s","saveFrequency","how often a file gets updated",false,100,"int",cmd);
     ValueArg<string> meshSwitchArg("m","meshSwitch","filename of the mesh you want to load",false,"../exampleMeshes/torus_isotropic_remesh.off","string",cmd);
-    ValueArg<double> areaFractionArg("a","areaFraction","set interaction range for soft potential based on desired surface coverage",false,0.9,"double",cmd);
+    ValueArg<double> areaFractionArg("a","areaFraction","degree of coverage you want f",false,1.,"double",cmd);
     ValueArg<double> deltaTArg("e","dt","timestep size",false,.01,"double",cmd);
     ValueArg<double> temperatureArg("t","T","temperature to set",false,.2,"double",cmd);
 
     SwitchArg reproducibleSwitch("r","reproducible","reproducible random number generation", cmd, true);
     SwitchArg dangerousSwitch("d","dangerousMeshes","meshes where submeshes are dangerous", cmd, false);
     SwitchArg verboseSwitch("v","verbose","output more things to screen ", cmd, false);
+
 
 
     //parse the arguments
@@ -69,13 +69,14 @@ int main(int argc, char*argv[])
     bool reproducible = reproducibleSwitch.getValue();
     bool dangerous = dangerousSwitch.getValue(); //not used right now
 
-    shared_ptr<closedMeshSpace> meshSpace=make_shared<closedMeshSpace>();
+    shared_ptr<tangentialOpenMeshSpace> meshSpace=make_shared<tangentialOpenMeshSpace>();
     meshSpace->loadMeshFromFile(meshName,verbose);
     meshSpace->useSubmeshingRoutines(false);
     double area = totalArea(meshSpace->surface);
     double maximumInteractionRange = 2*sqrt(areaFraction*area/(N*M_PI)); //set maximum interaction range via 2-D disk areas
     if(programBranch >=0)
-        meshSpace->useSubmeshingRoutines(true,maximumInteractionRange,dangerous); 
+        meshSpace->useSubmeshingRoutines(true,maximumInteractionRange,dangerous);
+    
 
     shared_ptr<simpleModel> configuration=make_shared<simpleModel>(N);
     configuration->setVerbose(verbose);
@@ -122,8 +123,16 @@ int main(int argc, char*argv[])
         }
     profiler timer("various parts of the code");
 
+    /*
+    vector<double> posToSave;
+    getFlatVectorOfPositions(configuration,posToSave);
+
+    vectorValueDatabase vvdat(posToSave.size(),"./testTrajectory.nc",NcFile::Replace);
+    vvdat.writeState(posToSave,0);
+    */
+
     //by default, the simpleModelDatabase will save euclidean positions, mesh positions (barycentric + faceIdx), and particle velocities. See constructor for saving forces and/or particle types as well
-    simpleModelDatabase saveState(N,"./testModelDatabase.nc",NcFile::Replace);
+    simpleModelDatabase saveState(N,"./tangentialTestModelDatabase.nc",NcFile::Replace);
     saveState.writeState(configuration,0.0);
 
     for (int ii = 0; ii < maximumIterations; ++ii)
@@ -133,6 +142,10 @@ int main(int argc, char*argv[])
         timer.end();
         if(ii%saveFrequency == saveFrequency-1)
             {
+            /*
+            getFlatVectorOfPositions(configuration,posToSave);
+            vvdat.writeState(posToSave,dt*ii);
+            */
             saveState.writeState(configuration,dt*ii);
             if(programBranch ==1)
                 {

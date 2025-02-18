@@ -9,4 +9,7 @@ add_library(model
     mpiModel.cpp
     euclideanSpace.cpp
     triangulatedMeshSpace.cpp
+    openMeshSpace.cpp
+    absorbingOpenMeshSpace.cpp
+    tangentialOpenMeshSpace.cpp
     )
