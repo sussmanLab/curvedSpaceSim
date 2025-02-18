@@ -52,7 +52,6 @@ int main(int argc, char*argv[])
     SwitchArg reproducibleSwitch("r","reproducible","reproducible random number generation", cmd, true);
     SwitchArg dangerousSwitch("d","dangerousMeshes","meshes where submeshes are dangerous", cmd, false);
     SwitchArg verboseSwitch("v","verbose","output more things to screen ", cmd, false);
-    SwitchArg tangentialSwitch("c", "tangentialBCs", "turn on tangential (vs. absorbing) bcs" , cmd, false); 
 
 
     //parse the arguments
@@ -69,7 +68,6 @@ int main(int argc, char*argv[])
     bool verbose= verboseSwitch.getValue();
     bool reproducible = reproducibleSwitch.getValue();
     bool dangerous = dangerousSwitch.getValue(); //not used right now
-    bool useTangential = tangentialSwitch.getValue();
 
     shared_ptr<closedMeshSpace> meshSpace=make_shared<closedMeshSpace>();
     meshSpace->loadMeshFromFile(meshName,verbose);
