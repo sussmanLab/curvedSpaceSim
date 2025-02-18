@@ -71,7 +71,7 @@ int main(int argc, char*argv[])
     bool dangerous = dangerousSwitch.getValue(); //not used right now
     bool useTangential = tangentialSwitch.getValue();
 
-    shared_ptr<triangulatedMeshSpace> meshSpace=make_shared<triangulatedMeshSpace>();
+    shared_ptr<closedMeshSpace> meshSpace=make_shared<closedMeshSpace>();
     meshSpace->loadMeshFromFile(meshName,verbose);
     meshSpace->useSubmeshingRoutines(false);
     double area = totalArea(meshSpace->surface);
