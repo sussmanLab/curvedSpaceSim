@@ -1,21 +1,21 @@
 #include "absorbingOpenMeshSpace.h"
 void absorbingOpenMeshSpace::updateAtBoundaryEdge(
-    pmpBarycentricCoordinates& sourceBCs, 
-    pmpBarycentricCoordinates& targetBCs, 
-    point3& target, 
-    faceIndex& sourceFace, 
-    vector3& sourceNormal, 
-    const vertexIndex edgeV1, 
-    const vertexIndex edgeV2, 
-    const point3& innerVertex, 
-    vector<vector3>& transportVectors, 
-    vector3& displacement, 
-    halfedgeIndex& lastUsedHalfedge, 
-    bool& continueShifting)
+                    pmpBarycentricCoordinates& sourceBCs, 
+                    pmpBarycentricCoordinates& targetBCs, 
+                    point3& target, 
+                    faceIndex& sourceFace, 
+                    vector3& sourceNormal, 
+                    const vertexIndex edgeV1, 
+                    const vertexIndex edgeV2, 
+                    const point3& innerVertex, 
+                    vector<vector3>& transportVectors, 
+                    vector3& displacement, 
+                    halfedgeIndex& lastUsedHalfedge, 
+                    bool& continueShifting)
     {
     if (transportVectors.size() > 0) 
         {
-	//below handles just nonzero transport vectors size
+        //below handles just nonzero transport vectors size
         point3 ev1 = surface.point(edgeV1);
         point3 ev2 = surface.point(edgeV2);
 
@@ -23,27 +23,27 @@ void absorbingOpenMeshSpace::updateAtBoundaryEdge(
         vector3 orthogonalToEdge = normalize(CGAL::cross_product(PMP::compute_face_normal(sourceFace,surface), vector3(ev1,ev2)));
         vector3 inwardVector(globalSMSP->point(sourceFace, sourceBCs), innerVertex); 
 
-	//if orthogonal is pointing out, then we want to project only if the overlap with the orthogonal vector is positive; 
+        //if orthogonal is pointing out, then we want to project only if the overlap with the orthogonal vector is positive; 
         //if orthogonal is pointing in, then we want to project only if the overlap with the orthogonal vector is negative. 
         projectVectorsIfOverBoundary(transportVectors, orthogonalToEdge, inwardVector);
-	}
+        }
     //this is all that the boundary conditions actually do -- stop the motion and move the particle to the edge that it intersected.     
     continueShifting=false; 
     targetBCs = sourceBCs;  
     }
 
 void absorbingOpenMeshSpace::updateAtBoundaryVertex(
-    pmpBarycentricCoordinates& sourceBCs, 
-    pmpBarycentricCoordinates& targetBCs, 
-    point3& target, 
-    vector3& sourceNormal, 
-    faceIndex& sourceFace, 
-    vector3& displacement, 
-    vertexIndex intersectedV, 
-    vector<point3>& vertexPositions, 
-    vector<vector3>& transportVectors, 
-    halfedgeIndex& lastUsedHalfedge, 
-    bool& continueShifting)
+                    pmpBarycentricCoordinates& sourceBCs, 
+                    pmpBarycentricCoordinates& targetBCs, 
+                    point3& target, 
+                    vector3& sourceNormal, 
+                    faceIndex& sourceFace, 
+                    vector3& displacement, 
+                    vertexIndex intersectedV, 
+                    vector<point3>& vertexPositions, 
+                    vector<vector3>& transportVectors, 
+                    halfedgeIndex& lastUsedHalfedge, 
+                    bool& continueShifting)
     {
     //first get heading & next vertex along the boundary in that heading; source face is modified
     std::pair<vector3, vertexIndex> headingAndVertex;
@@ -61,7 +61,3 @@ void absorbingOpenMeshSpace::updateAtBoundaryVertex(
     halfedgeIndex nullHalfedge(-1); 
     lastUsedHalfedge = nullHalfedge;  
     }
-
-
-
-
