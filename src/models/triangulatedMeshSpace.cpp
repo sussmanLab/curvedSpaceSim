@@ -491,44 +491,44 @@ void triangulatedMeshSpace::transportParticleAndVectors(meshPosition &pos, vecto
          * uninvolvedVertex (integer)
          * intersection point (barycentric coords)
          */
-	belowZeroClamp(intersectionPoint);                 
-        point3 edgeIntersectionPoint = globalSMSP->point(currentSourceFace,intersectionPoint);
-        //walk to the location of the intersection by moving the source point. 
-        vector3 toIntersection =  vector3(sourcePoint, edgeIntersectionPoint); 
-	sourceBarycentricLocation = intersectionPoint;
-        sourcePoint = edgeIntersectionPoint;
+        belowZeroClamp(intersectionPoint);                 
+            point3 edgeIntersectionPoint = globalSMSP->point(currentSourceFace,intersectionPoint);
+            //walk to the location of the intersection by moving the source point. 
+            vector3 toIntersection =  vector3(sourcePoint, edgeIntersectionPoint); 
+        sourceBarycentricLocation = intersectionPoint;
+            sourcePoint = edgeIntersectionPoint;
 
-	if (uninvolvedVertex.size() == 2)
-	    {
-	    if (surface.is_border(vertexIndex(involvedVertex[0]))) 
-	       ERRORERROR("Surface is meant to be closed, but a border vertex was encountered.");  
-	    else 
-	        {
-	        updateForVertexIntersection(sourceBarycentricLocation, sourcePoint, currentSourceFace, target, displacementVector, currentSourceNormal, vertexPositions, transportVectors, lastUsedHalfedge, involvedVertex[0], toIntersection);
-		continue;
-		}
-	    }
-        
-	else if(uninvolvedVertex.size() != 1)
+        if (uninvolvedVertex.size() == 2)
             {
-	    printSourceTargetDisplacementInfo(sourcePoint, target,sourceBarycentricLocation, targetBarycentricLocation, displacementVector); 
-            ERRORERROR("a barycentric coordinate of the target is negative, but neither 1 nor 2 intersections were found. Apparently some debugging is needed!");
+            if (surface.is_border(vertexIndex(involvedVertex[0]))) 
+               ERRORERROR("Surface is meant to be closed, but a border vertex was encountered.");  
+            else 
+                {
+                updateForVertexIntersection(sourceBarycentricLocation, sourcePoint, currentSourceFace, target, displacementVector, currentSourceNormal, vertexPositions, transportVectors, lastUsedHalfedge, involvedVertex[0], toIntersection);
+            continue;
             }
-
-	else 
-	    {
-	    halfedgeIndex intersectedEdge = surface.halfedge(involvedVertex[0], involvedVertex[1]); 
+            }
             
-	    if (surface.is_border(edgeIndex(intersectedEdge))) 
-	        ERRORERROR("Surface is meant to be closed, but a border edge was encountered.");
-	    
-	    else 
-	        {
-                updateForEdgeIntersection(sourceBarycentricLocation, sourcePoint, intersectionPoint, currentSourceNormal, currentSourceFace, target, transportVectors, lastUsedHalfedge, displacementVector, vertexPositions, intersectedEdge);
-		continue; // probably won't be necessary in final vsn
-                }	
+        else if(uninvolvedVertex.size() != 1)
+                {
+            printSourceTargetDisplacementInfo(sourcePoint, target,sourceBarycentricLocation, targetBarycentricLocation, displacementVector); 
+                ERRORERROR("a barycentric coordinate of the target is negative, but neither 1 nor 2 intersections were found. Apparently some debugging is needed!");
+                }
 
-	    }
+        else 
+            {
+            halfedgeIndex intersectedEdge = surface.halfedge(involvedVertex[0], involvedVertex[1]); 
+                
+            if (surface.is_border(edgeIndex(intersectedEdge))) 
+                ERRORERROR("Surface is meant to be closed, but a border edge was encountered.");
+            
+            else 
+                {
+                    updateForEdgeIntersection(sourceBarycentricLocation, sourcePoint, intersectionPoint, currentSourceNormal, currentSourceFace, target, transportVectors, lastUsedHalfedge, displacementVector, vertexPositions, intersectedEdge);
+            continue; // probably won't be necessary in final vsn
+                    }	
+
+            }
         }
     //when no more intersections, move to target (in current source face) and make sure it's legal 
     pos.faceIndex = currentSourceFace;
@@ -619,25 +619,24 @@ void triangulatedMeshSpace::updateForEdgeIntersection(pmpBarycentricCoordinates 
     }
 
 void triangulatedMeshSpace::printSourceTargetDisplacementInfo(point3 sourcePoint, point3 target, pmpBarycentricCoordinates sourceBarycentricLocation, pmpBarycentricCoordinates targetBarycentricLocation, vector3 displacementVector)
-            {
-            //below is extensive debug output in case there is a major error in shift
-            cout << endl;
-            cout << "source r3: ";
-            printPoint(sourcePoint);
-            cout << endl;
+    {
+    //below is extensive debug output in case there is a major error in shift
+    cout << endl;
+    cout << "source r3: ";
+    printPoint(sourcePoint);
+    cout << endl;
 
-            cout << "source bary: ";
-            printBary(sourceBarycentricLocation, true);
-            cout << endl;
+    cout << "source bary: ";
+    printBary(sourceBarycentricLocation, true);
+    cout << endl;
 
-            cout << "target: ";
-            printPoint(target, true);
-            cout << endl;
+    cout << "target: ";
+    printPoint(target, true);
+    cout << endl;
 
-            cout << "target barycentric: ";
-            printBary(targetBarycentricLocation,true);
-            cout << endl;
+    cout << "target barycentric: ";
+    printBary(targetBarycentricLocation,true);
+    cout << endl;
 
-            cout << "displacement vector: " << displacementVector[0] << ", " << displacementVector[1] << ", " << displacementVector[2] << endl;
-            }
-
+    cout << "displacement vector: " << displacementVector[0] << ", " << displacementVector[1] << ", " << displacementVector[2] << endl;
+    }

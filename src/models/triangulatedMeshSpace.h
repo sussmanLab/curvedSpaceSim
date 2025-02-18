@@ -50,7 +50,8 @@ class triangulatedMeshSpace : public baseSpace
 
         //!Activate the use of submeshing routines
         void useSubmeshingRoutines(bool _useSubMesh, double maxDist = 1.0, bool _danger = false)
-            {submeshingActivated = _useSubMesh;
+            {
+            submeshingActivated = _useSubMesh;
             maximumDistance = maxDist;
             //dangerous submeshing no longer needed, but might be revived later TODO
             dangerousSubmeshing = _danger;
@@ -87,11 +88,11 @@ class triangulatedMeshSpace : public baseSpace
         //!Handle transport through vertices rather than across edges
         std::pair<faceIndex,vector3> throughVertex(vertexIndex &intersectedVertex, vector3 &toIntersection, faceIndex &sourceFace);
         //!Helper functions to handle different triangle border crossing cases
-	virtual void updateForEdgeIntersection(pmpBarycentricCoordinates &sourceBarycentricLocation, point3 &sourcePoint, pmpBarycentricCoordinates &intersectionPoint, vector3 &currentSourceNormal, faceIndex &currentSourceFace, point3 &target, vector<vector3> &transportVectors, halfedgeIndex &lastUsedHalfedge, vector3 &displacementVector, vector<point3> &vertexPositions, halfedgeIndex intersectedEdge);
-        
-	virtual void updateForVertexIntersection(pmpBarycentricCoordinates &sourceBCs, point3 &sourcePoint, faceIndex &sourceFace, point3 &target, vector3 &displacementVector, vector3 &sourceNormal, vector<point3> vertexPositions, vector<vector3> &transportVectors, halfedgeIndex &lastUsedHalfedge, vertexIndex intersectedV, vector3 toIntersection);
-	
-	bool verbose = false;
+        virtual void updateForEdgeIntersection(pmpBarycentricCoordinates &sourceBarycentricLocation, point3 &sourcePoint, pmpBarycentricCoordinates &intersectionPoint, vector3 &currentSourceNormal, faceIndex &currentSourceFace, point3 &target, vector<vector3> &transportVectors, halfedgeIndex &lastUsedHalfedge, vector3 &displacementVector, vector<point3> &vertexPositions, halfedgeIndex intersectedEdge);
+
+        virtual void updateForVertexIntersection(pmpBarycentricCoordinates &sourceBCs, point3 &sourcePoint, faceIndex &sourceFace, point3 &target, vector3 &displacementVector, vector3 &sourceNormal, vector<point3> vertexPositions, vector<vector3> &transportVectors, halfedgeIndex &lastUsedHalfedge, vertexIndex intersectedV, vector3 toIntersection);
+
+        bool verbose = false;
         shared_ptr<surfaceMeshShortestPath> globalSMSP;
         AABB_tree globalTree;
         bool submeshingActivated = false;
