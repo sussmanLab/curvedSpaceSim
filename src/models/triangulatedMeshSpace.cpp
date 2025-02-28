@@ -552,19 +552,21 @@ void triangulatedMeshSpace::updateForVertexIntersection(pmpBarycentricCoordinate
     //we don't need any of these if there are no vectors to transport
     if (transportVectors.size() > 0)
         {  
-        vector3 axisVector = normalize(CGAL::cross_product(sourceNormal,targetNormal)); 
-        vector<point3> axis = {sourcePoint, sourcePoint+axisVector}; 
         double normalDotProduct = sourceNormal*targetNormal;
         double angle = acos(normalDotProduct);
-        if (normalDotProduct >= 1) angle = 0; 
-
-        for (int i = 0; i < transportVectors.size(); i++)
-            {
-            vector3 vTr = transportVectors[i];
-            point3 vTrTarget = sourcePoint + vTr;
-            vTrTarget = rotateAboutAxis(vTrTarget, axis, angle);
-            transportVectors[i] = vector3(sourcePoint, vTrTarget);
-            }
+        // If normals are different, rotate -- if they're the same, rotating would cause issues with angle >= 1 & axis undefined.   
+        if (normalDotProduct < 0) 
+	    {
+            vector3 axisVector = normalize(CGAL::cross_product(sourceNormal,targetNormal)); 
+            vector<point3> axis = {sourcePoint, sourcePoint+axisVector}; 
+            for (int i = 0; i < transportVectors.size(); i++)
+                {
+                vector3 vTr = transportVectors[i];
+                point3 vTrTarget = sourcePoint + vTr;
+                vTrTarget = rotateAboutAxis(vTrTarget, axis, angle);
+                transportVectors[i] = vector3(sourcePoint, vTrTarget);
+                }
+	    }
         }	   
     //update source face index info and new bary coords in  the new face.
     sourceFace = targetFace;
@@ -589,22 +591,24 @@ void triangulatedMeshSpace::updateForEdgeIntersection(pmpBarycentricCoordinates 
     vector3 targetNormal = PMP::compute_face_normal(provisionalTargetFace,surface);
     double normalDotProduct = currentSourceNormal*targetNormal;
     double angle = acos(normalDotProduct);
-    if (normalDotProduct >= 1) 
-        angle = 0; //clamp for robustness against precision errors for very similar normals
-    vector3 axisVector = CGAL::cross_product(currentSourceNormal,targetNormal);
-    axisVector /= vectorMagnitude(axisVector); //this could use normalize if we wanted to
-    std::vector<point3> axis = {sourcePoint, sourcePoint+axisVector};
-
-    target = rotateAboutAxis(target, axis, angle);
-    displacementVector = vector3(sourcePoint, target); //move gets updated here
-
-    for (int i = 0; i < transportVectors.size(); i++) 
+    // only rotate if the two faces have different normals! 
+    if (normalDotProduct < 1) 
         {
-        vector3 vTr = transportVectors[i];
-        point3 vTrTarget = sourcePoint + vTr;
-        vTrTarget = rotateAboutAxis(vTrTarget, axis, angle);
-        transportVectors[i] = vector3(sourcePoint, vTrTarget);
-        }
+        vector3 axisVector = CGAL::cross_product(currentSourceNormal,targetNormal);
+        axisVector /= vectorMagnitude(axisVector); //this could use normalize if we wanted to
+        std::vector<point3> axis = {sourcePoint, sourcePoint+axisVector};
+
+        target = rotateAboutAxis(target, axis, angle);
+        displacementVector = vector3(sourcePoint, target); //move gets updated here
+
+        for (int i = 0; i < transportVectors.size(); i++) 
+            {
+            vector3 vTr = transportVectors[i];
+            point3 vTrTarget = sourcePoint + vTr;
+            vTrTarget = rotateAboutAxis(vTrTarget, axis, angle);
+            transportVectors[i] = vector3(sourcePoint, vTrTarget);
+            }
+	}
 
     //if we've gone through an edge, it can be excluded from future intersection checks
     lastUsedHalfedge = intersectedEdge;
