@@ -8,6 +8,13 @@ double vectorMagnitude(vector3 v)
 
 vector3 normalize(vector3 v)
     {
+    /*
+    if (vectorMagnitude(v) == 0) 
+        {
+	printf("Cannot normalize vector of magnitude 0.\n");
+        return v; 
+        }
+    */
     return v / vectorMagnitude(v);
     }
 

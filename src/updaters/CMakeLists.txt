@@ -10,4 +10,5 @@ add_library(updaters
     fireMinimization.cpp
     velocityVerletNVE.cpp
     noseHooverNVT.cpp
+    diffusiveSPP.cpp
     )
