@@ -1,3 +1,4 @@
+#include "baseDatabase.h"
 #include "std_include.h"
 #include <tclap/CmdLine.h>
 
@@ -98,8 +99,8 @@ vector3 vv;
     vector<double> posToSave;
     getFlatVectorOfPositions(configuration,posToSave);
 
-    vectorValueDatabase vvdat(posToSave.size(),"./flatSpaceTestTrajectory.nc",NcFile::Replace);
-    vvdat.writeState(posToSave,0);
+    valueVectorDatabase vvdat("./flatSpaceTestTrajectory.h5",posToSave.size(),fileMode::replace);
+    vvdat.writeState(0,posToSave);
 
     for (int ii = 0; ii < maximumIterations; ++ii)
         {
@@ -109,7 +110,7 @@ vector3 vv;
         if(ii%saveFrequency == saveFrequency-1)
             {
             getFlatVectorOfPositions(configuration,posToSave);
-            vvdat.writeState(posToSave,dt*ii);
+            vvdat.writeState(dt*ii,posToSave);
             double fNorm,fMax;
             fNorm = energyMinimizer->getForceNorm();
             fMax = energyMinimizer->getMaxForce();

@@ -142,9 +142,9 @@ int main(int argc, char*argv[])
     vector<double> posToSave;
     getFlatVectorOfPositions(configuration,posToSave);
     char dataname[256];
-    sprintf(dataname,"parallelTestTrajectory%i.nc",worldSize);
-    vectorValueDatabase vvdat(posToSave.size(),dataname,NcFile::Replace);
-    vvdat.writeState(posToSave,0);
+    sprintf(dataname,"parallelTestTrajectory%i.h5",worldSize);
+    valueVectorDatabase vvdat(dataname,posToSave.size(),fileMode::replace);
+    vvdat.writeState(0,posToSave);
     if(verbose)
         printf("preparing to run for %i steps\n",maximumIterations);
     double fNorm,fMax;
@@ -158,7 +158,7 @@ int main(int argc, char*argv[])
             {
             getFlatVectorOfPositions(configuration,posToSave);
             if(myRank ==0)
-                vvdat.writeState(posToSave,dt*ii);
+                vvdat.writeState(dt*ii,posToSave);
             if(programBranch <2)
                 {
                 fNorm = energyMinimizer->getForceNorm();

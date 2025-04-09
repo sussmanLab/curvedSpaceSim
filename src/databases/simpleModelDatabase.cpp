@@ -1,83 +1,59 @@
 #include "simpleModelDatabase.h"
+#include "baseDatabase.h"
+#include "baseHDF5Database.h"
+#include "debuggingHelp.h"
 /*! \file simpleModelDatabase.cpp */
 
 /*!
 Resize arrays and set whether to save various data entries
 */
-simpleModelDatabase::simpleModelDatabase(int numberOfParticles, string fn, NcFile::FileMode mode,
+simpleModelDatabase::simpleModelDatabase(int numberOfParticles, string fn, fileMode::Enum _mode,
                             bool saveVelocities, bool saveTypes, bool saveForces)
-    :BaseDatabaseNetCDF(fn,mode)
+    :baseHDF5Database(fn,mode)
     {
     velocity = saveVelocities;
     type = saveTypes;
     force = saveForces;
 
-    N=numberOfParticles;
-    dof = 3*N;
-    val=0.0;
-    vec.resize(dof);
-    switch(mode)
+    N = numberOfParticles;
+    timeVector.resize(1);
+    intVector.resize(N);
+    doubleVector.resize(N);
+    coordinateVector.resize(3*N);
+
+    if(mode == fileMode::replace)
         {
-        case NcFile::ReadOnly:
-            GetDimVar();
-            break;
-        case NcFile::Write:
-            GetDimVar();
-            break;
-        case NcFile::Replace:
-            SetDimVar();
-            break;
-        case NcFile::New:
-            SetDimVar();
-            break;
-        default:
-            ;
+        registerDatasets();
         };
-    };
-
-void simpleModelDatabase::SetDimVar()
-    {
-    //Set the dimensions
-    recDim = File.add_dim("record");
-    nDim = File.add_dim("numberOfParticles", N);
-    dofDim = File.add_dim("spatialDegreesOfFreedom", dof);
-    unitDim = File.add_dim("unit",1);
-
-    //Set the variables
-    timeVar = File.add_var("time",ncDouble,recDim);
-    positionVar = File.add_var("R3position",ncDouble,recDim,dofDim);
-    barycentricPositionVar = File.add_var("barycentricPosition",ncDouble,recDim,dofDim);
-    faceIndexVar = File.add_var("faceIndex",ncInt,recDim,nDim);
-
-    if(velocity)
-        velocityVar = File.add_var("velocity",ncDouble,recDim,dofDim);
-    if(force)
-        forceVar = File.add_var("force",ncDouble,recDim,dofDim);
-    if(type)
-        typeVar = File.add_var("type",ncInt,recDim,dofDim);
+    if(mode == fileMode::readwrite)
+        {
+        if (currentNumberOfRecords() ==0)
+            registerDatasets();
+        };
+    logMessage(logger::verbose, "modelDatabase initialized");
     }
 
-void simpleModelDatabase::GetDimVar()
+void simpleModelDatabase::registerDatasets()
     {
-    //Get the dimensions
-    recDim = File.get_dim("record");
-    nDim = File.get_dim("numberOfParticles");
-    dofDim = File.get_dim("spatialDegreesOfFreedom");
-    unitDim = File.get_dim("unit");
-
-    //Get the variables
-    timeVar = File.get_var("time");
-    positionVar = File.get_var("R3position");
-    barycentricPositionVar = File.get_var("barycentricPosition");
-    faceIndexVar = File.get_var("faceIndex");
+    registerExtendableDataset<double>("time", 1);
+    registerExtendableDataset<double>("R3position", 3*N);
+    registerExtendableDataset<double>("barycentricPosition", 3*N);
+    registerExtendableDataset<int>("faceIndex", N);
 
     if(velocity)
-        velocityVar = File.get_var("velocity");
+        registerExtendableDataset<double>("velocity", 3*N);
     if(force)
-        forceVar = File.get_var("force");
+        registerExtendableDataset<double>("force", 3*N);
     if(type)
-        typeVar = File.get_var("type");
+        registerExtendableDataset<int>("type", N);
     }
+
+
+unsigned long simpleModelDatabase::currentNumberOfRecords()
+    {
+    return getDatasetDimensions("time");
+    }
+
 
 /*!
 Save a record that always saves particle positions and optionally a few other
@@ -88,15 +64,20 @@ default (rec = -1) the record will be appended as a new record in the netcdf
 file.  If a specific index is given, it will be saved to that record instead
 (potentially overwriting existing information)
 */
-void simpleModelDatabase::writeState(STATE s, double time, int rec)
+void simpleModelDatabase::writeState(STATE s, double time, int record)
     {
-    int record = rec;
-    if(record<0)
-        record = recDim->size();
-    std::vector<double> r3pos(dof);
-    std::vector<double> baryPos(dof);
-    std::vector<double> vel(dof);
-    std::vector<double> forceVector(dof);
+    if(record >= 0)
+        ERRORERROR("overwriting specific records not implemented at the moment");
+
+    timeVector[0] = time;
+    extendDataset("time", timeVector);
+
+
+    std::vector<double> r3pos(3*N);
+    std::vector<double> baryPos(3*N);
+    std::vector<double> vel(3*N);
+    std::vector<double> forceVector(3*N);
+
     std::vector<int> typeVector(N);
     std::vector<int> faceIdx(N);
 
@@ -131,69 +112,52 @@ void simpleModelDatabase::writeState(STATE s, double time, int rec)
             typeVector[ii] = s->types[ii];
         };
 
+    extendDataset("R3position", r3pos);
+    extendDataset("barycentricPosition", baryPos);
+    extendDataset("faceIndex", faceIdx);
 
-    timeVar  -> put_rec(&time, record);
-    positionVar             ->put_rec(&r3pos[0],record);
-    barycentricPositionVar  ->put_rec(&baryPos[0],record);
-    faceIndexVar            ->put_rec(&faceIdx[0],record);
     if(velocity)
-        velocityVar         ->put_rec(&vel[0],record);
+        extendDataset("velocity", vel);
     if(force)
-        forceVar            ->put_rec(&forceVector[0],record);
+        extendDataset("force", forceVector);
     if(type)
-        typeVar             ->put_rec(&typeVector[0],record);
+        extendDataset("type", typeVector);
+    }
 
-    File.sync();
-    };
-/*!
-This loads the targeted record into the state.  If you want to load the last
-state in the file (or otherwise want to know what the options are), use the
-GetNumRecs() function of the database.  This will return an int, and the final
-record will be (GetNumRecs()-1).  Please also note that if you have not saved
-velocity and force information in the database and then run some equation of
-motion, the first timestep might be incorrect (i.e., with updaters that use a
-partial-timestep-scheme that first updates a position via current velocity,
-etc).
-*/
 void simpleModelDatabase::readState(STATE s, int rec)
     {
-    int totalRecords = GetNumRecs();
-    if (rec >= totalRecords)
-        {
-        printf("Trying to read a database entry that does not exist\n");
-        throw std::exception();
-        };
+    readDataset("time",timeVector,rec);
 
-    std::vector<double> baryPos(dof,0.);
-    std::vector<double> vel(dof,0.);
+
+    std::vector<double> baryPos(3*N,0.);
+    std::vector<double> vel(3*N,0.);
+    std::vector<double> forceVector(3*N,0.);
     std::vector<int> typeVector(N,0);
     std::vector<int> faceIdx(N,0);
 
-    barycentricPositionVar->set_cur(rec);
-    barycentricPositionVar -> get(&baryPos[0],1,dofDim->size());
-
-    faceIndexVar->set_cur(rec);
-    faceIndexVar-> get(&faceIdx[0],1,nDim->size());
+    readDataset("barycentricPosition",baryPos);
+    readDataset("faceIndex",faceIdx);
     if(velocity)
-        {
-        velocityVar ->set_cur(rec);
-        velocityVar ->get(&vel[0],1,dofDim->size());
-        };
+        readDataset("velocity",vel);
+    if(force)
+        readDataset("force",forceVector);
     if(type)
-        {
-        s->types.resize(N);
-        typeVar ->set_cur(rec);
-        typeVar-> get(&typeVector[0],1,nDim->size());
-        };
-
+        readDataset("type",typeVector);
 
     for (int ii = 0; ii < N; ++ii)
         {
         point3 baryP(baryPos[3*ii],baryPos[3*ii+1],baryPos[3*ii+2]);
-        vector3 v(vel[3*ii],vel[3*ii+1],vel[3*ii+2]);
         s->positions[ii] = meshPosition(baryP,faceIdx[ii]);
         if(velocity)
+            {
+            vector3 v(vel[3*ii],vel[3*ii+1],vel[3*ii+2]);
             s->velocities[ii] = v;
+            }
+        if(force)
+            {
+            vector3 f(forceVector[3*ii],forceVector[3*ii+1],forceVector[3*ii+2]);
+            s->forces[ii] = f;
+            }
         if(type)
             s->types[ii] = typeVector[ii];
         };

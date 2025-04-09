@@ -123,7 +123,7 @@ int main(int argc, char*argv[])
     profiler timer("various parts of the code");
 
     //by default, the simpleModelDatabase will save euclidean positions, mesh positions (barycentric + faceIdx), and particle velocities. See constructor for saving forces and/or particle types as well
-    simpleModelDatabase saveState(N,"./testModelDatabase.nc",NcFile::Replace);
+    simpleModelDatabase saveState(N,"./testModelDatabase.h5",fileMode::replace);
     saveState.writeState(configuration,0.0);
 
     for (int ii = 0; ii < maximumIterations; ++ii)
