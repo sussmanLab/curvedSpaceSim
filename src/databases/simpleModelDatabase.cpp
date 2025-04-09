@@ -9,7 +9,7 @@ Resize arrays and set whether to save various data entries
 */
 simpleModelDatabase::simpleModelDatabase(int numberOfParticles, string fn, fileMode::Enum _mode,
                             bool saveVelocities, bool saveTypes, bool saveForces)
-    :baseHDF5Database(fn,mode)
+    :baseHDF5Database(fn,_mode)
     {
     velocity = saveVelocities;
     type = saveTypes;
