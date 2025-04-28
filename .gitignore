@@ -36,3 +36,4 @@
 build/*
 debug/*
 .cache/*
+torus_spp_data/*
