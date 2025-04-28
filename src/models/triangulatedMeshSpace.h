@@ -42,6 +42,9 @@ class triangulatedMeshSpace : public baseSpace
         //!Get a random unit vector in the tangent space of the targget position
         virtual void randomVectorAtPosition(meshPosition &p, vector3 &v, noiseSource &noise);
 
+	//!rotate a vector at a given position by angle
+        virtual void rotateVectorAtPosition(meshPosition &p, vector3 &v, double angle);
+
         //!Get the area of the mesh
         virtual double getArea();
 

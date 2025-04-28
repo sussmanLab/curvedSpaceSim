@@ -13,6 +13,8 @@
 #include "harmonicRepulsion.h"
 #include "vectorValueDatabase.h"
 #include "cellListNeighborStructure.h"
+#include "simpleModelDatabase.h"
+
 #include "diffusiveSPP.h"
 
 #include "meshUtilities.h"
@@ -149,15 +151,12 @@ int main(int argc, char*argv[])
     simulator->addUpdater(selfPropelledUpdater,configuration); 
     
     profiler timer("various parts of the code");
-
-    vector<double> posToSave;
-    getFlatVectorOfPositions(configuration,posToSave);
      
     double scaledVelocity = velocity/(maximumInteractionRange/2); 
     cout << "mesh name substr " << meshName.substr(16,5) << endl; 
     string trajectoryFilename = "../torus_spp_data/SPP_N"+to_string(N)+"_Pe"+to_string(PecletNum)+"_af"+to_string(areaFraction)+meshName.substr(16,5)+".nc";
-    vectorValueDatabase vvdat(posToSave.size(),trajectoryFilename,NcFile::Replace);
-    vvdat.writeState(posToSave,0);
+    simpleModelDatabase saveState(N,trajectoryFilename,fileMode::replace);
+    saveState.writeState(configuration,0);
 
     //log spaced saving -- MAKE SURE TO PASS LAST ARG AS FLOAT
     vector<int> writeSteps = logSpacedIntegers(maximumIterations, 0, 1.0/100.0);
@@ -169,15 +168,10 @@ int main(int argc, char*argv[])
         printf("%i\n", step); 
 	}
     
-
     double energyState;
-  
-    getFlatVectorOfPositions(configuration,posToSave);
-    vvdat.writeState(posToSave,0);
     energyState = pairwiseForce->computeEnergy();
     printf("step %i E %.4g\n ", 0, energyState);
     placeInWriteSteps += 1;
-    
 
     for (int ii = 1; ii < maximumIterations; ++ii)
         { 
@@ -188,8 +182,7 @@ int main(int argc, char*argv[])
          
 	if(ii == writeSteps[placeInWriteSteps])
             {
-            getFlatVectorOfPositions(configuration,posToSave);
-            vvdat.writeState(posToSave,dt*ii);
+            saveState.writeState(configuration,dt*ii);
             energyState = pairwiseForce->computeEnergy();
             printf("step %i E %.4g\n ",ii, energyState);
 	    placeInWriteSteps += 1;
@@ -200,17 +193,3 @@ int main(int argc, char*argv[])
 
         return 0;
     };
-
-/*
-    //simple two test positions for a minimal check/sim -- intended for torus_isotropic_remesh.off surface
-    int f1 = 181;
-    point3 barys1(0.0338081, 0.873334, 0.0928577);
-    meshPosition loc1(barys1,f1);
-    int f2 =  945;
-    point3 barys2(0.500217, 0.339123, 0.16066);
-    meshPosition loc2(barys2,f2);
-    vector<meshPosition> testPositions;
-    testPositions.reserve(2);
-    testPositions.push_back(loc1);
-    testPositions.push_back(loc2);
-    */

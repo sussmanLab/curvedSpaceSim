@@ -130,6 +130,25 @@ void triangulatedMeshSpace::randomVectorAtPosition(meshPosition &p, vector3 &v, 
     v = noise.getRealNormal()*orthogonalizer+noise.getRealNormal()*tangent2;
     }
 
+void triangulatedMeshSpace::rotateVectorAtPosition(meshPosition &p, vector3 &v, double angle)
+    {
+    pmpFaceLocation positionLocation = meshPositionToFaceLocation(p);
+    faceIndex f = positionLocation.first;
+    //using built-in functions guarantees this will be the outward unit normal
+    vector3 normal = PMP::compute_face_normal(f, surface);
+
+    std::vector<point3> axis;
+    axis.reserve(2);
+    point3 origin = point3(0,0,0);
+    axis.push_back(origin);
+    axis.push_back(origin+normal); //goal is to move the velocity to point from origin out, rotate it, cut and glue to original pos
+
+    //perform the rotation
+    vector3 newVelocity(origin, rotateAboutAxis(origin + v, axis, angle));
+    //overwrite original vector with rotated version, which should be of the same magnitude
+    v = newVelocity;
+    }
+
 void triangulatedMeshSpace::convertToEuclideanPositions(std::vector<meshPosition> &a, std::vector<meshPosition> &b)
     {
     int N = a.size();
