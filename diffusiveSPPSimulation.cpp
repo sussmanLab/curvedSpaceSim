@@ -162,13 +162,13 @@ int main(int argc, char*argv[])
     //log spaced saving -- MAKE SURE TO PASS LAST ARG AS FLOAT
     vector<int> writeSteps = logSpacedIntegers(maximumIterations, 0, 1.0/100.0);
     int placeInWriteSteps = 0; 
-    /* 
+     
     cout << "writing at steps: " << endl;
     for (int step: writeSteps) 
         {
         printf("%i\n", step); 
 	}
-    */
+    
 
     double energyState;
   
@@ -178,37 +178,6 @@ int main(int argc, char*argv[])
     printf("step %i E %.4g\n ", 0, energyState);
     placeInWriteSteps += 1;
     
-    cout << "face 3591 positions..." << endl;
-    std::vector<point3> result; 
-    point3 nullPoint(0,0,0); 
-    result.push_back(nullPoint); 
-    result.push_back(nullPoint); 
-    result.push_back(nullPoint);
-    faceIndex badIndex = faceIndex(3591); 
-    cout <<"index is " << badIndex << endl;
-    cout <<"total number of faces? " << size(meshSpace->surface.faces()) << endl;
-    getVertexPositionsFromFace(meshSpace->surface, badIndex, result);
-    printPoint(result[0]);
-    printf(", "); 
-    printPoint(result[1]);
-    printf(", ");  
-    printPoint(result[2]);
-    printf("\n");
-    
-    faceIndex checkThis = faceIndex(3242);
-    faceIndex checkThisToo = faceIndex(3243);
-
-    faceIndex checkThisAlso = faceIndex(3590); 
-    faceIndex andThis = faceIndex(3591); 
-
-    vector3 n1 = PMP::compute_face_normal(checkThis, meshSpace->surface);
-    vector3 n2 = PMP::compute_face_normal(checkThisToo, meshSpace->surface);
-
-    cout << "3242 normal: " << n1 << endl;
-    cout << "3243 normal: " << n2 << endl;
-
-    cout << "face " << checkThisAlso << " normal " << PMP::compute_face_normal(checkThisAlso, meshSpace->surface) << endl;
-    cout << "face " << andThis << " normal " << PMP::compute_face_normal(andThis, meshSpace->surface) << endl;
 
     for (int ii = 1; ii < maximumIterations; ++ii)
         { 
@@ -217,8 +186,7 @@ int main(int argc, char*argv[])
         simulator->performTimestep();        
         timer.end(); 
          
-        if(ii%saveFrequency == saveFrequency-1)
-	//if(ii == writeSteps[placeInWriteSteps])
+	if(ii == writeSteps[placeInWriteSteps])
             {
             getFlatVectorOfPositions(configuration,posToSave);
             vvdat.writeState(posToSave,dt*ii);
