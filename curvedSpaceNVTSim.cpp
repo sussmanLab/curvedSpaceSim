@@ -130,7 +130,7 @@ int main(int argc, char*argv[])
     string distancesFilename = "../sphere_data/NVTrun_N" + to_string(N) + "_a"+to_string(maximumInteractionRange) + "_distances.csv";
     std::ofstream distancesFile(distancesFilename);
     double largeDouble = 10000.0;
-    int bonusTime = 3; 
+    int bonusTime = 2; 
 
     for (int ii = 0; ii < bonusTime*maximumIterations; ++ii)
         {
