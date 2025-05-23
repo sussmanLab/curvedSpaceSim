@@ -1,31 +1,28 @@
-#ifndef baseDatabase_h
-#define baseDatabase_h
+#ifndef BASEDATABASE_H
+#define BASEDATABASE_H
+#include <string>
+#include "loggableObject.h"
 
-#include "std_include.h"
-#include "simpleModel.h"
-
-/*! \file BaseDatabase.h */
-//! A base class defining the operations of a database save and read scheme
-
-class baseDatabase
+//!A structure for declaring how we want to access data (read, write, overwrite?)
+struct fileMode
     {
-    protected:
-        typedef shared_ptr<simpleModel> STATE;
+    //!An enumeration of possibilities
+    enum Enum
+        {
+        readonly,       //!< we just want to read
+        readwrite,  //!< we intend to both read and write
+        replace   //!< we will completely overwrite all of the data
+        };
+    };
+
+//!  baseDatabaseInformation just has a filename and an access mode
+class baseDatabaseInformation : public loggableObject
+    {
     public:
-        //! Base constructure takes a bland filename in readonly mode
-        baseDatabase(string fn="temp.txt", int mode=-1):filename(fn), Mode(mode),Records(0){};
-        virtual ~baseDatabase() = default;
-        //!The name of the file
-        string filename;
-        //!The desired mode (integer representation of replace, new, write, readonly, etc)
-        const int Mode;
+        baseDatabaseInformation() : loggableObject("database") {};
+        std::string filename;
+        fileMode::Enum mode;
         //!The number of saved records in the database
         int Records;
-
-        //!Write the current state; if the default value of rec=-1 is used, add a new entry
-        virtual void writeState(STATE c, double time = -1.0, int rec = -1){};
-        //Read the rec state of the database. If geometry = true, call computeGeometry routines (instead of just reading in the d.o.f.s)
-        virtual void readState(STATE c, int rec, bool geometry = true){};
-
     };
 #endif

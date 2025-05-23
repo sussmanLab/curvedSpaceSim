@@ -1,50 +1,53 @@
 #ifndef simpleModelDatabase_h
 #define simpleModelDatabase_h
 
-#include "DatabaseNetCDF.h"
+#include "baseHDF5Database.h"
 #include "simpleModel.h"
 
 /*! \file simpleModelDatabase.h */
 //! A database to save states of simpleModels
 /*!
-There is one unlimited dimension, and each record can store a time and vector information associated with the model state.
-The database always saves position information; flags on the constructor control whether other information is stored
+There is one unlimited dimension, and each record can store a time and vector information associated with the model
+state. The database always saves position information; flags on the constructor control whether other information is
+stored
 */
-class simpleModelDatabase : public BaseDatabaseNetCDF
+class simpleModelDatabase : public baseHDF5Database
     {
-    public:
-        simpleModelDatabase(int numberOfParticles, string fn="temp.nc", NcFile::FileMode mode=NcFile::ReadOnly,
-                            bool saveVelocities = true, bool saveTypes = false, bool saveForces = false);
-        ~simpleModelDatabase(){File.close();};
+public:
+    simpleModelDatabase(int numberOfParticles,
+                        string fn = "temp.h5",
+                        fileMode::Enum _mode = fileMode::readonly,
+                        bool saveVelocities = true,
+                        bool saveTypes = false,
+                        bool saveForces = false);
 
-        //! NcDims we'll use
-        NcDim *recDim, *nDim,*dofDim, *unitDim;
-        //! NcVars
-        NcVar *timeVar, *positionVar, *barycentricPositionVar,*faceIndexVar, *velocityVar, *typeVar, *forceVar;
-        //!read values in a new value and vector
-        virtual void readState(STATE s, int rec);
-        //!write a new value and vector
-        virtual void writeState(STATE s, double time = -1, int rec = -1);
+    //! Write the current state of the system to the database. If the default value of "rec=-1" is used, just append the
+    //! current state to a new record at the end of the database
+    virtual void writeState(STATE c, double time = -1.0, int rec = -1);
+    //! Read the "rec"th entry of the database into SPV2D state c. If geometry=true, the local geometry of cells
+    //! computed (so that further simulations can be run); set to false if you just want to load and analyze
+    //! configuration data.
+    virtual void readState(STATE c, int rec);
 
+private:
+    typedef shared_ptr<simpleModel> STATE;
+    int N; //!< number of points
+    int Current; //!< keeps track of the current record when in write mode
 
+    //! a vector of length 1
+    std::vector<double> timeVector;
+    //! a vector of length 3*N
+    std::vector<double> coordinateVector;
+    //! a vector of length N
+    std::vector<double> doubleVector;
+    //! a vector of length N
+    std::vector<int> intVector;
+    //! The number of frames that have been saved so far
+    unsigned long currentNumberOfRecords();
 
-    protected:
-        //! Set all of the netcdf dimensions and variables in the file (for creating or writing new files)
-        void SetDimVar();
-        //! When reading (or writing to an existing files) load in the pre-existing netcdf info
-        void GetDimVar();
-        //!number of particles in the model
-        int N;
-        //!size of the vectors
-        int dof;
-        //! a variable that can be loaded when a state is read
-        double val;
-        //! a vector for reading doubles in and out
-        vector<double> vec;
+    void registerDatasets();
 
-        //! flags for whether to save and/or load different data structures
-        bool velocity, type,force;
-        typedef shared_ptr<simpleModel> STATE;
+    //! flags for whether to save and/or load different data structures
+    bool velocity, type, force;
     };
 #endif
-

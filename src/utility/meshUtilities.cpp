@@ -1,4 +1,5 @@
 #include "meshUtilities.h"
+#include "debuggingHelp.h"
 #include "std_include.h"
 
 smspFaceLocation meshPositionToFaceLocation(const meshPosition &p)

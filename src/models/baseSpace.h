@@ -2,6 +2,7 @@
 #define baseSpace_H
 
 #include "std_include.h"
+#include "debuggingHelp.h"
 #include <vector>
 #include "pointDataType.h"
 #include "cgalIncludesAndTypedefs.h"

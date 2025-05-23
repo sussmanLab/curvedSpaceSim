@@ -1,7 +1,6 @@
 #include "std_include.h"
 #include <tclap/CmdLine.h>
 
-
 #include "profiler.h"
 #include "noiseSource.h"
 #include "triangulatedMeshSpace.h"
@@ -13,6 +12,8 @@
 #include "harmonicRepulsion.h"
 #include "vectorValueDatabase.h"
 #include "cellListNeighborStructure.h"
+#include "simpleModelDatabase.h"
+
 #include "diffusiveSPP.h"
 
 #include "meshUtilities.h"
@@ -149,66 +150,27 @@ int main(int argc, char*argv[])
     simulator->addUpdater(selfPropelledUpdater,configuration); 
     
     profiler timer("various parts of the code");
-
-    vector<double> posToSave;
-    getFlatVectorOfPositions(configuration,posToSave);
      
     double scaledVelocity = velocity/(maximumInteractionRange/2); 
     cout << "mesh name substr " << meshName.substr(16,5) << endl; 
     string trajectoryFilename = "../torus_spp_data/SPP_N"+to_string(N)+"_Pe"+to_string(PecletNum)+"_af"+to_string(areaFraction)+meshName.substr(16,5)+".nc";
-    vectorValueDatabase vvdat(posToSave.size(),trajectoryFilename,NcFile::Replace);
-    vvdat.writeState(posToSave,0);
+    simpleModelDatabase saveState(N,trajectoryFilename,fileMode::replace);
+    saveState.writeState(configuration,0);
 
     //log spaced saving -- MAKE SURE TO PASS LAST ARG AS FLOAT
     vector<int> writeSteps = logSpacedIntegers(maximumIterations, 0, 1.0/100.0);
     int placeInWriteSteps = 0; 
-    /* 
+     
     cout << "writing at steps: " << endl;
     for (int step: writeSteps) 
         {
         printf("%i\n", step); 
 	}
-    */
-
+    
     double energyState;
-  
-    getFlatVectorOfPositions(configuration,posToSave);
-    vvdat.writeState(posToSave,0);
     energyState = pairwiseForce->computeEnergy();
     printf("step %i E %.4g\n ", 0, energyState);
     placeInWriteSteps += 1;
-    
-    cout << "face 3591 positions..." << endl;
-    std::vector<point3> result; 
-    point3 nullPoint(0,0,0); 
-    result.push_back(nullPoint); 
-    result.push_back(nullPoint); 
-    result.push_back(nullPoint);
-    faceIndex badIndex = faceIndex(3591); 
-    cout <<"index is " << badIndex << endl;
-    cout <<"total number of faces? " << size(meshSpace->surface.faces()) << endl;
-    getVertexPositionsFromFace(meshSpace->surface, badIndex, result);
-    printPoint(result[0]);
-    printf(", "); 
-    printPoint(result[1]);
-    printf(", ");  
-    printPoint(result[2]);
-    printf("\n");
-    
-    faceIndex checkThis = faceIndex(3242);
-    faceIndex checkThisToo = faceIndex(3243);
-
-    faceIndex checkThisAlso = faceIndex(3590); 
-    faceIndex andThis = faceIndex(3591); 
-
-    vector3 n1 = PMP::compute_face_normal(checkThis, meshSpace->surface);
-    vector3 n2 = PMP::compute_face_normal(checkThisToo, meshSpace->surface);
-
-    cout << "3242 normal: " << n1 << endl;
-    cout << "3243 normal: " << n2 << endl;
-
-    cout << "face " << checkThisAlso << " normal " << PMP::compute_face_normal(checkThisAlso, meshSpace->surface) << endl;
-    cout << "face " << andThis << " normal " << PMP::compute_face_normal(andThis, meshSpace->surface) << endl;
 
     for (int ii = 1; ii < maximumIterations; ++ii)
         { 
@@ -217,11 +179,9 @@ int main(int argc, char*argv[])
         simulator->performTimestep();        
         timer.end(); 
          
-        if(ii%saveFrequency == saveFrequency-1)
-	//if(ii == writeSteps[placeInWriteSteps])
+	if(ii == writeSteps[placeInWriteSteps])
             {
-            getFlatVectorOfPositions(configuration,posToSave);
-            vvdat.writeState(posToSave,dt*ii);
+            saveState.writeState(configuration,dt*ii);
             energyState = pairwiseForce->computeEnergy();
             printf("step %i E %.4g\n ",ii, energyState);
 	    placeInWriteSteps += 1;
@@ -232,17 +192,3 @@ int main(int argc, char*argv[])
 
         return 0;
     };
-
-/*
-    //simple two test positions for a minimal check/sim -- intended for torus_isotropic_remesh.off surface
-    int f1 = 181;
-    point3 barys1(0.0338081, 0.873334, 0.0928577);
-    meshPosition loc1(barys1,f1);
-    int f2 =  945;
-    point3 barys2(0.500217, 0.339123, 0.16066);
-    meshPosition loc2(barys2,f2);
-    vector<meshPosition> testPositions;
-    testPositions.reserve(2);
-    testPositions.push_back(loc1);
-    testPositions.push_back(loc2);
-    */

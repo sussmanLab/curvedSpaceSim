@@ -5,8 +5,10 @@
 #include "profiler.h"
 #include "noiseSource.h"
 #include "triangulatedMeshSpace.h"
+#include "tangentialOpenMeshSpace.h"
 #include "simulation.h"
-#include "noseHooverNVT.h"
+#include "gradientDescent.h"
+#include "fireMinimization.h"
 #include "velocityVerletNVE.h"
 #include "simpleModel.h"
 #include "gaussianRepulsion.h"
@@ -37,20 +39,20 @@ int main(int argc, char*argv[])
     CmdLine cmd("simulations in curved space!",' ',"V0.9");
 
     //define the various command line strings that can be passed in...
-    //ValueArg<T> variableName("shortflag","longFlag","description",required or not, default value,"value type",CmdLine object to add to
     ValueArg<int> programBranchSwitchArg("z","programBranchSwitch","an integer controlling program branch",false,0,"int",cmd);
     ValueArg<int> particleNumberSwitchArg("n","number","number of particles to simulate",false,20,"int",cmd);
     ValueArg<int> iterationsArg("i","iterations","number of performTimestep calls to make",false,1000,"int",cmd);
     ValueArg<int> saveFrequencyArg("s","saveFrequency","how often a file gets updated",false,100,"int",cmd);
-    ValueArg<int> chainLengthArg("l", "M", "length of N-H chain", false, 2, "int", cmd); 
     ValueArg<string> meshSwitchArg("m","meshSwitch","filename of the mesh you want to load",false,"../exampleMeshes/torus_isotropic_remesh.off","string",cmd);
-    ValueArg<double> interactionRangeArg("a","interactionRange","range ofthe interaction to set for both potential and cell list",false,1.,"double",cmd);
+    ValueArg<double> areaFractionArg("a","areaFraction","degree of coverage you want f",false,1.,"double",cmd);
     ValueArg<double> deltaTArg("e","dt","timestep size",false,.01,"double",cmd);
     ValueArg<double> temperatureArg("t","T","temperature to set",false,.2,"double",cmd);
 
     SwitchArg reproducibleSwitch("r","reproducible","reproducible random number generation", cmd, true);
     SwitchArg dangerousSwitch("d","dangerousMeshes","meshes where submeshes are dangerous", cmd, false);
     SwitchArg verboseSwitch("v","verbose","output more things to screen ", cmd, false);
+
+
 
     //parse the arguments
     cmd.parse( argc, argv );
@@ -59,20 +61,22 @@ int main(int argc, char*argv[])
     int N = particleNumberSwitchArg.getValue();
     int maximumIterations = iterationsArg.getValue();
     int saveFrequency = saveFrequencyArg.getValue();
-    int M = chainLengthArg.getValue(); 
     string meshName = meshSwitchArg.getValue();
     double dt = deltaTArg.getValue();
-    double maximumInteractionRange= interactionRangeArg.getValue();
+    double areaFraction = areaFractionArg.getValue();
     double temperature = temperatureArg.getValue();
     bool verbose= verboseSwitch.getValue();
     bool reproducible = reproducibleSwitch.getValue();
     bool dangerous = dangerousSwitch.getValue(); //not used right now
 
-    shared_ptr<triangulatedMeshSpace> meshSpace=make_shared<triangulatedMeshSpace>();
+    shared_ptr<tangentialOpenMeshSpace> meshSpace=make_shared<tangentialOpenMeshSpace>();
     meshSpace->loadMeshFromFile(meshName,verbose);
     meshSpace->useSubmeshingRoutines(false);
-    if(programBranch >0)
+    double area = totalArea(meshSpace->surface);
+    double maximumInteractionRange = 2*sqrt(areaFraction*area/(N*M_PI)); //set maximum interaction range via 2-D disk areas
+    if(programBranch >=0)
         meshSpace->useSubmeshingRoutines(true,maximumInteractionRange,dangerous);
+    
 
     shared_ptr<simpleModel> configuration=make_shared<simpleModel>(N);
     configuration->setVerbose(verbose);
@@ -80,7 +84,7 @@ int main(int argc, char*argv[])
 
     //set up the cellListNeighborStructure, which needs to know how large the mesh is
     shared_ptr<cellListNeighborStructure> cellList = make_shared<cellListNeighborStructure>(meshSpace->minVertexPosition,meshSpace->maxVertexPosition,maximumInteractionRange);
-    if(programBranch >= 1)
+    if(programBranch >= 0)
         configuration->setNeighborStructure(cellList);
 
     //for testing, just initialize particles randomly in a small space. Similarly, set random velocities in the tangent plane
@@ -96,31 +100,72 @@ int main(int argc, char*argv[])
     simulator->setConfiguration(configuration);
     simulator->addForce(pairwiseForce);
 
-    //for now we fix timescale (tau) at 1.0
-    cout << "number of N-H masses: " << M << endl; 
-    shared_ptr<noseHooverNVT> NVTUpdater=make_shared<noseHooverNVT>(dt, temperature, 1.0, M);
-    NVTUpdater->setModel(configuration);
-    simulator->addUpdater(NVTUpdater,configuration);
-    
+    shared_ptr<gradientDescent> energyMinimizer=make_shared<gradientDescent>(dt);
+    shared_ptr<fireMinimization> energyMinimizerFire=make_shared<fireMinimization>();
+    shared_ptr<velocityVerletNVE> nve=make_shared<velocityVerletNVE>(dt);
+    if(programBranch >=2)
+        {
+        cout <<"running nve" << endl;
+        nve->setModel(configuration);
+        simulator->addUpdater(nve,configuration);
+        }
+    else if (programBranch >=1)
+        {
+        cout <<"running gradient descent" << endl;
+        energyMinimizer->setModel(configuration);
+        simulator->addUpdater(energyMinimizer,configuration);
+        }
+    else
+        {
+        cout <<"running FIRE minimization" << endl;
+        energyMinimizerFire->setModel(configuration);
+        simulator->addUpdater(energyMinimizerFire,configuration);
+        }
     profiler timer("various parts of the code");
 
+    /*
+    vector<double> posToSave;
+    getFlatVectorOfPositions(configuration,posToSave);
+
+    vectorValueDatabase vvdat(posToSave.size(),"./testTrajectory.h5",fileMode::replace);
+    vvdat.writeState(posToSave,0);
+    */
+
     //by default, the simpleModelDatabase will save euclidean positions, mesh positions (barycentric + faceIdx), and particle velocities. See constructor for saving forces and/or particle types as well
-    simpleModelDatabase saveState(N,"./testModelDatabase.h5",fileMode::replace);
+    simpleModelDatabase saveState(N,"./tangentialTestModelDatabase.h5",fileMode::replace);
     saveState.writeState(configuration,0.0);
 
-    for (int ii = 0; ii < 2*maximumIterations; ++ii)
+    for (int ii = 0; ii < maximumIterations; ++ii)
         {
         timer.start();
         simulator->performTimestep();
         timer.end();
         if(ii%saveFrequency == saveFrequency-1)
             {
+            /*
+            getFlatVectorOfPositions(configuration,posToSave);
+            vvdat.writeState(posToSave,dt*ii);
+            */
             saveState.writeState(configuration,dt*ii);
-            double nowTemp = NVTUpdater->getTemperatureFromKE();
-            printf("step %i T %f \n",ii,nowTemp);
-	    }
+            if(programBranch ==1)
+                {
+                double fNorm,fMax;
+                fNorm = energyMinimizer->getForceNorm();
+                fMax = energyMinimizer->getMaxForce();
+                printf("step %i fN %g fM %g\n",ii,fNorm,fMax);
+                }
+            else
+                printf("step %i \n",ii);
+            }
         }
-    
+    if(programBranch ==0)
+        {
+        double fNorm,fMax;
+        fNorm = energyMinimizerFire->getForceNorm();
+        fMax = energyMinimizerFire->getMaxForce();
+        printf("fN %g fM %g\n",fNorm,fMax);
+        }
+
     timer.print();
 
     return 0;
