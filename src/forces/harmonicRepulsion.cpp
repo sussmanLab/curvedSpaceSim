@@ -6,7 +6,7 @@ double harmonicRepulsion::pairwiseEnergy(vector3 separation,double distance)
     if(monodisperse)
         {
         if(distance < sigma)
-            ans = 0.5*k*(1-distance/sigma)*(1-distance/sigma);
+            ans = 0.5*k*(sigma-distance)*(sigma-distance);
         }
     else
         {
@@ -23,9 +23,7 @@ vector3 harmonicRepulsion::pairwiseForce(vector3 separation,double distance)
         {
         if(distance <= sigma)
             {
-            //kDelta is dU/d\delta
-            double kDelta = k*(1.0-distance/sigma);
-            ans = -(kDelta/sigma)*separation;
+            ans = -k*(sigma-distance)*separation;
             }
         }
     else
