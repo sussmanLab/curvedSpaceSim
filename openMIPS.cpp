@@ -1,9 +1,16 @@
+/* 
+Simulate active Brownian particles on a surface. 
+Original edit by Helen Ansell; modified for reflecting boundaries by Toler Webb
+*/
+
 #include "std_include.h"
 #include <tclap/CmdLine.h>
+
 
 #include "profiler.h"
 #include "noiseSource.h"
 #include "triangulatedMeshSpace.h"
+#include "reflectingOpenMeshSpace.h"
 #include "simulation.h"
 #include "gradientDescent.h"
 #include "velocityVerletNVE.h"
@@ -17,6 +24,7 @@
 #include "diffusiveSPP.h"
 
 #include "meshUtilities.h"
+
 
 void getFlatVectorOfPositions(shared_ptr<simpleModel> model, vector<double> &pos)
     {
@@ -59,6 +67,7 @@ vector<int> logSpacedIntegers(int nMax, int firstSave = 0, double exp = 1.0/20.0
     return logSpacedIntVector; 
     };
 
+
 using namespace TCLAP;
 int main(int argc, char*argv[])
     {
@@ -68,62 +77,80 @@ int main(int argc, char*argv[])
     
     //define the various command line strings that can be passed in...
     //ValueArg<T> variableName("shortflag","longFlag","description",required or not, default value,"value type",CmdLine object to add to
-    ValueArg<int> programBranchSwitchArg("z","programBranchSwitch","an integer controlling program branch",false,0,"int",cmd);
+    ValueArg<int> subMeshingSwitchArg("z","submeshingSwitch","an integer controlling program branch",false,1,"int",cmd);
     ValueArg<int> particleNumberSwitchArg("n","number","number of particles to simulate",false,2,"int",cmd);
-    ValueArg<int> iterationsArg("i","iterations","number of performTimestep calls to make",false,1000,"int",cmd);
-    ValueArg<int> saveFrequencyArg("s","saveFrequency","how often a file gets updated",false,100,"int",cmd);
-    ValueArg<string> meshSwitchArg("m","meshSwitch","filename of the mesh you want to load",false,"../exampleMeshes/torus_isotropic_remesh.off","string",cmd);
-    ValueArg<double> areaFractionArg("a","areaFraction","extent to which particle areas cover the surface",false,0.9,"double",cmd);
-    ValueArg<double> deltaTArg("e","dt","timestep size",false,.01,"double",cmd);
-    ValueArg<double> temperatureArg("t","T","temperature to set",false,0.0,"double",cmd);
+    ValueArg<int> tMaxArg("i","tMax","number of time units to run the simulation for",false,100,"int",cmd);
+    ValueArg<int> saveFrequencyArg("f","saveFrequency","how often a file gets updated",false,100,"int",cmd);
+    ValueArg<int> sampleNoArg("c","sampleNo","sample identifier for this set of parameters",false,1,"int",cmd);
+    ValueArg<string> meshSwitchArg("m","meshSwitch","filename of the mesh you want to load",false,"../exampleMeshes/gaussianBump_vx0.500_vy1.000_rbound0.020_dbound0.100.off","string",cmd);
+    ValueArg<string> savePathArg("s","fileSavePath","path to where data will be saved",false,"../misc_spp_data/","string",cmd); 
+    ValueArg<double> deltaTArg("t","dt","timestep size",false,0.01,"double",cmd);
+    ValueArg<double> areaFractionArg("a","areaFraction","extent to which particle areas cover the surface",false,0.6,"double",cmd);
+    
+    //ValueArg<double> DrArg("D", "Dr", "rotational diffusion rate", false, 1.0, "double", cmd);
+    //ValueArg<double> v0Arg("v","v0","Self propulsion velocity",false,0.01,"double",cmd);
+    ValueArg<double> temperatureArg("T","temp","temperature to set",false,0.0,"double",cmd);
     ValueArg<double> pecletArg("P", "Per", "rotational peclet number", false, 100.0, "double", cmd); 
     ValueArg<double> mobilityArg("q", "mu", "particle mobility", false, 1.0, "double", cmd); 
-    ValueArg<double> DrArg("D", "Dr", "rotational diffusion rate", false, 1.0, "double", cmd); 
-    SwitchArg reproducibleSwitch("r","reproducible","reproducible random number generation", cmd, true);
+
+    ValueArg<double> stiffnessArg("k","stiffness","Stiffness of harmonic repulsion",false,1.0,"double",cmd);
+    SwitchArg reproducibleSwitch("r","reproducible","reproducible random number generation", cmd, false);
     SwitchArg verboseSwitch("w","verbose","output more things to screen ", cmd, false);
-    SwitchArg dangerousSwitch("d", "dangerousMeshes", "meshes where submeshes are dangerous", cmd, false);
-    SwitchArg linearSpacingSwitch("l", "linearSpacing", "space save steps linearly instead of logarithmically", cmd, false);
 
     //parse the arguments
     cmd.parse( argc, argv );
     //define variables that correspond to the command line parameters
-    int programBranch = programBranchSwitchArg.getValue();
+    int programBranch = subMeshingSwitchArg.getValue();
     int N = particleNumberSwitchArg.getValue();
-    int maximumIterations = iterationsArg.getValue();
+    int tMax = tMaxArg.getValue();
     int saveFrequency = saveFrequencyArg.getValue();
+    int sampleNo = sampleNoArg.getValue();
     string meshName = meshSwitchArg.getValue();
-    double dt = deltaTArg.getValue();
+    string savePath = savePathArg.getValue();  
     double areaFraction = areaFractionArg.getValue();
+    double dt = deltaTArg.getValue();
+    //double v0 = v0Arg.getValue();
+    //double Drt = DrtArg.getValue(); 
     double temperature = temperatureArg.getValue();
     double Per = pecletArg.getValue();
     double mobility = mobilityArg.getValue();
-    double Dr = DrArg.getValue(); 
+    double stiffness = stiffnessArg.getValue();
     bool verbose= verboseSwitch.getValue();
     bool reproducible = reproducibleSwitch.getValue();
-    bool dangerous = dangerousSwitch.getValue(); //not used right now
-    bool spaceLinearly = linearSpacingSwitch.getValue();
-
-    int PecletNum = floor(Per); //peclet number for later naming
+    
+    //int PecletNum = floor(Per); //peclet number for later naming
     cout << "Initialize mesh from file " << meshName << endl;
     //set space as a triangulatedMeshSpace
-    shared_ptr<triangulatedMeshSpace> meshSpace=make_shared<triangulatedMeshSpace>();
+    shared_ptr<reflectingOpenMeshSpace> meshSpace=make_shared<reflectingOpenMeshSpace>();
     meshSpace->loadMeshFromFile(meshName,verbose);
     meshSpace->useSubmeshingRoutines(false);
     double area = totalArea(meshSpace->surface);
-    double maximumInteractionRange = 2*sqrt(areaFraction*area/(N*M_PI)); 
-   
-    if(programBranch >0)
-        meshSpace->useSubmeshingRoutines(true,maximumInteractionRange,dangerous);
-    
-    double velocity = (maximumInteractionRange/2)*Dr*Per;
 
+    // Particle radius
+    double sigma = 2*sqrt(areaFraction*area/(N*M_PI)); 
+    
+    // Self-propulsion velocity -- dimensionless velocity is v0t = v0/(sigma mu k)
+    // mu - mobility, k - stiffness
+    // Here we set v0 = sigma
+    double v0 = sigma;
+
+    //Diffusion constant -- dimensionless diffusion constant is Drt = Dr/(mu k)
+    double Dr = 1/Per; //With v0=sigma, we have Per=1/Dr
+
+    int maximumIterations = int(tMax/dt);
+
+    cout << "sigma = " << sigma << "\tv0 = " << v0 << "\tDr = " << Dr << endl;
+    cout << "Pe = " << Per << "\tarea fraction =  " << areaFraction << "\tstiffness = " << stiffness << endl;
+
+    if(programBranch >0) meshSpace->useSubmeshingRoutines(true,sigma,false);
+    
     //set model as "configuration" 
     shared_ptr<simpleModel> configuration=make_shared<simpleModel>(N);
     configuration->setVerbose(verbose);
     configuration->setSpace(meshSpace);
 
     //set up the cellListNeighborStructure, which needs to know how large the mesh is
-    shared_ptr<cellListNeighborStructure> cellList = make_shared<cellListNeighborStructure>(meshSpace->minVertexPosition,meshSpace->maxVertexPosition,maximumInteractionRange);
+    shared_ptr<cellListNeighborStructure> cellList = make_shared<cellListNeighborStructure>(meshSpace->minVertexPosition,meshSpace->maxVertexPosition,sigma);
     if(programBranch >= 1)
         configuration->setNeighborStructure(cellList);
 
@@ -133,7 +160,7 @@ int main(int argc, char*argv[])
     configuration->setRandomParticlePositions(*noise);
 
     //create force
-    shared_ptr<harmonicRepulsion> pairwiseForce = make_shared<harmonicRepulsion>(1.0,maximumInteractionRange);//stiffness and sigma. this is a monodisperse setting
+    shared_ptr<harmonicRepulsion> pairwiseForce = make_shared<harmonicRepulsion>(stiffness,sigma);//stiffness and sigma. this is a monodisperse setting
     pairwiseForce->setModel(configuration);
 
     //create simulation wrapper
@@ -143,7 +170,7 @@ int main(int argc, char*argv[])
     
     //define updater -- for diffusive spp, sequence is (double _dt, shared_ptr<noiseSource> noise, double _v0 = 1.0, double _noiseStrength = 1.0, double _mobility = 1.0, double _temperature = 0, bool _reproducible=false)
     //noise strength gets overwritten using Dr below (setRotationalDiffusionConstant)
-    shared_ptr<diffusiveSPP> selfPropelledUpdater = make_shared<diffusiveSPP>(dt, noise, velocity, 1, mobility, temperature, reproducible);
+    shared_ptr<diffusiveSPP> selfPropelledUpdater = make_shared<diffusiveSPP>(dt, noise, v0, 1, mobility, temperature, reproducible);
    
     selfPropelledUpdater->setModel(configuration);
     selfPropelledUpdater->initializeRandomVelocities();
@@ -153,59 +180,60 @@ int main(int argc, char*argv[])
     
     profiler timer("various parts of the code");
      
-    double scaledVelocity = velocity/(maximumInteractionRange/2); 
-    cout << "mesh name substr " << meshName.substr(16,5) << endl; 
-    string trajectoryFilename = "../torus_spp_data/SPP_N"+to_string(N)+"_Pe"+to_string(PecletNum)+"_af"+to_string(areaFraction)+meshName.substr(16,5)+".h5";
-    simpleModelDatabase saveState(N,trajectoryFilename,fileMode::replace);
-    saveState.writeState(configuration,0);
+    // Format mesh name for output
+    string meshFileName= meshName.substr(meshName.find_last_of("/") + 1);
+    string extension = ".off";
+
+    meshFileName = meshFileName.substr(0, meshFileName.size() - extension.size());
+
+    cout << meshFileName << endl;
+
+    char outputFileName[512];
+  
+    sprintf(outputFileName, "%s/SPP_N%i_Pe%.2f_areaFraction%.3f_k%.3f_sigma%.3f_v%.4f_Dr%.5f_tMax%i_mesh_%s_sample%i.h5",savePath.c_str(),N,Per,areaFraction,stiffness,sigma,v0,Dr,tMax, meshFileName.c_str(),sampleNo);
+
+    simpleModelDatabase saveState(N,outputFileName,fileMode::replace);
+    //saveState.writeState(configuration,0);
 
     //log spaced saving -- MAKE SURE TO PASS LAST ARG AS FLOAT
-    vector<int> writeSteps;
-    if (spaceLinearly)
-	{
-        for (int i = 0; i < floor(maximumIterations/saveFrequency); ++i)
-	    {
-	    writeSteps.push_back(i*saveFrequency);
-	    }	
-	}
-    else 
-	{
-        writeSteps = logSpacedIntegers(maximumIterations, 0, 1.0/100.0);
-        }
- 
+    //vector<int> writeSteps = logSpacedIntegers(maximumIterations, 0, 1.0/100.0);
+    //int placeInWriteSteps = 0; 
 
-    int placeInWriteSteps = 0; 
-	
-    /*check what steps you're writing at! Not necessary outside of debug/trajectory locations to timesteps    
-    cout << "writing at steps: " << endl;
-    for (int step: writeSteps) 
-        {
-        printf("%i\n", step); 
-	}
-    */
+    cout << "Running for " << maximumIterations << " steps with dt=" << dt << endl;
+    //cout << "Writing log spaced data to file " << outputFileName << endl;
+
+    cout << "Writing data every " << saveFrequency << " tau" << endl;
     
     double energyState;
     energyState = pairwiseForce->computeEnergy();
     printf("step %i E %.4g\n ", 0, energyState);
-    placeInWriteSteps += 1;
+    double Tsample = (1/dt);
+    //placeInWriteSteps += 1;
 
-    for (int ii = 1; ii < maximumIterations; ++ii)
+    for (int ii = 0; ii <= maximumIterations; ++ii)
         { 
 		
-	timer.start();
-        simulator->performTimestep();        
-        timer.end(); 
-         
-	if(ii == writeSteps[placeInWriteSteps])
+        //Output current step and energy to screen every tau
+        if(ii%(int)(Tsample)==0) 
+            {
+            energyState = pairwiseForce->computeEnergy();
+            cout << "t step\t" << ii << "\tE\t" << energyState << endl;
+            }
+
+        //Write state to file everty saveFrequency tau    
+        if(ii%(int)(saveFrequency*Tsample)==0) 
             {
             saveState.writeState(configuration,dt*ii);
-            energyState = pairwiseForce->computeEnergy();
-            printf("step %i E %.4g\n ",ii, energyState);
-	    placeInWriteSteps += 1;
             }
+
+        timer.start();
+        simulator->performTimestep();        
+        timer.end();     
 	}
 
     timer.print();
 
-    return 0;
+        return 0;
     };
+
+    

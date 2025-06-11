@@ -12,4 +12,5 @@ add_library(model
     openMeshSpace.cpp
     absorbingOpenMeshSpace.cpp
     tangentialOpenMeshSpace.cpp
+    reflectingOpenMeshSpace.cpp
     )

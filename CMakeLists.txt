@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.11.0)
 
 project(curvedSpaceSimulation LANGUAGES CXX)
 
-#note: CGAL (which I will get rid of someday) needs at least c++14; some advanced gcc compilers will throw errors if you don't set the cpp standard to 17, though
 set(CMAKE_CXX_STANDARD 17)
 
 #Release by default
@@ -20,6 +19,7 @@ IF(APPLE)
     set(THREADS_PREFER_PTHREAD_FLAG ON)
 ENDIF()
 
+ENABLE_LANGUAGE(C)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_MATH_DISABLE_FLOAT128 -fopenmp -frounding-math -Wall -Wshadow -Wno-unused-function -Wno-sign-compare")
 
@@ -79,9 +79,11 @@ foreach(ARG
         tangentialSimulation
         absorbingSimulation
 	diffusiveSPPSimulation
+	reflectingSimulation
+	openMIPS
+	closedMIPS
 	)
 
->>>>>>> 4453d215d9e14ee499be29460d73e13c88545436
 add_executable("${ARG}.out" "${ARG}.cpp" )
 target_link_libraries("${ARG}.out"
     ${myLibs}
