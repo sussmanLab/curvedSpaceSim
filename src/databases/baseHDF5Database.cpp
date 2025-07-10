@@ -171,8 +171,6 @@ void baseHDF5Database::extendDataset(std::string name,std::vector<T> &data)
     if(data.size()!= dims[1])
         ERRORERROR("trying to write a vector of the wrong size for the dataset");
 
-    hid_t dataspace = H5Dget_space(dataset.internalId);
-
     //allocate space to extend the dataset
     hsize_t newDimensions[2] = {dims[0]+1,dims[1]};
     H5Dset_extent(dataset.internalId,newDimensions);
