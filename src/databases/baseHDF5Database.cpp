@@ -163,7 +163,7 @@ void baseHDF5Database::extendDataset(std::string name,std::vector<T> &data)
     //get initial dataspace to find dimensions
     hid_t initialDataspace = H5Dget_space(dataset.internalId);
     hsize_t dims[2];
-    herr_t ndims = H5Sget_simple_extent_dims(dataspace,dims,NULL);
+    herr_t ndims = H5Sget_simple_extent_dims(initialDataspace,dims,NULL);
     H5Sclose(initialDataspace);
 
     if(ndims<0)
