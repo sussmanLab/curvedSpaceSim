@@ -135,14 +135,14 @@ void simpleModelDatabase::readState(STATE s, int rec)
     std::vector<int> typeVector(N,0);
     std::vector<int> faceIdx(N,0);
 
-    readDataset("barycentricPosition",baryPos);
-    readDataset("faceIndex",faceIdx);
+    readDataset("barycentricPosition",baryPos,rec);
+    readDataset("faceIndex",faceIdx,rec);
     if(velocity)
-        readDataset("velocity",vel);
+        readDataset("velocity",vel,rec);
     if(force)
-        readDataset("force",forceVector);
+        readDataset("force",forceVector,rec);
     if(type)
-        readDataset("type",typeVector);
+        readDataset("type",typeVector,rec);
 
     for (int ii = 0; ii < N; ++ii)
         {

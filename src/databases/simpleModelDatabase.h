@@ -29,6 +29,9 @@ public:
     //! configuration data.
     virtual void readState(STATE c, int rec);
 
+    //! The number of frames that have been saved so far
+    unsigned long currentNumberOfRecords();
+
 private:
     typedef shared_ptr<simpleModel> STATE;
     int N; //!< number of points
@@ -42,9 +45,6 @@ private:
     std::vector<double> doubleVector;
     //! a vector of length N
     std::vector<int> intVector;
-    //! The number of frames that have been saved so far
-    unsigned long currentNumberOfRecords();
-
     void registerDatasets();
 
     //! flags for whether to save and/or load different data structures
