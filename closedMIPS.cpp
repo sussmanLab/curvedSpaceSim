@@ -122,7 +122,7 @@ int main(int argc, char*argv[])
     
     if (existingTrajectory != "NULL")
         {
-	existingTrajectory = savePath + existingTrajectory; 
+	existingTrajectory = savePath + "/" + existingTrajectory; 
         }
     cout << "existing trajectory is: " << existingTrajectory << endl;
 
@@ -211,7 +211,7 @@ int main(int argc, char*argv[])
 	cout << "Loading saved state, trying to get database dimensions..." << endl;
 	saveState = make_shared<simpleModelDatabase>(N, existingTrajectory, fileMode::readwrite);
 	cout << "save state created, finding nrecords" << endl;
-	long nRecords = saveState->getDatasetDimensions(existingTrajectory);	
+	long nRecords = saveState->currentNumberOfRecords();	
 	cout << "Loading existing trajectory. Number records: " << nRecords << endl; 
 	saveState->readState(configuration, nRecords-1);
 	cout << "Writing additional steps up to maxIterations." << endl;
