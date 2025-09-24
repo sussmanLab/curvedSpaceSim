@@ -29,8 +29,8 @@ class noseHooverNVT : public updater
             setBathVariables();
             };
 
-    //!compute the instantaneous kinetic temperature
-	double getTemperatureFromKE();
+        //!compute the instantaneous kinetic temperature
+        double getTemperatureFromKE();
 
     protected:
         vector<vector3> displacements;

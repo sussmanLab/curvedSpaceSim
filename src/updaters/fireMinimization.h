@@ -26,6 +26,14 @@ class fireMinimization : public velocityVerletNVE
         //!set all of the fire parameters
         void setFIREParameters(int _maximumIterations,double _deltaT, double _alphaStart, double _deltaTMax, double _deltaTMin, double _deltaTInc, double _deltaTDec, double _alphaDec, int _nMin, double _forceCutoff, double _alphaMin = 0.75);
 
+        virtual void setModel(shared_ptr<simpleModel> _model)
+            {
+            model=_model;
+            model->particleShiftsRequireVelocityTransport = true;
+            model->particleShiftsRequireForceTransport = true;
+            initializeFromModel();
+            };
+
         double forceMax;
         double power;
         double forceNorm;

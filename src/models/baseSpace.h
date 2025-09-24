@@ -2,6 +2,7 @@
 #define baseSpace_H
 
 #include "std_include.h"
+#include "debuggingHelp.h"
 #include <vector>
 #include "pointDataType.h"
 #include "cgalIncludesAndTypedefs.h"
@@ -24,19 +25,13 @@ class baseSpace
     {
     public:
         virtual ~baseSpace() = default;
-        //legacy declaration
-	/*
-	//!displace the position of a particle
-        virtual void displaceParticle(meshPosition &pos, vector3 &displacementVector, vector3 &forceVector) = 0;
+        //!displace the position of a particle
+        virtual void displaceParticle(meshPosition &pos, vector3 &displacementVector) = 0;
 
-        //!move a particle and, if necessary, update the associated velocity vector
-        virtual void transportParticleAndVelocity(meshPosition &pos, vector3 &v, vector3 &displacementVector, vector3& forceVector) = 0;
-	*/
-
-	//!all-in-one to move a particle and any accompanying vectors
+        //!all-in-one to move a particle and any accompanying vectors
         virtual void transportParticleAndVectors(meshPosition &pos, vector3 &displacementVector, vector<vector3> &transportVectors) = 0;
-
-        //!Given a source particle and a vector of target points, determine the geodesic distance and store the start and end path tangents along the paths. The tangents are stored as NORMALIZED vectors
+	
+	//!Given a source particle and a vector of target points, determine the geodesic distance and store the start and end path tangents along the paths. The tangents are stored as NORMALIZED vectors
         virtual void distance(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent, double distanceThreshold) = 0;
 
         //given a vector of meshPositions, extract some double3 information

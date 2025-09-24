@@ -40,26 +40,32 @@ void simpleModel::fillEuclideanLocations()
     space->meshPositionToEuclideanLocation(positions,euclideanLocations);
     }
 
+/*!
+ moveParticles currently loops through possible parallel transport flags and fills 
+ a vector of vector3s... if we write more potential quantities to be transported in this way,
+ we should update this structure to something a bit cleaner.
+ */
 void simpleModel::moveParticles(vector<vector3> &disp)
     {
-        for(int ii = 0; ii < N; ++ii)
+    for(int ii = 0; ii < N; ++ii)
 	    {
-	    //cout << "displacing particle " << ii << endl; //debug statement to make sure shifts are finishing
 	    vector<vector3> transports;
-	    if(particleShiftsRequireForceTransport) transports.push_back(forces[ii]);
-            if(particleShiftsRequireVelocityTransport) transports.push_back(velocities[ii]); 
-            space->transportParticleAndVectors(positions[ii],disp[ii], transports);
+	    if(particleShiftsRequireForceTransport)
+            transports.push_back(forces[ii]);
+        if(particleShiftsRequireVelocityTransport)
+            transports.push_back(velocities[ii]); 
+        space->transportParticleAndVectors(positions[ii],disp[ii], transports);
 	    int transportCounter = 0;
 	    if (particleShiftsRequireForceTransport) 
 	        {
-		forces[ii] = transports[transportCounter];
-		transportCounter++;
-		}
+            forces[ii] = transports[transportCounter];
+            transportCounter++;
+            }
 	    if(particleShiftsRequireVelocityTransport)
-		{
-                velocities[ii] = transports[transportCounter];
-		transportCounter++;
-		}
+            {
+            velocities[ii] = transports[transportCounter];
+            transportCounter++;
+            }
 	    }
     };
 
@@ -106,26 +112,6 @@ void simpleModel::findNeighbors(double maximumInteractionRange)
     if(verbose)
         printf("mean number of neighbors = %f\n",meanNN/N);
     };
-
-void simpleModel::findBoundaryParticles(vector<int> &result)
-    {
-    result.reserve(positions.size()/2); //way more than it needs
-    for (int ii = 0; ii < positions.size(); ii++)
-        {
-        faceIndex iiFace = faceIndex(positions[ii].faceIndex);
-        //is_border only works with halfedges, so we need to dig out the associated edges
-        halfedgeIndex hf(tMeshSpace->surface.halfedge(iiFace));
-        for(halfedgeIndex hi : halfedges_around_face(hf, tMeshSpace->surface))
-            {
-            edgeIndex ei = tMeshSpace->surface.edge(hi);
-            if(tMeshSpace->surface.is_border(ei))
-                {
-                result.push_back(ii);
-                break;
-                }
-            }
-        }
-    }
 
 void simpleModel::clampBarycentricCoordinatesToFace(point3 &barycentricWeights)
     {
@@ -227,30 +213,6 @@ void simpleModel::setRandomParticlePositions(noiseSource &noise)
     {
     for(int pp = 0; pp < N; ++pp)
         space->randomPosition(positions[pp], noise);
-    }
-
-void simpleModel::setRandomMeshPositionsNearZero(noiseSource &noise, double range)
-    {
-    vector<faceIndex> permittedFaces;
-    auto facelist = tMeshSpace->surface.faces(); 
-    //go through all faces, and for faces with centers with euclidean range, add them to the allowed faces list
-    for (faceIndex fi: facelist)
-        {
-        vector<point3> vs;
-        vs.reserve(3);
-        getVertexPositionsFromFace(tMeshSpace->surface,fi,vs);
-        //arithmetic isn't possible on point3 with point3, so use a vec until end
-        vector3 centerVec(0,0,0);
-	for (int i = 0; i < 3; i++)
-            {
-            centerVec += vector3(point3(0,0,0), vs[i])/3;
-            }
-        //distance *to the origin* is implicit here -- assuming origin is point3(0,0,0)
-        if (vectorMagnitude(centerVec) < range) permittedFaces.push_back(fi);
-        }
-
-    for (int pp = 0; pp < N; ++pp) tMeshSpace->randomPositionWithinFaces(positions[pp], noise, permittedFaces);
-
     }
 
 /*!

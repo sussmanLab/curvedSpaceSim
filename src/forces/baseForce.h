@@ -2,6 +2,7 @@
 #define baseForce_H
 
 #include "std_include.h"
+#include "debuggingHelp.h"
 #include "simpleModel.h"
 #include "basicSimulation.h"
 

@@ -8,7 +8,6 @@
 #include "noiseSource.h"
 #include "pointDataType.h" //for point 3 and related
 #include "meshUtilities.h" //purely for the r3 position conversions
-#include "triangulatedMeshSpace.h"
 
 /*! \file simpleModel.h
  */
@@ -36,11 +35,6 @@ class simpleModel
             {
             space = _space;
             }
-        virtual void setSpaceAndTMeshSpace(shared_ptr<triangulatedMeshSpace> _space) 
-	    {
-            space = _space;
-	    tMeshSpace = _space;
-	    }
 
         //!Neighbor structures accelerate the process of finding neighbors...if not set, defaults to all-to-all searches
         virtual void setNeighborStructure(shared_ptr<baseNeighborStructure> _structure)
@@ -65,19 +59,12 @@ class simpleModel
         virtual void setMeshPositionsFromR3File(string filename, triangleMesh &mesh);
         //!uses the space to randomly set particle positions...hence, requires that a space is already set
         virtual void setRandomParticlePositions(noiseSource &noise);
-        //!uses specifically an already loaded *tMeshSpace* to randomly set particle positions in faces within (range) of zero.  
-	virtual void setRandomMeshPositionsNearZero(noiseSource &noise, double range);
-	//!Set particle velocities to be drawn from a maxwell-boltzmann distribution
+        //!Set particle velocities to be drawn from a maxwell-boltzmann distribution
         virtual void setMaxwellBoltzmannVelocities(noiseSource &noise, double T);
- 
+
         //!The space the model lives in
         shared_ptr<baseSpace> space;
-        //!For cases where a triangulatedMeshSpace is required, e.g. bounded surfaces -- this will cause us to have duplicate spaces in memory
-	shared_ptr<triangulatedMeshSpace> tMeshSpace;
 
-	//!Determine which particle indices correspond to particles on a boundary, filling the vector result. Only works if a space is set
-	virtual void findBoundaryParticles(vector<int> &result);
-	
         //!The number of particles
         int N;
         //!particle  positions
@@ -109,11 +96,12 @@ class simpleModel
 
         //!optionally turn on some print statements
         void setVerbose(bool v){verbose = v;};
-        //!some updaters require parallel transport of force or velocity vectors
-        bool particleShiftsRequireForceTransport = true;
-	bool particleShiftsRequireVelocityTransport = false;
-        
-        //!tolerance used for barycentricCoordinate clamping 
+        //!some updaters require parallel transport of velocity vectors
+        bool particleShiftsRequireVelocityTransport = false;
+        //!some updaters require parallel transport of force vectors
+	bool particleShiftsRequireForceTransport = false; 
+
+        //!tolerance used for barycentricCoordinate clamping    :with
         double clampTolerance = 0.00000000000001;//10^-14 as a current threshold for numerical tolerance. 
     protected:
         //! a pointer to a data structure that can be used to accelerate finding nearby neighbors

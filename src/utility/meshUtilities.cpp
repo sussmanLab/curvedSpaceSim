@@ -1,4 +1,5 @@
 #include "meshUtilities.h"
+#include "debuggingHelp.h"
 #include "std_include.h"
 
 smspFaceLocation meshPositionToFaceLocation(const meshPosition &p)
@@ -107,10 +108,18 @@ double totalArea(triangleMesh mesh)
     return area;
     };
 
-/*simple clamp function to take barycentric coordinate near the boundary of a face
- *and place it firmly within the face in question. Be careful this is not used when 
- *the barycentric coordinates are/might be very negative, as it can obscure meaningful errors. 
- */
+void projectVectorOntoDirection(vector3 &v, vector3 &direction) 
+    {
+    vector3 dhat = normalize(direction);
+    v = (v*dhat)*dhat;
+    }
+
+void projectVectorOrthogonalToDirection(vector3 &v, vector3 &direction)
+    {
+    vector3 dhat = normalize(direction); 
+    v = v - (v*dhat)*dhat;
+    }
+
 void belowZeroClamp(pmpBarycentricCoordinates &baryPoint, double tol)
     {
     double clampedBarySum = 0;
@@ -125,6 +134,11 @@ void belowZeroClamp(pmpBarycentricCoordinates &baryPoint, double tol)
         }
     }
 
+/*!
+Clamp a barycentric coordinate near zero to the tolerance value, and then make sure the barycentric coordinates sum to one. 
+By default, The near zero clamp is less broadly acting, and keeps bary coords from being within 1e-13 of a boundary 
+because within that distance (either positive or negative), the intersection routine is liable to make errors. 
+ */
 void nearZeroClamp(pmpBarycentricCoordinates &baryPoint, double tol) 
     {
     double clampedBarySum = 0;
@@ -141,6 +155,33 @@ void nearZeroClamp(pmpBarycentricCoordinates &baryPoint, double tol)
         baryPoint[i] = baryPoint[i]/clampedBarySum;
         }
     } 
+
+void clampAndUpdatePosition(pmpBarycentricCoordinates &baryLoc, point3 &r3Loc, faceIndex &sFace, triangleMesh &surface, bool belowZero)
+    {
+    if (belowZero) 
+        belowZeroClamp(baryLoc);
+    else 
+        nearZeroClamp(baryLoc);
+    //update the original point for self-consistency
+    meshPosition updatedMeshPos;
+    updatedMeshPos.x = point3(baryLoc[0], baryLoc[1], baryLoc[2]);
+    updatedMeshPos.faceIndex = sFace;
+    pmpFaceLocation updatedMeshLocation = meshPositionToFaceLocation(updatedMeshPos);
+    r3Loc = PMP::construct_point(updatedMeshLocation, surface);
+    }
+
+void checkBaryNan(pmpBarycentricCoordinates bcoords, string message, int step)
+    {
+    if(bcoords[0] != bcoords[0])
+        {
+        cout << endl;
+        cout << "SHIFT HAS FAILED, TARGET BARY" << endl;
+        cout << "message: " << message << endl;
+        cout << "step: " << step << endl;
+        cout << bcoords[0] << ", " << bcoords[1] << ", " << bcoords[2] << endl;
+        ERRORERROR("Illegal coordinates");
+        }
+    }
 
 /*
 Let a line in barycentric coordinates be 
@@ -309,7 +350,6 @@ void computePathDistanceAndTangents(surfaceMeshShortestPath *smsp, smspFaceLocat
     normalization = sqrt(endPathTangent.squared_length());
     endPathTangent /= normalization;
     }
-
 
 void printPoint(point3 a, bool precise)
     {

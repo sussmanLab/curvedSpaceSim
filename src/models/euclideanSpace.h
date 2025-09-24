@@ -12,12 +12,11 @@ A useful space for debugging, e.g., the force and equation of motion parts of th
 class euclideanSpace : public baseSpace
     {
     public:
-        //legacy declarations
-	//!Simple vector addition of particle displacements
-        virtual void displaceParticle(meshPosition &pos, vector3 &displacementVector, vector3 &force);
-	//!this function is useful in triangulatedMeshSpaces, but meaningless here where transport is trivial
-	virtual void transportParticleAndVectors(meshPosition &pos, vector3 &displacementVector, vector<vector3> &transportVectors); 
-
+        //!Simple vector addition of particle displacements
+        virtual void displaceParticle(meshPosition &pos, vector3 &displacementVector);
+        //!this function is useful in triangulatedMeshSpaces, but meaningless here where transport is trivial
+        virtual void transportParticleAndVectors(meshPosition &pos, vector3 &displacementVector, vector<vector3> &transportVectors); 
+	
         //!Simple vector subtraction for particle separation vectors
         virtual void distance(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent, double distanceThreshold = VERYLARGEDOUBLE);
 

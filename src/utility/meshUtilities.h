@@ -76,10 +76,14 @@ double totalArea(triangleMesh mesh);
 //because within that distance (either positive or negative), the intersection routine is liable to make errors. 
 void belowZeroClamp(pmpBarycentricCoordinates &baryPoint, double tol = 1e-11);
 void nearZeroClamp(pmpBarycentricCoordinates &baryPoint, double tol = 1e-13); 
+//! Transform v by removing any component orthogonal to the direction
+void projectVectorOntoDirection(vector3 &v, vector3 &direction);
+//! Transform v by removing any component parallel to the direction
+void projectVectorOrthogonalToDirection(vector3 &v, vector3 &direction);
+
 
 //!return true if the two lines which pass through the given endpoints intersect between the specified points on both lines. fill in the barycentric location of the intersection point
 bool intersectionOfLinesInBarycentricCoordinates(pmpBarycentricCoordinates line1Start, pmpBarycentricCoordinates line1End, pmpBarycentricCoordinates line2Start, pmpBarycentricCoordinates line2End, pmpBarycentricCoordinates &intersectionPoint);
-
 
 //! specialize the intersectionOfLinesInBarycentricCoordinates function to the case where you care about the intersection of "line2" with a "line1" which goes from one vertex to another (i.e., has barycentric coordinates which are a permutation of (1,0,0))
 bool intersectionBarycentricLinesV1V2(pmpBarycentricCoordinates line2Start, pmpBarycentricCoordinates line2End, pmpBarycentricCoordinates &intersectionPoint);
@@ -97,9 +101,15 @@ void convertBarycentricCoordinates(triangleMesh &mesh1, triangleMesh &mesh2, std
 //! Given the right data structures, compute the geodesic path and start/end tangent vectors between points
 void computePathDistanceAndTangents(surfaceMeshShortestPath *smsp, smspFaceLocation &targetPoint, double &distance, vector3 &startPathTangent, vector3 &endPathTangent);
 
-//!Print to screen the coordinates of a point.
-void printPoint(point3 a, bool precise = false);
-//! print to screen a set of barycentric coordinates
-void printBary(smspBarycentricCoordinates a, bool precise = false);
+//!Print to screen the coordinates of a point, with full precision allowed using precise=true
+void printPoint(point3 a, bool precise=false);
 
+//! print to screen a set of barycentric coordinates, with full precision allowed using precise=true
+void printBary(smspBarycentricCoordinates a, bool precise=false);
+
+//! specialized function to test for NaN in barycentric coordinates, with debugging output
+void checkBaryNan(pmpBarycentricCoordinates bcoords, std::string message = "", int step = 0);
+//! As simple wrappers around controlled clamps
+void clampAndUpdatePosition(pmpBarycentricCoordinates &baryLoc, point3 &r3Loc, faceIndex &sFace, triangleMesh &surface, bool belowZero = false);
+	
 #endif

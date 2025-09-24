@@ -1,15 +1,15 @@
 #include "euclideanSpace.h"
 
-void euclideanSpace::displaceParticle(meshPosition &pos, vector3 &displacementVector, vector3 &force)
+void euclideanSpace::displaceParticle(meshPosition &pos, vector3 &displacementVector)
     {
     pos.x += displacementVector;
     };
 
 void euclideanSpace::transportParticleAndVectors(meshPosition &pos, vector3 &displacementVector, vector<vector3> &transportVectors)
     {
-    pos.x += displacementVector;
-    }    
-
+    displaceParticle(pos,displacementVector);
+    } 
+ 
 void euclideanSpace::meshPositionToEuclideanLocation(std::vector<meshPosition> &p1, std::vector<meshPosition> &result)
     {
     result=p1;

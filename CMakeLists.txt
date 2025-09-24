@@ -35,7 +35,9 @@ message("cxx flags = " "${CMAKE_CXX_FLAGS}")
 
 find_package(CGAL REQUIRED)
 find_package(Boost REQUIRED)
+find_package(HDF5 REQUIRED)
 find_package(MPI REQUIRED)
+
 include_directories(
             ${CMAKE_SOURCE_DIR}/inc
             ${CMAKE_SOURCE_DIR}/src
@@ -73,29 +75,17 @@ foreach(ARG
 	curvedSpaceSimulation
 	multirankSimulation
 	torusCrystallization
-	t_v_n
-	t_v_complexity
-	err_v_complexity
 	computationalTiming
 	curvedSpaceNVTSim
-	manyFIREAnneals
-        EvOmegaR
-	#testAnneal	
-	#annealedCrystallization
-	#cleanAnnealedCrystallization
-	#meshTesting
-	#makeConformalData
-	#confFIREAnneals
-	#siloEnergyChecker
-	#clusterRadiusChecker
-	#ljFIREAnneals
+        
+        multirankSimulation
+        tangentialSimulation
+        absorbingSimulation
 	)
 
 add_executable("${ARG}.out" "${ARG}.cpp" )
 target_link_libraries("${ARG}.out"
     ${myLibs}
-    netcdf
-    netcdf_c++
     #OpenMP::OpenMP_CXX
     CGAL::CGAL
     ${MPI_LIBRARIES}
