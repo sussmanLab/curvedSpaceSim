@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.11.0)
 
-project(curvedSpaceSimulation LANGUAGES CXX)
+project(curvedSpaceSimulation LANGUAGES C CXX)
 
 #note: CGAL (which I will get rid of someday) needs at least c++14; some advanced gcc compilers will throw errors if you don't set the cpp standard to 17, though
 set(CMAKE_CXX_STANDARD 17)
@@ -74,11 +74,7 @@ foreach(ARG
 	flatSpaceSimulation
 	curvedSpaceSimulation
 	multirankSimulation
-	torusCrystallization
-	computationalTiming
 	curvedSpaceNVTSim
-        
-        multirankSimulation
         tangentialSimulation
         absorbingSimulation
 	)

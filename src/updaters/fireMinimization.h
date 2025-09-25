@@ -39,8 +39,6 @@ class fireMinimization : public velocityVerletNVE
         double forceNorm;
         double velocityNorm;
 
-	bool useFWithExclusions = true;
-
     protected:
         int maximumIterations = 1;
         double alphaStart=0.99;

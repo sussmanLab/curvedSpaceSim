@@ -5,13 +5,7 @@ void fireMinimization::minimizeByFire()
     if(displacements.size() != Ndof)
         displacements.resize(Ndof);
     sim->computeForces();
-    if (useFWithExclusions)
-        {
-	vector<int> exclusions; 
-        model->findBoundaryParticles(exclusions);
-        forceMax = getMaxForceWithExclusions(exclusions);
-        }	
-    else forceMax = getMaxForce();
+    forceMax = getMaxForce();
     iterations= 0;
     while((iterations < maximumIterations) && forceMax > forceCutoff)
         {
@@ -20,13 +14,7 @@ void fireMinimization::minimizeByFire()
         velocityVerletSecondHalfStep();
 
         fireStep();
-	if (useFWithExclusions)
-            {
-            vector<int> exclusions2;
-            model->findBoundaryParticles(exclusions2);
-            forceMax = getMaxForceWithExclusions(exclusions2);
-            }
-        else forceMax = getMaxForce();
+        forceMax = getMaxForce();
         }
     //cout << "maximum force is: " << forceMax << endl;
     };
@@ -51,13 +39,7 @@ double fireMinimization::updaterVectorDotProduct(vector<vector3> &v1, vector<vec
 void fireMinimization::fireStep()
     {
     power = 0.0;
-    if (useFWithExclusions)
-        {
-        vector<int> exclusions;
-        model->findBoundaryParticles(exclusions);
-        forceMax = getForceNormWithExclusions(exclusions);
-        }
-    else forceNorm = updaterVectorDotProduct(model->forces,model->forces);
+    forceNorm = updaterVectorDotProduct(model->forces,model->forces);
     velocityNorm = updaterVectorDotProduct(model->velocities,model->velocities);
     power = updaterVectorDotProduct(model->forces,model->velocities);
 

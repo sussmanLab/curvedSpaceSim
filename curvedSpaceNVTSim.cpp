@@ -5,6 +5,7 @@
 #include "profiler.h"
 #include "noiseSource.h"
 #include "triangulatedMeshSpace.h"
+#include "closedMeshSpace.h"
 #include "simulation.h"
 #include "noseHooverNVT.h"
 #include "velocityVerletNVE.h"
@@ -52,7 +53,6 @@ int main(int argc, char*argv[])
     SwitchArg reproducibleSwitch("r","reproducible","reproducible random number generation", cmd, true);
     SwitchArg dangerousSwitch("d","dangerousMeshes","meshes where submeshes are dangerous", cmd, false);
     SwitchArg verboseSwitch("v","verbose","output more things to screen ", cmd, false);
-    SwitchArg tangentialSwitch("c", "tangentialBCs", "use tangential boundary conditions for open surfaces", cmd, false);
 
     //parse the arguments
     cmd.parse( argc, argv );
@@ -70,9 +70,8 @@ int main(int argc, char*argv[])
     bool verbose= verboseSwitch.getValue();
     bool reproducible = reproducibleSwitch.getValue();
     bool dangerous = dangerousSwitch.getValue(); //not used right now
-    bool tangentialBCs = tangentialSwitch.getValue(); 
 
-    shared_ptr<triangulatedMeshSpace> meshSpace=make_shared<triangulatedMeshSpace>();
+    shared_ptr<closedMeshSpace> meshSpace=make_shared<closedMeshSpace>();
     meshSpace->loadMeshFromFile(meshName,verbose);
     meshSpace->useSubmeshingRoutines(false);
    
@@ -81,7 +80,6 @@ int main(int argc, char*argv[])
    
     if(programBranch >0)
         meshSpace->useSubmeshingRoutines(true,maximumInteractionRange,dangerous);
-    meshSpace->useTangentialBCs = tangentialBCs; 
 
     shared_ptr<simpleModel> configuration=make_shared<simpleModel>(N);
     configuration->setVerbose(verbose);
