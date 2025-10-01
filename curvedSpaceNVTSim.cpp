@@ -39,14 +39,14 @@ int main(int argc, char*argv[])
 
     //define the various command line strings that can be passed in...
     //ValueArg<T> variableName("shortflag","longFlag","description",required or not, default value,"value type",CmdLine object to add to
-    ValueArg<int> programBranchSwitchArg("z","programBranchSwitch","an integer controlling program branch",false,0,"int",cmd);
+    ValueArg<int> programBranchSwitchArg("z","programBranchSwitch","an integer controlling program branch",false,1,"int",cmd);
     ValueArg<int> particleNumberSwitchArg("n","number","number of particles to simulate",false,20,"int",cmd);
     ValueArg<int> iterationsArg("i","iterations","number of performTimestep calls to make",false,1000,"int",cmd);
     ValueArg<int> saveFrequencyArg("f","saveFrequency","how often a file gets updated",false,100,"int",cmd);
     ValueArg<int> chainLengthArg("l", "M", "length of N-H chain", false, 2, "int", cmd); 
     ValueArg<int> sourcesArg("k", "nSources", "number of particles to collect ditsances from", false, 1, "int", cmd);
     ValueArg<int> sampleNoArg("c","sampleNo","sample identifier for this set of parameters",false,1,"int",cmd); 
-    ValueArg<string> meshSwitchArg("m","meshSwitch","filename of the mesh you want to load",false,"../exampleMeshes/torus_isotropic_remesh.off","string",cmd);
+    ValueArg<string> meshSwitchArg("m","meshSwitch","filename of the mesh you want to load",false,"../exampleMeshes/sphere_radius1.off","string",cmd);
     ValueArg<string> savePathArg("s","fileSavePath","path to where data will be saved",false,"./","string",cmd);
     ValueArg<double> areaFractionArg("a","areaFraction","percent of mesh area covered by particles",false,1.,"double",cmd);
     ValueArg<double> deltaTArg("e","dt","timestep size",false,.01,"double",cmd);
@@ -117,8 +117,13 @@ int main(int argc, char*argv[])
     profiler timer("various parts of the code");
 
     //by default, the simpleModelDatabase will save euclidean positions, mesh positions (barycentric + faceIdx), and particle velocities. See constructor for saving forces and/or particle types as well
+    string meshFileName= meshName.substr(meshName.find_last_of("/") + 1);
+    string extension = ".off";
+
+    meshFileName = meshFileName.substr(0, meshFileName.size() - extension.size());
+    
     char outputFileName[512];
-    sprintf(outputFileName, "%s/NVT_N%i_areaFraction%.3f_sigma%.3f_tMax%i_mesh_%s_sample%i.h5",savePath.c_str(),N,areaFraction,sigma,tMax, meshName.c_str(),sampleNo);
+    sprintf(outputFileName, "%s/NVT_N%i_areaFraction%.3f_sigma%.3f_tMax%i_mesh_%s_T%.2f_sample%i.h5",savePath.c_str(),N,areaFraction,sigma,tMax, meshFileName.c_str(),temperature,sampleNo);
     std::cout << "Creating new HDF5 file: " << outputFileName << std::endl;
     shared_ptr<simpleModelDatabase> saveState;
     saveState = make_shared<simpleModelDatabase>(N,outputFileName,fileMode::replace); 
