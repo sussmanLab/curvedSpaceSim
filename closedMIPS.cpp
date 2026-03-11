@@ -207,7 +207,6 @@ int main(int argc, char*argv[])
     
     else 
         {
-
 	cout << "Loading saved state, trying to get database dimensions..." << endl;
 	saveState = make_shared<simpleModelDatabase>(N, existingTrajectory, fileMode::readwrite);
 	cout << "save state created, finding nrecords" << endl;
@@ -243,7 +242,7 @@ int main(int argc, char*argv[])
             cout << "t step\t" << ii << "\tE\t" << energyState << endl;
             }
 
-        //Write state to file everty saveFrequency tau    
+        //Write state to file every saveFrequency tau    
         if(ii%(int)(saveFrequency*Tsample)==0) 
             {
             saveState->writeState(configuration,dt*ii);
