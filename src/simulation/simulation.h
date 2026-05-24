@@ -65,6 +65,10 @@ class simulation : public basicSimulation, public enable_shared_from_this<simula
         //!Enforce reproducible dynamics
         void setReproducible(bool reproducible);
 
+        //! Add the outer product of two 3d vectors to an existing flattened 3x3 matrix. Works for double arrays & vector3.
+        void addOuterProduct(const double u[3], const double v[3], double (&result)[9]);
+        void addOuterProduct(const vector3 u, const vector3 v, double (&result)[9]);
+
         //! Compute the current global stress tensor associated with the system.
         void computeMonodisperseStress(vector<double> &stress); 
     };
