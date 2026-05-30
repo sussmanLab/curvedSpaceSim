@@ -84,7 +84,7 @@ int main(int argc, char*argv[])
     ValueArg<int> sampleNoArg("c","sampleNo","sample identifier for this set of parameters",false,1,"int",cmd);
     ValueArg<string> meshSwitchArg("m","meshSwitch","filename of the mesh you want to load",false,"../exampleMeshes/ar3_torusrb10.off","string",cmd);
     ValueArg<string> savePathArg("s","fileSavePath","path to where data will be saved",false,"../ktest_spp_data/","string",cmd); 
-    ValueArg<string> trajectoryFileArg("d","existingTrajectory","name of existing trajectory, if using one", false, "NULL", "string", cmd);
+    ValueArg<int> trajectoryFileArg("d","existingTrajectory","does a trajectory already exist that we should load", false, 0, "string", cmd);
     ValueArg<double> deltaTArg("t","dt","timestep size",false,0.01,"double",cmd);
     ValueArg<double> areaFractionArg("a","areaFraction","extent to which particle areas cover the surface",false,0.4,"double",cmd);
     
@@ -108,7 +108,7 @@ int main(int argc, char*argv[])
     int sampleNo = sampleNoArg.getValue();
     string meshName = meshSwitchArg.getValue();
     string savePath = savePathArg.getValue(); 
-    string existingTrajectory = trajectoryFileArg.getValue(); 
+    int existingTrajectory = trajectoryFileArg.getValue(); 
     double areaFraction = areaFractionArg.getValue();
     double dt = deltaTArg.getValue();
     //double v0 = v0Arg.getValue();
@@ -120,11 +120,13 @@ int main(int argc, char*argv[])
     bool verbose= verboseSwitch.getValue();
     bool reproducible = reproducibleSwitch.getValue();
     
+    /*
     if (existingTrajectory != "NULL")
         {
 	existingTrajectory = savePath + "/" + existingTrajectory; 
         }
     cout << "existing trajectory is: " << existingTrajectory << endl;
+    */
 
     //int PecletNum = floor(Per); //peclet number for later naming
     cout << "Initialize mesh from file " << meshName << endl;
@@ -198,7 +200,7 @@ int main(int argc, char*argv[])
 
     shared_ptr<simpleModelDatabase> saveState;
 
-    if (existingTrajectory == "NULL")
+    if (existingTrajectory == 0)
         { 
         sprintf(outputFileName, "%s/SPP_N%i_Pe%.2f_areaFraction%.3f_k%.5f_sigma%.3f_v%.4f_Dr%.5f_tMax%i_mesh_%s_sample%i.h5",savePath.c_str(),N,Per,areaFraction,stiffness,sigma,v0,Dr,tMax, meshFileName.c_str(),sampleNo);
         std::cout << "Creating new HDF5 file: " << outputFileName << std::endl;
@@ -207,14 +209,15 @@ int main(int argc, char*argv[])
     
     else 
         {
-	cout << "Loading saved state, trying to get database dimensions..." << endl;
-	saveState = make_shared<simpleModelDatabase>(N, existingTrajectory, fileMode::readwrite);
-	cout << "save state created, finding nrecords" << endl;
-	long nRecords = saveState->currentNumberOfRecords();	
-	cout << "Loading existing trajectory. Number records: " << nRecords << endl; 
-	saveState->readState(configuration, nRecords-1);
+        sprintf(outputFileName, "%s/SPP_N%i_Pe%.2f_areaFraction%.3f_k%.5f_sigma%.3f_v%.4f_Dr%.5f_tMax%i_mesh_%s_sample%i.h5",savePath.c_str(),N,Per,areaFraction,stiffness,sigma,v0,Dr,tMax, meshFileName.c_str(),sampleNo);
+        cout << "Trying to load saved state, trying to get database dimensions..." << endl;
+        saveState = make_shared<simpleModelDatabase>(N, outputFileName, fileMode::readwrite);
+        cout << "save state created, finding nrecords" << endl;
+        long nRecords = saveState->currentNumberOfRecords();	
+        cout << "Loading existing trajectory. Number records: " << nRecords << endl; 
+        saveState->readState(configuration, nRecords-1);
 	cout << "Writing additional steps up to maxIterations." << endl;
-	}
+        }
     
     //saveState.writeState(configuration,0);
     //log spaced saving -- MAKE SURE TO PASS LAST ARG AS FLOAT

@@ -82,7 +82,7 @@ int main(int argc, char*argv[])
     ValueArg<int> tMaxArg("i","tMax","number of time units to run the simulation for",false,100,"int",cmd);
     ValueArg<int> saveFrequencyArg("f","saveFrequency","how often a file gets updated",false,100,"int",cmd);
     ValueArg<int> sampleNoArg("c","sampleNo","sample identifier for this set of parameters",false,1,"int",cmd);
-    ValueArg<string> meshSwitchArg("m","meshSwitch","filename of the mesh you want to load",false,"../exampleMeshes/gaussianBump_vx0.500_vy1.000_rbound0.020_dbound0.100.off","string",cmd);
+    ValueArg<string> meshSwitchArg("m","meshSwitch","filename of the mesh you want to load",false,"../novel_meshes/gaussianBump_vx0.500_vy1.000_rbound0.020_dbound0.100.off","string",cmd);
     ValueArg<string> savePathArg("s","fileSavePath","path to where data will be saved",false,"../misc_spp_data/","string",cmd); 
     ValueArg<double> deltaTArg("t","dt","timestep size",false,0.01,"double",cmd);
     ValueArg<double> areaFractionArg("a","areaFraction","extent to which particle areas cover the surface",false,0.6,"double",cmd);
