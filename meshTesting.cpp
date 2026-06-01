@@ -50,9 +50,9 @@ int main(int argc, char*argv[])
         printf("%i %f %i\n",N,dt,maximumIterations);
     noiseSource noise(reproducible);
 
-
 if(programBranch ==1)
 {
+    /*
     //meshSpace might use dangerous submeshing, meshSpace2 won't
     shared_ptr<triangulatedMeshSpace> meshSpace=make_shared<triangulatedMeshSpace>();
     meshSpace->loadMeshFromFile(meshName,verbose);
@@ -98,10 +98,12 @@ if(programBranch ==1)
             printf("i %i\t n1 %i n2 %i\n",ii,n1,n2);
             }
         }
+    */
 }
 
 if(programBranch ==0)
 {
+	/*
         shared_ptr<triangulatedMeshSpace> meshSpace=make_shared<triangulatedMeshSpace>();
         meshSpace->loadMeshFromFile(meshName,verbose);
 
@@ -201,10 +203,12 @@ if(programBranch ==0)
         for (int ii = 0; ii < distances.size(); ++ii)
                 jj += distances[ii] - distancesSubmesh[ii];
         printf("total difference in computed distances between full and submesh routines: %f\n", jj);
+	*/
 }
 //test the throughVertex routine with a known case
     if(programBranch == -1)
     {
+    /*
     meshName = "../exampleMeshes/torus_isotropic_remesh.off"; 
     shared_ptr<triangulatedMeshSpace> meshSpace=make_shared<triangulatedMeshSpace>();
     meshSpace->loadMeshFromFile(meshName,true);
@@ -238,6 +242,7 @@ if(programBranch ==0)
     vector<vector3> emptyVectors;
     meshSpace->transportParticleAndVectors(source, displacement, emptyVectors);
     std::cout << source.faceIndex << ", " << source.x << std::endl;
+    */
     };
 /*
 //spot test of edge intersection detection
@@ -313,5 +318,6 @@ testV[2][0],testV[2][1],testV[2][2]
 );
 p4.print();
  */
+
 return 0;
 };

@@ -27,9 +27,12 @@ class euclideanSpace : public baseSpace
         
         //! just grab a random number in [-.5,.5]^3 for a random position
         virtual void randomPosition(meshPosition &p, noiseSource &noise);
-        //!fills v with a random vector (zero mean unit gaussian in each direction)
+        //! fills v with a random vector (zero mean unit gaussian in each direction)
         virtual void randomVectorAtPosition(meshPosition &p, vector3 &v, noiseSource &noise);
-        
+        //! filler function for rotations in euclidean space
+	virtual void rotateVectorAtPosition(meshPosition &p, vector3 &v, double angle);
+
+
         //!returns 0, but could be changed to something more sensible later TODO
         virtual double getArea(); 
     };

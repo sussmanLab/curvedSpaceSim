@@ -39,8 +39,11 @@ class triangulatedMeshSpace : public baseSpace
         //!Get a random face and a random barycentric location within that face
         virtual void randomPosition(meshPosition &p, noiseSource &noise);
 
-        //!Get a random unit vector in the tangent space of the targget position
+        //!Get a random unit vector in the tangent space of the target position
         virtual void randomVectorAtPosition(meshPosition &p, vector3 &v, noiseSource &noise);
+
+	//!rotate a vector at a given position by angle
+        virtual void rotateVectorAtPosition(meshPosition &p, vector3 &v, double angle);
 
         //!Get the area of the mesh
         virtual double getArea();

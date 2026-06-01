@@ -39,6 +39,12 @@ void euclideanSpace::randomVectorAtPosition(meshPosition &p, vector3 &v, noiseSo
     v= vector3(noise.getRealNormal(), noise.getRealNormal(), noise.getRealNormal());
     }
 
+void euclideanSpace::rotateVectorAtPosition(meshPosition &p, vector3 &v, double angle)
+    {
+    unwrittenCode("Vector rotation in r3 has not been written yet!", __FILE__, __LINE__);
+    }
+
+
 void euclideanSpace::distance(meshPosition &p1, std::vector<meshPosition> &p2, std::vector<double> &distances, std::vector<vector3> &startPathTangent, std::vector<vector3> &endPathTangent, double distanceThreshold)
     {
     int nTargets = p2.size();
