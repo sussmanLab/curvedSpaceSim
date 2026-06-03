@@ -23,24 +23,25 @@ The usage might be something like
 */
 class valueVectorDatabase : public baseHDF5Database
     {
-    public:
-        //!The constructor calls the baseHDF5Database constructor (to handle fileMode stuff), sets data structures, and registers the datasets in the hdf5 file if needed
-        valueVectorDatabase(std::string _filename, unsigned long vectorSize, fileMode::Enum _accessMode = fileMode::readonly);
+public:
+    //! The constructor calls the baseHDF5Database constructor (to handle fileMode stuff), sets data structures, and registers the datasets
+    //! in the hdf5 file if needed
+    valueVectorDatabase(std::string _filename, unsigned long vectorSize, fileMode::Enum _accessMode = fileMode::readonly);
 
-        //! create the two unlimited datasets, "/vector" and "/value", in the hdf5 file
-        void registerDatasets();
-        //! return the number of records in the dataset
-        unsigned long currentNumberOfRecords();
-        //! Append the data passed to this function as a new record in the file
-        void writeState(double val, std::vector<double> &data);
-        //! populate valueVector[0] and dataVector with the values in the corresponding data rows
-        void readState(int record);
+    //! create the two unlimited datasets, "/vector" and "/value", in the hdf5 file
+    void registerDatasets();
+    //! return the number of records in the dataset
+    unsigned long currentNumberOfRecords();
+    //! Append the data passed to this function as a new record in the file
+    void writeState(double val, std::vector<double>& data);
+    //! populate valueVector[0] and dataVector with the values in the corresponding data rows
+    void readState(int record);
 
-        unsigned long maximumVectorSize;
-        //! the zeroth element will be populated after a readState call
-        std::vector<double> valueVector;
-        //! will be populated after a readState call
-        std::vector<double> dataVector;
+    unsigned long maximumVectorSize;
+    //! the zeroth element will be populated after a readState call
+    std::vector<double> valueVector;
+    //! will be populated after a readState call
+    std::vector<double> dataVector;
     };
 
 #endif

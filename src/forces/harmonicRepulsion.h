@@ -14,20 +14,21 @@ is on the agenda
 */
 class harmonicRepulsion : public force
     {
-    public:
-        harmonicRepulsion(double stiffness=1, double monodisperseRange=1, bool _monodisperse = true)
-            {
-            k=stiffness;
-            sigma = monodisperseRange;
-            monodisperse = _monodisperse;
-            maximumInteractionRange = monodisperseRange;
-            };
+public:
+    harmonicRepulsion(double stiffness = 1, double monodisperseRange = 1, bool _monodisperse = true)
+        {
+        k = stiffness;
+        sigma = monodisperseRange;
+        monodisperse = _monodisperse;
+        maximumInteractionRange = monodisperseRange;
+        };
 
-        virtual double pairwiseEnergy(vector3 separation,double distance);
-        virtual vector3 pairwiseForce(vector3 separation,double distance);
-    protected:
-        double k=1;
-        double sigma = 1;
-        bool monodisperse = true;
+    virtual double pairwiseEnergy(vector3 separation, double distance);
+    virtual vector3 pairwiseForce(vector3 separation, double distance);
+
+protected:
+    double k = 1;
+    double sigma = 1;
+    bool monodisperse = true;
     };
 #endif

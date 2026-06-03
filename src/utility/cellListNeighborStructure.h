@@ -1,10 +1,10 @@
 #ifndef cellListNeighborStructure_H
 #define cellListNeighborStructure_H
 
-#include  "baseNeighborStructure.h"
+#include "baseNeighborStructure.h"
 #include "hyperRectangularCellList.h"
 
- /*! \file cellListNeighborStructure.h */
+/*! \file cellListNeighborStructure.h */
 
 /*!
 This neighbor structure partitions euclidean 3D space into cells (determined by
@@ -19,25 +19,28 @@ of candidate particles on disconnected submeshes.
 */
 class cellListNeighborStructure : public baseNeighborStructure
     {
-    public:
-        cellListNeighborStructure(){};
-        //!for convenience, construct via vectors to set the domain size
-        cellListNeighborStructure(double3 minPos, double3 maxPos, double gridSize);
-        //!..or for convenience, construct via a vector of doubles to set the domain size
-        cellListNeighborStructure(std::vector<double> &minPos, std::vector<double> &maxPos, double gridSize);
+public:
+    cellListNeighborStructure() {};
+    //! for convenience, construct via vectors to set the domain size
+    cellListNeighborStructure(double3 minPos, double3 maxPos, double gridSize);
+    //!..or for convenience, construct via a vector of doubles to set the domain size
+    cellListNeighborStructure(std::vector<double>& minPos, std::vector<double>& maxPos, double gridSize);
 
-        virtual void setInteractionRange(double range);
-        //!The initialize call prepares data structures and sorts the particles into cells
-        virtual void initialize(std::vector<meshPosition> &_particles);
+    virtual void setInteractionRange(double range);
+    //! The initialize call prepares data structures and sorts the particles into cells
+    virtual void initialize(std::vector<meshPosition>& _particles);
 
-        virtual double constructCandidateNeighborList(meshPosition &p, int particleIndex, std::vector<int> &candidateNeighborIndices, std::vector<meshPosition> &candidateParticles, int offset = 0);
+    virtual double constructCandidateNeighborList(
+        meshPosition& p, int particleIndex, std::vector<int>& candidateNeighborIndices, std::vector<meshPosition>& candidateParticles,
+        int offset = 0
+    );
 
-    protected:
-        //!Underlying this class is a cell list that partitions space into cells, and can sort particle positions into these cells
-        hyperRectangularCellList cellList;
+protected:
+    //! Underlying this class is a cell list that partitions space into cells, and can sort particle positions into these cells
+    hyperRectangularCellList cellList;
 
-        //!Given a particle position, return a vector of the 27 cells
-        void findCandidateCellList(meshPosition &p, std::vector<int> &cells);
-        double squaredInteractionRange;
+    //! Given a particle position, return a vector of the 27 cells
+    void findCandidateCellList(meshPosition& p, std::vector<int>& cells);
+    double squaredInteractionRange;
     };
 #endif

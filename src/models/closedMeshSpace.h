@@ -10,9 +10,8 @@ are needed
 */
 class closedMeshSpace : public triangulatedMeshSpace
     {
-    public:
-        closedMeshSpace(){};
+public:
+    closedMeshSpace() {};
     };
 
 #endif
-

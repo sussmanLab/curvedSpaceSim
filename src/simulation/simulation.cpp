@@ -25,10 +25,7 @@ void simulation::addForce(ForcePtr _force, ConfigPtr _config)
 /*!
 Set a pointer to the configuration (aka the model)
 */
-void simulation::setConfiguration(ConfigPtr _config)
-    {
-    configuration = _config;
-    };
+void simulation::setConfiguration(ConfigPtr _config) { configuration = _config; };
 
 /*!
 pass a value of dt to all updaters associated with the simulation
@@ -44,7 +41,8 @@ void simulation::setIntegrationTimestep(double dt)
     };
 
 /*!
-Loop over all associated updaters and set reproducible dynamics to the value of the boolean argument. For some updaters this will do nothing. For any updater that uses a random number generator, it will ask that updater to use a fixed (specific) seed.
+Loop over all associated updaters and set reproducible dynamics to the value of the boolean argument. For some updaters this will do
+nothing. For any updater that uses a random number generator, it will ask that updater to use a fixed (specific) seed.
 */
 void simulation::setReproducible(bool reproducible)
     {
@@ -66,15 +64,15 @@ void simulation::computeForces()
     for (unsigned int f = 0; f < forceComputers.size(); ++f)
         {
         auto frc = forceComputers[f].lock();
-        bool zeroForces = (f==0);
-        frc->computeForces(Conf->forces,zeroForces);
+        bool zeroForces = (f == 0);
+        frc->computeForces(Conf->forces, zeroForces);
         };
     };
 
 /*!
 Calls the configuration to displace the degrees of freedom
 */
-void simulation::moveParticles(vector<vector3> &displacements)
+void simulation::moveParticles(vector<vector3>& displacements)
     {
     auto Conf = configuration.lock();
     Conf->moveParticles(displacements);
@@ -88,7 +86,7 @@ void simulation::performTimestep()
     integerTimestep += 1;
     Time += integrationTimestep;
 
-    //perform any updates, one of which should probably be an EOM
+    // perform any updates, one of which should probably be an EOM
     for (int u = 0; u < updaters.size(); ++u)
         {
         auto upd = updaters[u].lock();
@@ -120,10 +118,10 @@ void simulation::addOuterProduct(const vector3 u, const vector3 v, double (&resu
  * sigma = (1/2) rho kb <(vi outer vi)> + <f_ij outer dr_ij>/(2*d*V), d = 2 (for a surface). 
  * Modifies a (flattened) 3x3 array expressing the Euclidean stress tensor on the surface, "stress". 
  * Note that the tangent spaces of different particles pairs are different, and so some questions
- * about the interpretation of this global stress tensor remain. For the pressure (i.e., the 
+ * about the interpretation of this global stress tensor remain. For the pressure (i.e., the
  * tensor's trace) this is not an issue.
  */
-void simulation::computeMonodisperseStress(vector<double> &stress) 
+void simulation::computeMonodisperseStress(vector<double>& stress)
     {
     //note: locks are tools to prevent disparate threads from accessing the same
     //object simultaneously.  
