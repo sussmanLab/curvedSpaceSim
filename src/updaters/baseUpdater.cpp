@@ -4,9 +4,9 @@
 void updater::Update(int timestep)
     {
     iterations = timestep;
-    if (maxIterations >0 && maxIterations < iterations)
+    if (maxIterations > 0 && maxIterations < iterations)
         return;
-    if(Period <= 0 || (Period >0 && (timestep+Phase) % Period == 0))
+    if (Period <= 0 || (Period > 0 && (timestep + Phase) % Period == 0))
         performUpdate();
     };
 
@@ -27,12 +27,8 @@ double updater::getForceNorm()
         {
         forceNorm[0] += model->forces[ii].squared_length();
         }
-    //define a lambda which is just addition
-    sim->manipulateUpdaterData(forceNorm,
-                         [](double x, double y)-> double
-                                        {
-                                        return x+y;
-                                        });
+    // define a lambda which is just addition
+    sim->manipulateUpdaterData(forceNorm, [](double x, double y) -> double { return x + y; });
     squaredTotalForceNorm = forceNorm[0];
     return sqrt(squaredTotalForceNorm);
     };
@@ -51,12 +47,8 @@ double updater::getMaxForce()
         if (currentNormSquared > maxNorm[0])
             maxNorm[0] = currentNormSquared;
         }
-    //define a lambda which is just the max operation
-    sim->manipulateUpdaterData(maxNorm,
-                         [](double x, double y)-> double
-                                        {
-                                        return std::max(x,y);
-                                        });
+    // define a lambda which is just the max operation
+    sim->manipulateUpdaterData(maxNorm, [](double x, double y) -> double { return std::max(x, y); });
     maximumForceNorm = sqrt(maxNorm[0]);
     return maximumForceNorm;
     };

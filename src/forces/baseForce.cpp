@@ -9,20 +9,20 @@ this function executes the double loop and calls the child class to compute the
 specific pairwise force between the particles.  Note that computeForces expects
 the neighborVectors to all be *unit vectors*
 */
-void force::computeForces(vector<vector3> &forces,bool zeroOutForce, int type)
+void force::computeForces(vector<vector3>& forces, bool zeroOutForce, int type)
     {
-    if(forces.size() != model->N)
+    if (forces.size() != model->N)
         forces.resize(model->N);
     model->findNeighbors(maximumInteractionRange);
 
     for (int ii = 0; ii < model->N; ++ii)
         {
-        if(zeroOutForce)
-            forces[ii] = vector3(0.0,0.0,0.0);
+        if (zeroOutForce)
+            forces[ii] = vector3(0.0, 0.0, 0.0);
         int neighborNumber = model->neighbors[ii].size();
         for (int jj = 0; jj < neighborNumber; ++jj)
             {
-            forces[ii] += pairwiseForce(model->neighborVectors[ii][jj],model->neighborDistances[ii][jj]);
+            forces[ii] += pairwiseForce(model->neighborVectors[ii][jj], model->neighborDistances[ii][jj]);
             }
         }
     };
@@ -38,7 +38,7 @@ double force::computeEnergy(bool verbose)
         {
         int neighborNumber = model->neighbors[ii].size();
         for (int jj = 0; jj < neighborNumber; ++jj)
-            energy += pairwiseEnergy(model->neighborVectors[ii][jj],model->neighborDistances[ii][jj]);
+            energy += pairwiseEnergy(model->neighborVectors[ii][jj], model->neighborDistances[ii][jj]);
         }
     return energy;
     };

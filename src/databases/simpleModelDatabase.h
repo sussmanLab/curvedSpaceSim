@@ -14,12 +14,10 @@ stored
 class simpleModelDatabase : public baseHDF5Database
     {
 public:
-    simpleModelDatabase(int numberOfParticles,
-                        string fn = "temp.h5",
-                        fileMode::Enum _mode = fileMode::readonly,
-                        bool saveVelocities = true,
-                        bool saveTypes = false,
-                        bool saveForces = false);
+    simpleModelDatabase(
+        int numberOfParticles, string fn = "temp.h5", fileMode::Enum _mode = fileMode::readonly, bool saveVelocities = true,
+        bool saveTypes = false, bool saveForces = false
+    );
 
     //! Write the current state of the system to the database. If the default value of "rec=-1" is used, just append the
     //! current state to a new record at the end of the database

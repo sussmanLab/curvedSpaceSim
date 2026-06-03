@@ -1,8 +1,8 @@
 #ifndef mpiSIMULATION_H
 #define mpiSIMULATION_H
 
-#include "simulation.h"
 #include "mpiModel.h"
+#include "simulation.h"
 #include <mpi.h>
 
 /*! \file mpiSimulation.h */
@@ -24,42 +24,39 @@ that splitting up just this task among ranks is a reasonable first choice.
 */
 class mpiSimulation : public simulation
     {
-    public:
-        mpiSimulation(int _myRank,int _totalRanks)
-            {
-            myRank = _myRank;
-            totalRanks=_totalRanks;
-            }
-        //!Most importantly, moveParticles is modified to also invoke MPI communication between ranks
-        virtual void moveParticles(vector<vector3> &displacements);
+public:
+    mpiSimulation(int _myRank, int _totalRanks)
+        {
+        myRank = _myRank;
+        totalRanks = _totalRanks;
+        }
+    //! Most importantly, moveParticles is modified to also invoke MPI communication between ranks
+    virtual void moveParticles(vector<vector3>& displacements);
 
-        //! synchronize mpi and make transfer buffers
-        virtual void synchronizeAndTransferBuffers();
+    //! synchronize mpi and make transfer buffers
+    virtual void synchronizeAndTransferBuffers();
 
-        shared_ptr<mpiSimulation> getPointer()
-            {
-            return dynamic_pointer_cast<mpiSimulation>(simulation::shared_from_this());
-            }
+    shared_ptr<mpiSimulation> getPointer() { return dynamic_pointer_cast<mpiSimulation>(simulation::shared_from_this()); }
 
-        //!The configuration
-        weak_ptr<mpiModel> mConfiguration;
+    //! The configuration
+    weak_ptr<mpiModel> mConfiguration;
 
-        //!Pass in a reference to the configuration
-        void setConfiguration(shared_ptr<mpiModel> _config);
+    //! Pass in a reference to the configuration
+    void setConfiguration(shared_ptr<mpiModel> _config);
 
-        //! manipulate data from updaters, communicating this information to all ranks
-        virtual void manipulateUpdaterData(vector<double> &data, function<double(double, double)> manipulatingFunction);
+    //! manipulate data from updaters, communicating this information to all ranks
+    virtual void manipulateUpdaterData(vector<double>& data, function<double(double, double)> manipulatingFunction);
 
-        //!TODO: saving MPI state data is currently not implemented through the simulation class...
-        void saveState(string fname);
+    //! TODO: saving MPI state data is currently not implemented through the simulation class...
+    void saveState(string fname);
 
-        virtual void reportSelf(){cout << "in the mpi simulation class" << endl;};
+    virtual void reportSelf() { cout << "in the mpi simulation class" << endl; };
 
-    protected:
-        MPI_Status mpiStatus;
-        vector<MPI_Status> mpiStatuses;
-        vector<MPI_Request> mpiRequests;
-        vector<double> dataBuffer;
-        bool transfersUpToDate;
+protected:
+    MPI_Status mpiStatus;
+    vector<MPI_Status> mpiStatuses;
+    vector<MPI_Request> mpiRequests;
+    vector<double> dataBuffer;
+    bool transfersUpToDate;
     };
 #endif

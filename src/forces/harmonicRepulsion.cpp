@@ -1,12 +1,12 @@
 #include "harmonicRepulsion.h"
 
-double harmonicRepulsion::pairwiseEnergy(vector3 separation,double distance)
+double harmonicRepulsion::pairwiseEnergy(vector3 separation, double distance)
     {
     double ans = 0;
-    if(monodisperse)
+    if (monodisperse)
         {
-        if(distance < sigma)
-            ans = 0.5*k*(sigma-distance)*(sigma-distance);
+        if (distance < sigma)
+            ans = 0.5 * k * (sigma - distance) * (sigma - distance);
         }
     else
         {
@@ -15,15 +15,15 @@ double harmonicRepulsion::pairwiseEnergy(vector3 separation,double distance)
     return ans;
     };
 
-//note that computeForces expects neighbor vectors to be *unit vectors*   
-vector3 harmonicRepulsion::pairwiseForce(vector3 separation,double distance)
+// note that computeForces expects neighbor vectors to be *unit vectors*
+vector3 harmonicRepulsion::pairwiseForce(vector3 separation, double distance)
     {
-    vector3 ans = vector3(0.0,0.0,0.0);
-    if(monodisperse)
+    vector3 ans = vector3(0.0, 0.0, 0.0);
+    if (monodisperse)
         {
-        if(distance <= sigma)
+        if (distance <= sigma)
             {
-            ans = -k*(sigma-distance)*separation;
+            ans = -k * (sigma - distance) * separation;
             }
         }
     else
