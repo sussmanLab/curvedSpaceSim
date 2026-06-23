@@ -250,7 +250,8 @@ triangulatedMeshSpace::throughVertex(vertexIndex& intersectedVertex, vector3& to
     point3 vi_r3 = surface.point(intersectedVertex);
 
     // determine what vertex should be the starting vertex for the angle measurement as
-    // the next vertex from the intersected one (guaranteeing it's in the original face)
+    // the next vertex from the intersected one (guaranteeing it's in the original face
+    // and in the direction the vectors are traversed)
     vertexIndex startingVertex;
 
     // if we know what the source face is, this guarantees the first edge
@@ -523,10 +524,23 @@ void triangulatedMeshSpace::transportParticleAndVectors(meshPosition& pos, vecto
                 ERRORERROR("Surface is meant to be closed, but a border vertex was encountered.");
             else
                 {
+
+                //Find the duplicate vertex in involvedVertex - this is the vertex that is being intersected
+                sort(involvedVertex.begin(),involvedVertex.end()); //Sort the vector
+                vertexIndex intersectedVertex; 
+
+                for(int nn =1 ; nn < involvedVertex.size(); ++nn)
+                   {
+                   if(involvedVertex[nn-1]==involvedVertex[nn])
+                       {
+                       intersectedVertex = involvedVertex[nn];
+                       break;
+                       }
+                    }
+
                 updateForVertexIntersection(
                     sourceBarycentricLocation, sourcePoint, currentSourceFace, target, displacementVector, currentSourceNormal,
-                    vertexPositions, transportVectors, lastUsedHalfedge, involvedVertex[0], toIntersection
-                );
+                    vertexPositions, transportVectors, lastUsedHalfedge, intersectedVertex, toIntersection);
                 continue;
                 }
             }
@@ -565,7 +579,7 @@ void triangulatedMeshSpace::transportParticleAndVectors(meshPosition& pos, vecto
 
 void triangulatedMeshSpace::updateForVertexIntersection(
     pmpBarycentricCoordinates& sourceBCs, point3& sourcePoint, faceIndex& sourceFace, point3& target, vector3& displacementVector,
-    vector3& sourceNormal, vector<point3> vertexPositions, vector<vector3>& transportVectors, halfedgeIndex& lastUsedHalfedge,
+    vector3& sourceNormal, vector<point3>& vertexPositions, vector<vector3>& transportVectors, halfedgeIndex& lastUsedHalfedge,
     vertexIndex intersectedV, vector3 toIntersection
 )
     {

@@ -241,8 +241,9 @@ bool intersectionBarycentricLinesV1V2(
     intersectionPoint[0] = line2Start[0] + intersectionScale2 * (line2End[0] - line2Start[0]);
     intersectionPoint[1] = line2Start[1] + intersectionScale2 * (line2End[1] - line2Start[1]);
     intersectionPoint[2] = line2Start[2] + intersectionScale2 * (line2End[2] - line2Start[2]);
-    return (intersectionScale1 >= 0 && intersectionScale1 <= 1 && intersectionScale2 >= 0 && intersectionScale2 <= 1);
+    return (intersectionScale1 >= -THRESHOLD && intersectionScale1 <= 1+THRESHOLD && intersectionScale2 > 0 && intersectionScale2 < 1);    
     };
+    
 bool intersectionBarycentricLinesV2V3(
     pmpBarycentricCoordinates line2Start, pmpBarycentricCoordinates line2End, pmpBarycentricCoordinates& intersectionPoint
 )
@@ -259,8 +260,9 @@ bool intersectionBarycentricLinesV2V3(
     intersectionPoint[0] = line2Start[0] + intersectionScale2 * (line2End[0] - line2Start[0]);
     intersectionPoint[1] = line2Start[1] + intersectionScale2 * (line2End[1] - line2Start[1]);
     intersectionPoint[2] = line2Start[2] + intersectionScale2 * (line2End[2] - line2Start[2]);
-    return (intersectionScale1 >= 0 && intersectionScale1 <= 1 && intersectionScale2 >= 0 && intersectionScale2 <= 1);
+    return (intersectionScale1 >= -THRESHOLD && intersectionScale1 <= 1+THRESHOLD && intersectionScale2 > 0 && intersectionScale2 < 1);    
     };
+
 bool intersectionBarycentricLinesV3V1(
     pmpBarycentricCoordinates line2Start, pmpBarycentricCoordinates line2End, pmpBarycentricCoordinates& intersectionPoint
 )
@@ -277,7 +279,7 @@ bool intersectionBarycentricLinesV3V1(
     intersectionPoint[0] = line2Start[0] + intersectionScale2 * (line2End[0] - line2Start[0]);
     intersectionPoint[1] = line2Start[1] + intersectionScale2 * (line2End[1] - line2Start[1]);
     intersectionPoint[2] = line2Start[2] + intersectionScale2 * (line2End[2] - line2Start[2]);
-    return (intersectionScale1 >= 0 && intersectionScale1 <= 1 && intersectionScale2 >= 0 && intersectionScale2 <= 1);
+    return (intersectionScale1 >= -THRESHOLD && intersectionScale1 <= 1+THRESHOLD && intersectionScale2 > 0 && intersectionScale2 < 1);    
     };
 
 bool findTriangleEdgeIntersectionInformation(

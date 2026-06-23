@@ -105,7 +105,7 @@ protected:
 
     virtual void updateForVertexIntersection(
         pmpBarycentricCoordinates& sourceBCs, point3& sourcePoint, faceIndex& sourceFace, point3& target, vector3& displacementVector,
-        vector3& sourceNormal, vector<point3> vertexPositions, vector<vector3>& transportVectors, halfedgeIndex& lastUsedHalfedge,
+        vector3& sourceNormal, vector<point3>& vertexPositions, vector<vector3>& transportVectors, halfedgeIndex& lastUsedHalfedge,
         vertexIndex intersectedV, vector3 toIntersection
     );
 
