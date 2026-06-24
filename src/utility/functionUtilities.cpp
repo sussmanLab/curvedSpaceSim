@@ -35,8 +35,13 @@ double angleBetween(vector3 v1, vector3 v2)
     {
     v1 = normalize(v1);
     v2 = normalize(v2);
-    double oneDotTwo = CGAL::scalar_product(v1, v2);
-    return acos(oneDotTwo);
+    double oneDotTwo = CGAL::scalar_product(v1,v2);
+    double angle;
+
+    if(oneDotTwo >= 1) angle = 0;
+    else if(oneDotTwo <= -1 ) angle = M_PI;
+    else angle = acos(oneDotTwo);
+    return angle;
     }
 
 int wrap(int x, int m)
