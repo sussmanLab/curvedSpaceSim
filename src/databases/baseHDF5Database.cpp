@@ -1,6 +1,6 @@
-#include "baseHDF5Database.h"
 #include "H5Dpublic.h"
 #include "H5Ppublic.h"
+#include "baseHDF5Database.h"
 #include "debuggingHelp.h"
 #include "fileManipulation.h"
 
@@ -113,9 +113,15 @@ baseHDF5Database::baseHDF5Database(std::string _filename, fileMode::Enum _access
         createDirectoriesOnPath(filename);
         hdf5File = H5Fcreate(filename.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
         };
+    if (hdf5File < 0)
+        ERRORERROR("HDF5 failed to open or create file\n");
     };
 
-baseHDF5Database::~baseHDF5Database() { H5Fclose(hdf5File); };
+baseHDF5Database::~baseHDF5Database() 
+    {
+    if (hdf5File >= 0)
+        H5Fclose(hdf5File);
+    };
 
 template<typename T> void baseHDF5Database::addHeaderData(std::string name, const std::vector<T>& data)
     {

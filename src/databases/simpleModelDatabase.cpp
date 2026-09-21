@@ -28,7 +28,8 @@ simpleModelDatabase::simpleModelDatabase(
         };
     if (mode == fileMode::readwrite)
         {
-        if (currentNumberOfRecords() == 0)
+        htri_t exists = H5Lexists(hdf5File, "time", H5P_DEFAULT);
+        if (exists <=0)
             registerDatasets();
         };
     logMessage(logger::verbose, "modelDatabase initialized");
